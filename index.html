@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>資産ノート | 月1回の総資産管理</title>
+<title>月イチ資産ノート</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 :root{
   --bg:#f5f3ee;
@@ -16,10 +17,6 @@
   --gold:#b9935a;
   --green:#2f8f66;
   --red:#c25b5b;
-  --blue:#477cff;
-  --purple:#8b6cf6;
-  --cyan:#22b8cf;
-  --orange:#f59f00;
   --shadow:0 24px 80px rgba(24,32,42,.10);
 }
 
@@ -29,23 +26,22 @@ body{
   margin:0;
   background:
     radial-gradient(circle at 10% 0%,rgba(185,147,90,.18),transparent 28%),
-    radial-gradient(circle at 100% 10%,rgba(71,124,255,.10),transparent 24%),
     var(--bg);
   color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
 }
 
 .app{
-  max-width:1180px;
-  margin:0 auto;
-  padding:22px 14px 80px;
+  max-width:1120px;
+  margin:auto;
+  padding:20px 14px 86px;
 }
 
 .header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  gap:16px;
+  gap:12px;
   padding:10px 0 18px;
 }
 
@@ -61,82 +57,55 @@ body{
   border-radius:16px;
   display:grid;
   place-items:center;
-  color:white;
   background:linear-gradient(135deg,var(--navy),#3b4658);
-  box-shadow:var(--shadow);
+  color:white;
   font-weight:900;
 }
 
 .brand small{
   display:block;
   color:var(--muted);
-  margin-top:2px;
   font-size:12px;
+  margin-top:2px;
 }
 
-.month-select{
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.72);
-  border-radius:999px;
-  padding:11px 14px;
-  color:var(--ink);
-  font-weight:700;
-}
-
-.hero{
-  display:grid;
-  grid-template-columns:1.45fr .8fr;
-  gap:16px;
-}
-
-.hero-card,.panel,.mini-card{
-  background:rgba(255,250,241,.88);
-  border:1px solid rgba(255,255,255,.75);
-  border-radius:28px;
+.panel,.hero,.mini{
+  background:rgba(255,250,241,.9);
+  border:1px solid rgba(255,255,255,.78);
+  border-radius:26px;
   box-shadow:var(--shadow);
   backdrop-filter:blur(14px);
 }
 
-.hero-card{
+.hero{
   padding:26px;
-  background:
-    linear-gradient(135deg,rgba(24,32,42,.98),rgba(42,52,67,.94));
+  background:linear-gradient(135deg,rgba(24,32,42,.98),rgba(42,52,67,.94));
   color:white;
-  overflow:hidden;
   position:relative;
+  overflow:hidden;
 }
 
-.hero-card:after{
+.hero:after{
   content:"";
   position:absolute;
-  right:-60px;
-  top:-80px;
-  width:220px;
-  height:220px;
+  right:-70px;
+  top:-90px;
+  width:230px;
+  height:230px;
   border-radius:50%;
   background:rgba(185,147,90,.25);
-}
-
-.eyebrow{
-  color:#d9bd8e;
-  font-size:11px;
-  letter-spacing:.22em;
-  font-weight:900;
-  margin:0 0 12px;
 }
 
 .hero-top{
   display:flex;
   justify-content:space-between;
-  gap:12px;
+  gap:10px;
   color:rgba(255,255,255,.62);
   position:relative;
   z-index:1;
 }
 
 .pill{
-  display:inline-flex;
-  align-items:center;
   padding:7px 11px;
   border-radius:999px;
   background:rgba(255,255,255,.10);
@@ -148,9 +117,9 @@ body{
 
 .total{
   display:block;
-  font-size:clamp(42px,7vw,72px);
+  font-size:clamp(42px,8vw,72px);
   letter-spacing:-.06em;
-  margin:16px 0 20px;
+  margin:16px 0;
   position:relative;
   z-index:1;
 }
@@ -165,7 +134,6 @@ body{
 
 .hero-metrics div{
   background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.10);
   border-radius:18px;
   padding:14px;
 }
@@ -179,80 +147,22 @@ body{
   margin-top:6px;
 }
 
-.summary{
-  padding:24px;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
+.grid{
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:14px;
+  margin-top:14px;
 }
-
-.summary h2,.panel h2{
-  margin:6px 0 0;
-  font-size:22px;
-  letter-spacing:-.03em;
-}
-
-.summary p{
-  color:var(--muted);
-  line-height:1.8;
-}
-
-.ai-box{
-  background:#f0eadf;
-  border-radius:20px;
-  padding:16px;
-  line-height:1.7;
-  color:#475160;
-}
-
-.pos{color:var(--green)!important}
-.neg{color:var(--red)!important}
 
 .kpis{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  gap:14px;
-  margin:16px 0;
-}
-
-.mini-card{
-  padding:20px;
-}
-
-.mini-card span{
-  color:var(--muted);
-  font-size:13px;
-}
-
-.mini-card b{
-  display:block;
-  font-size:28px;
-  letter-spacing:-.04em;
-  margin:8px 0 4px;
-}
-
-.mini-card small{
-  color:var(--muted);
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:1.25fr .85fr;
-  gap:16px;
-  margin:16px 0;
-}
-
-.panel{
-  padding:22px;
-  overflow:hidden;
-}
-
-.panel-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
   gap:12px;
-  margin-bottom:18px;
+  margin-top:14px;
+}
+
+.panel,.mini{
+  padding:20px;
 }
 
 .label{
@@ -263,23 +173,38 @@ body{
   margin:0;
 }
 
-canvas{
-  width:100%!important;
-  max-height:330px;
+h1{
+  margin:0;
+  font-size:20px;
 }
 
-.form-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:14px;
+h2{
+  font-size:22px;
+  margin:6px 0 16px;
+  letter-spacing:-.03em;
 }
 
-input,select,button{
+.mini span{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.mini b{
+  display:block;
+  font-size:26px;
+  margin:8px 0 4px;
+  letter-spacing:-.04em;
+}
+
+.mini small{
+  color:var(--muted);
+}
+
+.input,select,button{
   font:inherit;
 }
 
-.input{
+.input,select{
   width:100%;
   border:1px solid var(--line);
   background:white;
@@ -302,9 +227,21 @@ input,select,button{
   color:#20170b;
 }
 
-.asset-list{
+.form{
   display:grid;
   gap:10px;
+}
+
+.two{
+  grid-template-columns:1fr 1fr;
+  display:grid;
+  gap:10px;
+}
+
+.note{
+  color:var(--muted);
+  line-height:1.7;
+  font-size:13px;
 }
 
 .asset-row{
@@ -322,9 +259,8 @@ input,select,button{
   border-radius:999px;
 }
 
-.asset-row span{
+.asset-row small{
   color:var(--muted);
-  font-size:13px;
 }
 
 .bar{
@@ -341,40 +277,71 @@ input,select,button{
   border-radius:999px;
 }
 
-.report{
-  line-height:1.9;
-  color:#475160;
+.actions{
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
 }
 
-.report ul{
-  margin:8px 0 0;
-  padding-left:1.2em;
+.delete,.edit{
+  border:1px solid rgba(24,32,42,.10);
+  padding:8px 10px;
+  border-radius:12px;
+  font-size:12px;
+  cursor:pointer;
+  background:white;
+}
+
+.delete{
+  background:#fff0ee;
+  color:var(--red);
+  border:1px solid rgba(194,91,91,.18);
+}
+
+canvas{
+  width:100%!important;
+  max-height:320px;
+}
+
+.report{
+  line-height:1.85;
+  color:#475160;
 }
 
 .report b{
   color:var(--ink);
 }
 
-.table-wrap{
-  overflow:auto;
+.pos{
+  color:var(--green)!important;
 }
 
-table{
-  width:100%;
-  border-collapse:collapse;
-  min-width:680px;
+.neg{
+  color:var(--red)!important;
 }
 
-th,td{
-  padding:14px;
-  border-bottom:1px solid var(--line);
-  text-align:left;
+.goal-box{
+  margin-top:14px;
+  padding:16px;
+  border-radius:18px;
+  background:rgba(255,255,255,.10);
+  position:relative;
+  z-index:1;
 }
 
-th{
-  color:var(--muted);
-  font-size:12px;
-  letter-spacing:.08em;
+.goal-bar{
+  height:10px;
+  background:rgba(255,255,255,.16);
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:10px;
+}
+
+.goal-bar i{
+  display:block;
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(135deg,#d9bd8e,#fff3c4);
 }
 
 .footer-nav{
@@ -384,7 +351,6 @@ th{
   transform:translateX(-50%);
   width:min(520px,92vw);
   background:rgba(24,32,42,.88);
-  border:1px solid rgba(255,255,255,.12);
   border-radius:999px;
   padding:8px;
   display:grid;
@@ -412,136 +378,148 @@ th{
 @media(max-width:860px){
   .app{padding:16px 12px 90px}
   .header{align-items:flex-start}
-  .brand strong{font-size:16px}
-  .hero,.grid,.kpis{grid-template-columns:1fr}
-  .hero-metrics{grid-template-columns:1fr}
-  .form-grid{grid-template-columns:1fr}
-  .panel,.hero-card,.summary,.mini-card{border-radius:22px}
+  .grid,.kpis,.hero-metrics,.two{grid-template-columns:1fr}
+  .panel,.hero,.mini{border-radius:22px}
 }
 </style>
 </head>
 
 <body>
 <div class="app">
-  <header class="header">
-    <div class="brand">
-      <div class="logo">資</div>
-      <div>
-        <strong>資産ノート</strong>
-        <small>月1回、5分だけ。我が家の総資産を見える化。</small>
-      </div>
+
+<header class="header">
+  <div class="brand">
+    <div class="logo">資</div>
+    <div>
+      <h1>月イチ資産ノート</h1>
+      <small>カテゴリを自由に作って、月1回だけ総資産を記録。</small>
     </div>
-    <select class="month-select">
-      <option>2026年04月末</option>
-    </select>
-  </header>
+  </div>
+  <span class="pill" id="latestMonthPill">-</span>
+</header>
 
-  <section class="hero" id="home">
-    <div class="hero-card">
-      <div class="hero-top">
-        <span>Current Financial Assets</span>
-        <span class="pill">2026年04月末</span>
-      </div>
-      <strong class="total">¥7,156,754</strong>
-      <div class="hero-metrics">
-        <div><small>前月比</small><b class="pos">+¥483,870</b></div>
-        <div><small>記録開始比</small><b class="pos">+¥2,183,984</b></div>
-        <div><small>最高残高</small><b>¥8,257,449</b></div>
-      </div>
+<section class="hero" id="home">
+  <div class="hero-top">
+    <span>Current Net Assets</span>
+    <span class="pill">ブラウザ保存版</span>
+  </div>
+
+  <strong class="total" id="totalDisplay">¥0</strong>
+
+  <div class="hero-metrics">
+    <div>
+      <small>前月比</small>
+      <b id="momDisplay">-</b>
     </div>
-
-    <div class="summary">
-      <div>
-        <p class="label">MONTHLY COMMENT</p>
-        <h2>今月の資産サマリー</h2>
-      </div>
-      <p>2026年04月末の金融資産は、前月比で大きく回復。DC・持株会・NASDAQが増加を牽引しています。</p>
-      <div class="ai-box">
-        <b>AIメモ：</b>預金比率は9.0%と低め。投資・退職資産中心の構成なので、生活防衛資金の目安も一緒に管理するとより実用的です。
-      </div>
+    <div>
+      <small>カテゴリ数</small>
+      <b id="categoryCount">-</b>
     </div>
-  </section>
-
-  <section class="kpis">
-    <div class="mini-card"><span>預金比率</span><b>9.0%</b><small>¥644,667</small></div>
-    <div class="mini-card"><span>DC＋持株会</span><b>73.1%</b><small>¥5,232,622</small></div>
-    <div class="mini-card"><span>投信・株式等</span><b>15.6%</b><small>¥1,116,045</small></div>
-    <div class="mini-card"><span>暗号資産</span><b>2.3%</b><small>¥163,420</small></div>
-  </section>
-
-  <section class="grid" id="charts">
-    <div class="panel">
-      <div class="panel-head">
-        <div><p class="label">TREND</p><h2>総資産推移</h2></div>
-      </div>
-      <canvas id="trendChart"></canvas>
+    <div>
+      <small>最大カテゴリ</small>
+      <b id="largestCategory">-</b>
     </div>
+  </div>
 
-    <div class="panel">
-      <div class="panel-head">
-        <div><p class="label">ALLOCATION</p><h2>資産構成</h2></div>
-      </div>
-      <canvas id="allocationChart"></canvas>
+  <div class="goal-box">
+    <small>目標資産：¥10,000,000</small>
+    <b id="goalProgressText">-</b>
+    <div class="goal-bar">
+      <i id="goalProgressBar" style="width:0%"></i>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section class="grid" id="input">
-    <div class="panel">
-      <div class="panel-head">
-        <div><p class="label">INPUT</p><h2>月次資産を入力</h2></div>
-      </div>
-      <div class="form-grid">
-        <input class="input" id="monthInput" placeholder="例：2026/05">
-        <input class="input" id="amountInput" placeholder="総資産額">
-        <button class="btn btn-gold" onclick="addMonth()">総資産を追加</button>
-        <button class="btn" onclick="resetData()">初期データに戻す</button>
-      </div>
-      <p style="color:var(--muted);line-height:1.7">入力した総資産はブラウザ内に保存されます。まずは個人利用のMVPとして使えます。</p>
-    </div>
+<section class="kpis">
+  <div class="mini">
+    <span>現金・預金系</span>
+    <b id="cashRatio">-</b>
+    <small id="cashAmount">-</small>
+  </div>
+  <div class="mini">
+    <span>投資系</span>
+    <b id="investRatio">-</b>
+    <small id="investAmount">-</small>
+  </div>
+  <div class="mini">
+    <span>退職資産系</span>
+    <b id="retireRatio">-</b>
+    <small id="retireAmount">-</small>
+  </div>
+  <div class="mini">
+    <span>その他</span>
+    <b id="otherRatio">-</b>
+    <small id="otherAmount">-</small>
+  </div>
+</section>
 
-    <div class="panel">
-      <div class="panel-head">
-        <div><p class="label">CATEGORY</p><h2>2026年04月末 内訳</h2></div>
-      </div>
-      <div class="asset-list" id="assetList"></div>
-    </div>
-  </section>
+<section class="grid" id="charts">
+  <div class="panel">
+    <p class="label">TREND</p>
+    <h2>総資産推移</h2>
+    <canvas id="trendChart"></canvas>
+  </div>
 
-  <section class="grid" id="report">
-    <div class="panel report">
-      <p class="label">AI MONTHLY ANALYSIS</p>
-      <h2>AI月次分析</h2>
-      <ul>
-        <li>2026年04月末の金融資産は <b>¥7,156,754</b>。前月比は <b class="pos">+¥483,870</b> です。</li>
-        <li>増加寄与は <b>確定拠出年金</b>、<b>持株会</b>、<b>NASDAQ</b> が中心です。</li>
-        <li>預金比率は <b>9.0%</b>。長期資産形成に寄ったポートフォリオです。</li>
-      </ul>
+  <div class="panel">
+    <p class="label">ALLOCATION</p>
+    <h2>最新月の資産構成</h2>
+    <canvas id="allocationChart"></canvas>
+  </div>
+</section>
+
+<section class="grid" id="input">
+  <div class="panel">
+    <p class="label">MONTHLY INPUT</p>
+    <h2>月次データを入力</h2>
+
+    <div class="form">
+      <input class="input" id="monthInput" placeholder="対象月 例：2026/05">
+      <div id="categoryInputs"></div>
+      <button class="btn btn-gold" onclick="saveMonth()">この月の資産を保存</button>
+      <button class="btn" onclick="resetAll()">初期データに戻す</button>
     </div>
 
-    <div class="panel report">
-      <p class="label">PORTFOLIO REPORT</p>
-      <h2>保有資産レポート</h2>
-      <ul>
-        <li>記録開始から直近まで、総資産は <b class="pos">+¥2,183,984</b> 増加しています。</li>
-        <li>最高残高は <b>2025年12月末：¥8,257,449</b> です。</li>
-        <li>DC＋持株会は <b>73.1%</b>。資産形成の中心になっています。</li>
-      </ul>
-    </div>
-  </section>
+    <p class="note">
+      カテゴリごとの金額を入れると、自動で合計・構成比・グラフが更新されます。
+    </p>
+  </div>
 
-  <section class="panel">
-    <div class="panel-head">
-      <div><p class="label">DETAIL</p><h2>資産内訳テーブル</h2></div>
+  <div class="panel">
+    <p class="label">CATEGORY SETTING</p>
+    <h2>カテゴリを自由に設定</h2>
+
+    <div class="two">
+      <input class="input" id="newCategoryName" placeholder="例：楽天証券、現金、住宅ローン">
+      <select id="newCategoryType">
+        <option value="cash">現金・預金系</option>
+        <option value="invest">投資系</option>
+        <option value="retire">退職資産系</option>
+        <option value="other">その他</option>
+      </select>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>資産</th><th>金額</th><th>割合</th><th>前月比</th></tr>
-        </thead>
-        <tbody id="detailTable"></tbody>
-      </table>
-    </div>
-  </section>
+
+    <button class="btn" style="margin-top:10px;width:100%" onclick="addCategory()">
+      カテゴリを追加
+    </button>
+
+    <div id="categoryList" style="margin-top:12px"></div>
+  </div>
+</section>
+
+<section class="grid" id="report">
+  <div class="panel report">
+    <p class="label">AI MONTHLY ANALYSIS</p>
+    <h2>AI風 月次分析</h2>
+    <div id="monthlyReport"></div>
+  </div>
+
+  <div class="panel report">
+    <p class="label">DETAIL</p>
+    <h2>最新月の内訳</h2>
+    <div id="assetList"></div>
+  </div>
+</section>
+
 </div>
 
 <nav class="footer-nav">
@@ -552,116 +530,503 @@ th{
 </nav>
 
 <script>
-const yen = n => new Intl.NumberFormat('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}).format(n);
-const colors = ['#b9935a','#477cff','#2f8f66','#8b6cf6','#22b8cf','#f59f00','#c25b5b'];
+const yen = n =>
+  new Intl.NumberFormat('ja-JP',{
+    style:'currency',
+    currency:'JPY',
+    maximumFractionDigits:0
+  }).format(n || 0);
 
-const defaultLabels = ['2025/02','03','04','05','06','07','08','09','10','11','12','2026/01','02','03','04'];
-const defaultTotals = [4972770,4908101,5214204,5897636,7391463,7617247,7419663,7347519,7412161,7367206,8257449,7081607,7205492,6672884,7156754];
-
-let labels = JSON.parse(localStorage.getItem('assetLabels') || JSON.stringify(defaultLabels));
-let totals = JSON.parse(localStorage.getItem('assetTotals') || JSON.stringify(defaultTotals));
-
-const allocation = [
-  ['確定拠出年金',2941357,41.1,290968],
-  ['持株会',2291265,32.0,139705],
-  ['預金',644667,9.0,-171720],
-  ['NASDAQ',605254,8.5,117505],
-  ['インド',510791,7.1,84858],
-  ['Bitcoin',102871,1.4,20775],
-  ['Doge',60549,0.8,1779],
+const colors = [
+  '#b9935a',
+  '#477cff',
+  '#2f8f66',
+  '#8b6cf6',
+  '#22b8cf',
+  '#f59f00',
+  '#c25b5b',
+  '#7c8594',
+  '#12b886',
+  '#e64980'
 ];
 
-let trendChart = new Chart(document.getElementById('trendChart'), {
-  type:'line',
-  data:{
-    labels,
-    datasets:[{
-      label:'総資産',
-      data:totals,
-      borderColor:'#b9935a',
-      backgroundColor:'rgba(185,147,90,.16)',
-      fill:true,
-      tension:.35,
-      pointRadius:3,
-      pointHoverRadius:6
-    }]
+const typeNames = {
+  cash:'現金・預金系',
+  invest:'投資系',
+  retire:'退職資産系',
+  other:'その他'
+};
+
+const defaultCategories = [
+  {name:'預金', type:'cash'},
+  {name:'NASDAQ', type:'invest'},
+  {name:'インド', type:'invest'},
+  {name:'Bitcoin', type:'invest'},
+  {name:'Doge', type:'invest'},
+  {name:'確定拠出年金', type:'retire'},
+  {name:'持株会', type:'invest'}
+];
+
+const defaultRecords = [
+  {
+    month:'2026/01',
+    values:{
+      預金:1117299,
+      NASDAQ:403268,
+      インド:372283,
+      Bitcoin:79540,
+      Doge:76878,
+      確定拠出年金:2878084,
+      持株会:2154255
+    }
   },
-  options:{
-    responsive:true,
-    plugins:{legend:{display:false}},
-    scales:{
-      x:{grid:{display:false}},
-      y:{ticks:{callback:v=>Math.round(v/10000)+'万'}}
+  {
+    month:'2026/02',
+    values:{
+      預金:1011660,
+      NASDAQ:435617,
+      インド:418854,
+      Bitcoin:64783,
+      Doge:56357,
+      確定拠出年金:2845990,
+      持株会:2372231
+    }
+  },
+  {
+    month:'2026/03',
+    values:{
+      預金:816387,
+      NASDAQ:487749,
+      インド:425933,
+      Bitcoin:82096,
+      Doge:58770,
+      確定拠出年金:2650389,
+      持株会:2151560
+    }
+  },
+  {
+    month:'2026/04',
+    values:{
+      預金:644667,
+      NASDAQ:605254,
+      インド:510791,
+      Bitcoin:102871,
+      Doge:60549,
+      確定拠出年金:2941357,
+      持株会:2291265
     }
   }
-});
+];
 
-new Chart(document.getElementById('allocationChart'), {
-  type:'doughnut',
-  data:{
-    labels:allocation.map(x=>x[0]),
-    datasets:[{
-      data:allocation.map(x=>x[1]),
-      backgroundColor:colors,
-      borderWidth:0
-    }]
-  },
-  options:{
-    cutout:'68%',
-    plugins:{legend:{position:'bottom'}}
+let categories =
+  JSON.parse(localStorage.getItem('categories') || JSON.stringify(defaultCategories));
+
+let records =
+  JSON.parse(localStorage.getItem('records') || JSON.stringify(defaultRecords));
+
+let trendChart;
+let allocationChart;
+
+function saveState(){
+  localStorage.setItem('categories', JSON.stringify(categories));
+  localStorage.setItem('records', JSON.stringify(records));
+}
+
+function totalOf(record){
+  if(!record) return 0;
+  return categories.reduce((sum,c)=>{
+    return sum + Number(record.values[c.name] || 0);
+  },0);
+}
+
+function latestRecord(){
+  return records[records.length - 1];
+}
+
+function render(){
+  records.sort((a,b)=>a.month.localeCompare(b.month));
+
+  const latest = latestRecord();
+  const prev = records[records.length - 2];
+
+  const total = totalOf(latest);
+  const prevTotal = prev ? totalOf(prev) : 0;
+  const mom = prev ? total - prevTotal : 0;
+  const momRate = prevTotal ? mom / prevTotal * 100 : 0;
+
+  const entries = categories
+    .map(c=>({
+      ...c,
+      amount:Number(latest.values[c.name] || 0)
+    }))
+    .sort((a,b)=>b.amount - a.amount);
+
+  const largest = entries[0];
+
+  document.getElementById('latestMonthPill').textContent = latest.month;
+  document.getElementById('totalDisplay').textContent = yen(total);
+
+  document.getElementById('momDisplay').innerHTML =
+    `<span class="${mom >= 0 ? 'pos' : 'neg'}">
+      ${mom >= 0 ? '+' : ''}${yen(mom)}
+      ${prev ? `（${momRate >= 0 ? '+' : ''}${momRate.toFixed(1)}%）` : ''}
+    </span>`;
+
+  document.getElementById('categoryCount').textContent = categories.length + '件';
+  document.getElementById('largestCategory').textContent = largest ? largest.name : '-';
+
+  renderGoal(total);
+  renderTypeKpis(latest,total);
+  renderCategoryInputs(latest);
+  renderCategoryList();
+  renderAssetList(entries,total);
+  renderReport(entries,total,mom,momRate);
+  renderCharts();
+}
+
+function renderGoal(total){
+  const goal = 10000000;
+  const progress = total / goal * 100;
+  const width = Math.min(progress,100);
+
+  document.getElementById('goalProgressText').textContent =
+    `${progress.toFixed(1)}% 達成`;
+
+  document.getElementById('goalProgressBar').style.width = width + '%';
+}
+
+function renderTypeKpis(latest,total){
+  const sums = {
+    cash:0,
+    invest:0,
+    retire:0,
+    other:0
+  };
+
+  categories.forEach(c=>{
+    sums[c.type] += Number(latest.values[c.name] || 0);
+  });
+
+  ['cash','invest','retire','other'].forEach(type=>{
+    const amount = sums[type];
+    document.getElementById(type + 'Ratio').textContent =
+      total ? (amount / total * 100).toFixed(1) + '%' : '-';
+
+    document.getElementById(type + 'Amount').textContent = yen(amount);
+  });
+}
+
+function renderCategoryInputs(latest){
+  document.getElementById('monthInput').value = latest.month;
+
+  document.getElementById('categoryInputs').innerHTML =
+    categories.map(c=>`
+      <div style="margin-bottom:10px">
+        <label style="font-size:13px;color:var(--muted)">
+          ${c.name}
+        </label>
+        <input
+          class="input amount-input"
+          data-category="${c.name}"
+          value="${latest.values[c.name] || ''}"
+          placeholder="${c.name}の金額">
+      </div>
+    `).join('');
+}
+
+function renderCategoryList(){
+  document.getElementById('categoryList').innerHTML =
+    categories.map((c,i)=>`
+      <div class="asset-row">
+        <span class="dot" style="background:${colors[i % colors.length]}"></span>
+
+        <div>
+          <b>${c.name}</b><br>
+          <small>${typeNames[c.type]}</small>
+        </div>
+
+        <div class="actions">
+          <button class="edit" onclick="renameCategory('${c.name}')">
+            編集
+          </button>
+          <button class="delete" onclick="deleteCategory('${c.name}')">
+            削除
+          </button>
+        </div>
+      </div>
+    `).join('');
+}
+
+function renderAssetList(entries,total){
+  document.getElementById('assetList').innerHTML =
+    entries.map((e,i)=>{
+      const ratio = total ? e.amount / total * 100 : 0;
+
+      return `
+        <div class="asset-row">
+          <span class="dot" style="background:${colors[i % colors.length]}"></span>
+
+          <div>
+            <b>${e.name}</b><br>
+            <small>${typeNames[e.type]}</small>
+            <div class="bar">
+              <i style="width:${ratio}%;background:${colors[i % colors.length]}"></i>
+            </div>
+          </div>
+
+          <div style="text-align:right">
+            <b>${yen(e.amount)}</b><br>
+            <small>${ratio.toFixed(1)}%</small>
+          </div>
+        </div>
+      `;
+    }).join('');
+}
+
+function renderReport(entries,total,mom,momRate){
+  const top = entries[0];
+
+  const cash = entries
+    .filter(e=>e.type === 'cash')
+    .reduce((s,e)=>s + e.amount,0);
+
+  const invest = entries
+    .filter(e=>e.type === 'invest')
+    .reduce((s,e)=>s + e.amount,0);
+
+  const retire = entries
+    .filter(e=>e.type === 'retire')
+    .reduce((s,e)=>s + e.amount,0);
+
+  const cashRatio = total ? cash / total * 100 : 0;
+  const investRatio = total ? invest / total * 100 : 0;
+  const retireRatio = total ? retire / total * 100 : 0;
+
+  let cashComment = '';
+  if(cashRatio > 45){
+    cashComment = '現金比率がやや高めです。投資余力を検討できる状態です。';
+  }else if(cashRatio < 15){
+    cashComment = '現金比率が低めです。生活防衛資金の確認が必要です。';
+  }else{
+    cashComment = '現金比率は比較的バランスが取れています。';
   }
-});
 
-function renderAssets(){
-  document.getElementById('assetList').innerHTML = allocation.map((a,i)=>`
-    <div class="asset-row">
-      <span class="dot" style="background:${colors[i]}"></span>
-      <div>
-        <b>${a[0]}</b>
-        <div class="bar"><i style="width:${a[2]}%;background:${colors[i]}"></i></div>
-      </div>
-      <div style="text-align:right">
-        <b>${yen(a[1])}</b><br>
-        <span>${a[2]}%</span>
-      </div>
-    </div>
-  `).join('');
+  let growthComment = '';
+  if(mom > 0){
+    growthComment = `前月比はプラスで、資産形成は順調です。増加率は${momRate.toFixed(1)}%です。`;
+  }else if(mom < 0){
+    growthComment = `前月比はマイナスです。相場要因か支出要因かを確認すると改善点が見えます。`;
+  }else{
+    growthComment = '前月比は横ばいです。';
+  }
 
-  document.getElementById('detailTable').innerHTML = allocation.map((a,i)=>`
-    <tr>
-      <td><span class="dot" style="background:${colors[i]};vertical-align:middle;margin-right:8px"></span><b>${a[0]}</b></td>
-      <td>${yen(a[1])}</td>
-      <td>${a[2]}%</td>
-      <td class="${a[3]>=0?'pos':'neg'}">${a[3]>=0?'+':''}${yen(a[3])}</td>
-    </tr>
-  `).join('');
+  document.getElementById('monthlyReport').innerHTML = `
+    <ul>
+      <li>
+        最新月の総資産は <b>${yen(total)}</b>、
+        前月比は
+        <b class="${mom >= 0 ? 'pos' : 'neg'}">
+          ${mom >= 0 ? '+' : ''}${yen(mom)}
+          （${momRate >= 0 ? '+' : ''}${momRate.toFixed(1)}%）
+        </b>
+        です。
+      </li>
+
+      <li>
+        最大カテゴリは <b>${top ? top.name : '-'}</b> で、
+        構成比は <b>${total && top ? (top.amount / total * 100).toFixed(1) : 0}%</b> です。
+      </li>
+
+      <li>
+        現金・預金系は <b>${yen(cash)}</b>。
+        ${cashComment}
+      </li>
+
+      <li>
+        投資系は <b>${yen(invest)}</b>、
+        退職資産系は <b>${yen(retire)}</b> です。
+      </li>
+
+      <li>
+        ${growthComment}
+      </li>
+    </ul>
+  `;
 }
 
-function addMonth(){
-  const m = document.getElementById('monthInput').value;
-  const a = Number(String(document.getElementById('amountInput').value).replace(/,/g,''));
-  if(!m || !a){ alert('月と金額を入力してください'); return; }
+function renderCharts(){
+  const labels = records.map(r=>r.month);
+  const totals = records.map(r=>totalOf(r));
 
-  labels.push(m);
-  totals.push(a);
-  localStorage.setItem('assetLabels', JSON.stringify(labels));
-  localStorage.setItem('assetTotals', JSON.stringify(totals));
+  const latest = latestRecord();
 
-  trendChart.data.labels = labels;
-  trendChart.data.datasets[0].data = totals;
-  trendChart.update();
+  const entries = categories
+    .map(c=>({
+      name:c.name,
+      amount:Number(latest.values[c.name] || 0)
+    }))
+    .filter(e=>e.amount > 0);
 
-  document.getElementById('monthInput').value = '';
-  document.getElementById('amountInput').value = '';
+  if(trendChart) trendChart.destroy();
+  if(allocationChart) allocationChart.destroy();
+
+  trendChart = new Chart(document.getElementById('trendChart'), {
+    type:'line',
+    data:{
+      labels,
+      datasets:[{
+        data:totals,
+        borderColor:'#b9935a',
+        backgroundColor:'rgba(185,147,90,.16)',
+        fill:true,
+        tension:.35,
+        pointRadius:3
+      }]
+    },
+    options:{
+      plugins:{
+        legend:{display:false}
+      },
+      scales:{
+        x:{
+          grid:{display:false}
+        },
+        y:{
+          ticks:{
+            callback:v=>Math.round(v / 10000) + '万'
+          }
+        }
+      }
+    }
+  });
+
+  allocationChart = new Chart(document.getElementById('allocationChart'), {
+    type:'doughnut',
+    data:{
+      labels:entries.map(e=>e.name),
+      datasets:[{
+        data:entries.map(e=>e.amount),
+        backgroundColor:entries.map((_,i)=>colors[i % colors.length]),
+        borderWidth:0
+      }]
+    },
+    options:{
+      cutout:'68%',
+      plugins:{
+        legend:{
+          position:'bottom'
+        }
+      }
+    }
+  });
 }
 
-function resetData(){
-  localStorage.removeItem('assetLabels');
-  localStorage.removeItem('assetTotals');
-  location.reload();
+function addCategory(){
+  const name = document.getElementById('newCategoryName').value.trim();
+  const type = document.getElementById('newCategoryType').value;
+
+  if(!name){
+    alert('カテゴリ名を入力してください');
+    return;
+  }
+
+  if(categories.some(c=>c.name === name)){
+    alert('同じカテゴリ名があります');
+    return;
+  }
+
+  categories.push({name,type});
+
+  records.forEach(r=>{
+    if(r.values[name] === undefined){
+      r.values[name] = 0;
+    }
+  });
+
+  document.getElementById('newCategoryName').value = '';
+
+  saveState();
+  render();
 }
 
-renderAssets();
+function renameCategory(oldName){
+  const newName = prompt('新しいカテゴリ名を入力してください', oldName);
+
+  if(!newName || newName === oldName) return;
+
+  if(categories.some(c=>c.name === newName)){
+    alert('同じカテゴリ名があります');
+    return;
+  }
+
+  categories.forEach(c=>{
+    if(c.name === oldName){
+      c.name = newName;
+    }
+  });
+
+  records.forEach(r=>{
+    r.values[newName] = r.values[oldName] || 0;
+    delete r.values[oldName];
+  });
+
+  saveState();
+  render();
+}
+
+function deleteCategory(name){
+  if(!confirm(name + ' を削除しますか？')) return;
+
+  categories = categories.filter(c=>c.name !== name);
+
+  records.forEach(r=>{
+    delete r.values[name];
+  });
+
+  saveState();
+  render();
+}
+
+function saveMonth(){
+  const month = document.getElementById('monthInput').value.trim();
+
+  if(!month){
+    alert('対象月を入力してください');
+    return;
+  }
+
+  const values = {};
+
+  document.querySelectorAll('.amount-input').forEach(input=>{
+    values[input.dataset.category] =
+      Number(String(input.value).replace(/,/g,'')) || 0;
+  });
+
+  const existing = records.find(r=>r.month === month);
+
+  if(existing){
+    existing.values = values;
+  }else{
+    records.push({month,values});
+  }
+
+  saveState();
+  render();
+}
+
+function resetAll(){
+  if(!confirm('初期データに戻しますか？')) return;
+
+  localStorage.removeItem('categories');
+  localStorage.removeItem('records');
+
+  categories = JSON.parse(JSON.stringify(defaultCategories));
+  records = JSON.parse(JSON.stringify(defaultRecords));
+
+  render();
+}
+
+render();
 </script>
 </body>
 </html>
