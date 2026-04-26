@@ -424,6 +424,49 @@ canvas{width:100%!important;max-height:350px}
   grid-template-columns:1fr 1fr;
 }
 
+
+/* v5 refinements */
+.panel,.hero{border-color:rgba(255,255,255,.9)}
+.panel{box-shadow:0 18px 54px rgba(23,32,43,.08)}
+.btn,.statement-tabs button,.page-switch button{transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease}
+.btn:hover,.statement-tabs button:hover,.page-switch button:hover{transform:translateY(-1px)}
+.ai-section-comment ul{
+  margin:8px 0 0;
+  padding-left:18px;
+}
+.ai-section-comment li{
+  margin:5px 0;
+}
+.ai-badge{
+  display:inline-flex;
+  align-items:center;
+  padding:3px 8px;
+  border-radius:999px;
+  background:rgba(185,147,90,.16);
+  color:#6a522a;
+  font-size:11px;
+  font-weight:950;
+  margin-right:6px;
+}
+.plan-assumption-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin:10px 0 12px;
+}
+.pdf-action{
+  display:flex;
+  justify-content:flex-end;
+  margin:14px 0 0;
+}
+@media print{
+  body{background:white!important}
+  .footer-nav,.page-switch,.actions,.composition-action,.ai-toggle-btn,.pdf-action,.top-actions{display:none!important}
+  .app{padding:0!important;max-width:100%!important}
+  .hero,.panel{box-shadow:none!important;break-inside:avoid;border:1px solid #ddd!important}
+  .page.hidden{display:block!important}
+}
+
 </style>
 </head>
 <body>
@@ -458,7 +501,6 @@ canvas{width:100%!important;max-height:350px}
   <span class="total-label" id="netAssetLabel">NET ASSETS</span>
   <div class="total-line">
     <strong class="total" id="netAssetDisplay">¥0</strong>
-    <span class="total-change" id="netAssetChangeDisplay">-</span>
   </div>
 
   <div class="hero-metrics">
@@ -532,6 +574,7 @@ canvas{width:100%!important;max-height:350px}
     <div id="statementBody"></div>
     <button class="ai-toggle-btn" onclick="toggleAiComment('statementAiComment')">AIコメントを見る</button>
     <div class="ai-section-comment" id="statementAiComment"></div>
+    <div class="pdf-action"><button class="btn btn-light" onclick="exportMonthlyPdf()">個人決算レポートをPDF出力</button></div>
   </div>
 
   <div class="panel panel-clean report" id="report">
@@ -560,8 +603,8 @@ canvas{width:100%!important;max-height:350px}
         <div>
           <label class="small-label">比較対象</label>
           <select id="benchmarkTarget" onchange="saveBenchmarkSettings(); renderBenchmark();">
-            <option value="assets">個人資産額（資産合計）</option>
-            <option value="net">純資産</option>
+            <option value="assets">金融資産ベース（資産合計）</option>
+            <option value="net">純資産ベース</option>
           </select>
         </div>
       </div>
@@ -718,7 +761,7 @@ let categories = [];
 let records = [];
 let statementView = 'bs';
 let benchmarkSettings = {age:27, household:'couple', basis:'median', target:'assets'};
-let planSettings = {target:30000000, years:5};
+let planSettings = {target:30000000, years:5, annualReturn:3, annualBonus:0};
 let trendChart = null;
 let allocationChart = null;
 
@@ -899,7 +942,7 @@ function setAiComment(id, html){
 
 function renderTrendAiComment(){
   if(records.length < 2){
-    setAiComment('trendAiComment','<b>AIコメント：</b>月次データを2ヶ月以上入力すると、純資産の成長トレンドを分析できます。');
+    setAiComment('trendAiComment','<b>AIコメント</b><ul><li><span class="ai-badge">良い点</span>月次データを蓄積する準備ができています。</li><li><span class="ai-badge">注意点</span>2ヶ月以上のデータがないとトレンド判断はできません。</li><li><span class="ai-badge">次にやること</span>まずは前月・当月の2ヶ月分を入力しましょう。</li></ul>');
     return;
   }
   const latest = latestRecord();
@@ -911,9 +954,14 @@ function renderTrendAiComment(){
   const totalGrowth = latestNet - firstNet;
   const mom = latestNet - prevNet;
   const monthlyAvg = (latestNet - firstNet) / Math.max(records.length-1,1);
-  const direction = mom >= 0 ? '増加' : '減少';
+  const good = totalGrowth >= 0 ? `初回記録から <b class="pos">+${yen(totalGrowth)}</b> と純資産は成長しています。` : `初回記録から <b class="neg">${yen(totalGrowth)}</b> と純資産は減少しています。`;
+  const caution = mom >= 0 ? `直近月も <b class="pos">+${yen(mom)}</b> で、短期トレンドは良好です。` : `直近月は <b class="neg">${yen(mom)}</b> で、減少要因の確認が必要です。`;
   setAiComment('trendAiComment',
-    `<b>AIコメント：</b>初回記録から純資産は <b class="${totalGrowth>=0?'pos':'neg'}">${totalGrowth>=0?'+':''}${yen(totalGrowth)}</b>。直近月は前月比で <b class="${mom>=0?'pos':'neg'}">${mom>=0?'+':''}${yen(mom)}</b> と${direction}しています。月次平均では <b>${yen(monthlyAvg)}</b> のペースで推移しています。`
+    `<b>AIコメント</b><ul>
+      <li><span class="ai-badge">良い点</span>${good}</li>
+      <li><span class="ai-badge">注意点</span>${caution}</li>
+      <li><span class="ai-badge">次にやること</span>月次平均 <b>${yen(monthlyAvg)}</b> を基準に、来月の目標増加額を設定しましょう。</li>
+    </ul>`
   );
 }
 
@@ -926,12 +974,14 @@ function renderCompositionAiComment(){
   const cashRatio = assets ? cash/assets*100 : 0;
   const investRatio = assets ? invest/assets*100 : 0;
   const retireRatio = assets ? retire/assets*100 : 0;
-  let msg = '現金・投資・退職資産のバランスを毎月見ることで、流動性と成長性の両方を確認できます。';
-  if(cashRatio > 45) msg = '現金比率が高めです。生活防衛資金を確保できている一方、長期の投資余力もありそうです。';
-  if(cashRatio < 15) msg = '現金比率が低めです。短期支出や急な出費に備える余力を確認しましょう。';
-  if(investRatio > 55) msg = '投資比率が高めです。成長性はありますが、相場変動時の下振れリスクも意識したい構成です。';
+  const good = investRatio + retireRatio >= 50 ? `投資・退職資産の合計が <b>${(investRatio+retireRatio).toFixed(1)}%</b> あり、成長資産を持てています。` : `現金比率が一定あり、流動性は確保されています。`;
+  const caution = cashRatio < 15 ? `現金比率が <b>${cashRatio.toFixed(1)}%</b> と低めです。急な支出への備えを確認しましょう。` : `現金比率は <b>${cashRatio.toFixed(1)}%</b> です。過剰な現金滞留がないか確認しましょう。`;
   setAiComment('compositionAiComment',
-    `<b>AIコメント：</b>資産合計に対して、現金・預金系は <b>${cashRatio.toFixed(1)}%</b>、投資系は <b>${investRatio.toFixed(1)}%</b>、退職資産系は <b>${retireRatio.toFixed(1)}%</b> です。${msg}`
+    `<b>AIコメント</b><ul>
+      <li><span class="ai-badge">良い点</span>${good}</li>
+      <li><span class="ai-badge">注意点</span>${caution}</li>
+      <li><span class="ai-badge">次にやること</span>現金・投資・退職資産の目安比率を決め、毎月の資産構成を比較しましょう。</li>
+    </ul>`
   );
 }
 
@@ -942,11 +992,14 @@ function renderStatementAiComment(){
   const net = netAssetOf(latest);
   const equityRatio = assets ? net/assets*100 : 0;
   const debtRatio = assets ? liabilities/assets*100 : 0;
-  let msg = '個人BSとしては、純資産比率を高めながら、資産の中身を成長資産と安全資産に分けて見るのが有効です。';
-  if(debtRatio > 50) msg = '負債比率が高めです。返済負担と金利上昇への耐性を確認したい状態です。';
-  if(equityRatio > 90) msg = '純資産比率が非常に高く、財務安全性は高い状態です。次は資産の成長性をどう高めるかが論点です。';
+  const good = equityRatio >= 80 ? `純資産比率が <b>${equityRatio.toFixed(1)}%</b> と高く、財務安全性は強いです。` : `BSで資産・負債・純資産を分けて把握できています。`;
+  const caution = debtRatio > 30 ? `負債比率が <b>${debtRatio.toFixed(1)}%</b> あるため、返済負担と金利耐性を確認しましょう。` : `負債比率は <b>${debtRatio.toFixed(1)}%</b> と低く、現時点の財務レバレッジは限定的です。`;
   setAiComment('statementAiComment',
-    `<b>AIコメント：</b>資産合計 <b>${yen(assets)}</b> に対し、負債比率は <b>${debtRatio.toFixed(1)}%</b>、純資産比率は <b>${equityRatio.toFixed(1)}%</b> です。${msg}`
+    `<b>AIコメント</b><ul>
+      <li><span class="ai-badge">良い点</span>${good}</li>
+      <li><span class="ai-badge">注意点</span>${caution}</li>
+      <li><span class="ai-badge">次にやること</span>BSの変化を、収入増・支出減・投資評価・負債増減に分解して見ましょう。</li>
+    </ul>`
   );
 }
 
@@ -954,7 +1007,11 @@ function renderBenchmarkAiComment(compareValue, stat, topPercent, basisName){
   const ratio = stat ? compareValue/stat*100 : 0;
   const topText = topPercent === null ? '推定順位は算出できません。' : `推定では <b>上位${topPercent.toFixed(1)}%</b> 水準です。`;
   setAiComment('benchmarkAiComment',
-    `<b>AIコメント：</b>あなたの比較対象額は ${basisName} の <b>${ratio.toFixed(1)}%</b> です。${topText} ただし、統計定義と本アプリの入力定義は完全には一致しないため、目安として見てください。`
+    `<b>AIコメント</b><ul>
+      <li><span class="ai-badge">良い点</span>${basisName}との比較では <b>${ratio.toFixed(1)}%</b> の水準です。</li>
+      <li><span class="ai-badge">注意点</span>${topText} ただし統計定義と入力定義は完全一致しません。</li>
+      <li><span class="ai-badge">次にやること</span>比較対象を「金融資産ベース」と「純資産ベース」で切り替え、見え方の違いを確認しましょう。</li>
+    </ul>`
   );
 }
 
@@ -979,7 +1036,6 @@ function render(){
     document.getElementById('closingMonthBadge').textContent = latest.month + ' 決算';
     document.getElementById('netAssetLabel').textContent = `NET ASSETS / ${displayMonth(latest.month)}`;
     document.getElementById('netAssetDisplay').textContent = yen(netAssets);
-    document.getElementById('netAssetChangeDisplay').innerHTML = '前月比 ' + formatChange(mom,momRate);
     document.getElementById('momKpiDisplay').innerHTML = formatChange(mom,momRate);
     document.getElementById('assetTotalDisplay').textContent = yen(totalAssets);
     document.getElementById('liabilityTotalDisplay').textContent = yen(totalLiabilities);
@@ -1478,6 +1534,15 @@ function renderPlanStatement(){
   const remaining = Math.max(target - latestNet, 0);
   const requiredCagr = latestNet > 0 && target > 0 ? (Math.pow(target / latestNet, 1 / years) - 1) * 100 : 0;
   const requiredMonthlyIncrease = remaining / Math.max(years * 12,1);
+  const annualReturn = Number(planSettings.annualReturn ?? 3);
+  const annualBonus = Number(planSettings.annualBonus || 0);
+  const monthlyRate = Math.pow(1 + annualReturn/100, 1/12) - 1;
+  const months = Math.max(years * 12, 1);
+  const fvCurrent = latestNet * Math.pow(1 + monthlyRate, months);
+  const fvBonus = annualBonus * (((Math.pow(1 + annualReturn/100, years) - 1) / (annualReturn/100 || 1)) || years);
+  const gapAfterReturn = Math.max(target - fvCurrent - fvBonus, 0);
+  const annuityFactor = monthlyRate ? ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) : months;
+  const requiredMonthlySaving = gapAfterReturn / Math.max(annuityFactor,1);
   const body = document.getElementById('statementBody');
 
   body.innerHTML = `
@@ -1492,6 +1557,16 @@ function renderPlanStatement(){
           <input class="input" id="planYears" type="number" min="1" max="50" value="${years}">
         </div>
       </div>
+      <div class="plan-assumption-grid">
+        <div>
+          <label class="small-label">想定年率リターン</label>
+          <input class="input" id="planReturn" type="number" min="-20" max="30" step="0.1" value="${Number(planSettings.annualReturn ?? 3)}">
+        </div>
+        <div>
+          <label class="small-label">年間ボーナス入金</label>
+          <input class="input" id="planBonus" value="${formatNumber(Number(planSettings.annualBonus || 0))}" oninput="formatAmountInput(this)">
+        </div>
+      </div>
       <div class="actions" style="justify-content:flex-start;margin-bottom:12px">
         <button class="btn btn-gold" onclick="savePlanSettings()">中期資産計画を更新</button>
       </div>
@@ -1500,7 +1575,8 @@ function renderPlanStatement(){
         <div class="plan-card"><small>現在の純資産</small><b>${yen(latestNet)}</b></div>
         <div class="plan-card"><small>目標までの残額</small><b>${yen(remaining)}</b></div>
         <div class="plan-card"><small>必要年率成長率</small><b>${requiredCagr.toFixed(1)}%</b></div>
-        <div class="plan-card"><small>必要月次増加額</small><b>${yen(requiredMonthlyIncrease)}</b></div>
+        <div class="plan-card"><small>単純必要月次増加額</small><b>${yen(requiredMonthlyIncrease)}</b></div>
+        <div class="plan-card"><small>想定リターン後の必要月次積立</small><b>${yen(requiredMonthlySaving)}</b></div>
         <div class="plan-card"><small>進捗率</small><b>${progress.toFixed(1)}%</b></div>
       </div>
       <div class="statement-net"><span>中期資産計画メッセージ</span><br><b>人生という資産を、計画的に成長させる。</b></div>
@@ -1600,13 +1676,21 @@ function renderPlanChart(){
 function savePlanSettings(){
   planSettings = {
     target:rawNumber(document.getElementById('planTarget')?.value || planSettings.target),
-    years:Number(document.getElementById('planYears')?.value || planSettings.years)
+    years:Number(document.getElementById('planYears')?.value || planSettings.years),
+    annualReturn:Number(document.getElementById('planReturn')?.value ?? planSettings.annualReturn ?? 3),
+    annualBonus:rawNumber(document.getElementById('planBonus')?.value || planSettings.annualBonus || 0)
   };
   if(!planSettings.target || planSettings.target < 0) planSettings.target = 0;
   if(!planSettings.years || planSettings.years <= 0) planSettings.years = 1;
   saveState();
   showToast('中期資産計画を更新しました');
   renderStatement();
+}
+
+
+function exportMonthlyPdf(){
+  showPage('dashboard');
+  setTimeout(()=>window.print(),150);
 }
 
 function prepareNextMonth(){
@@ -1738,7 +1822,7 @@ function resetAll(){
   categories = clone(defaultCategories);
   records = clone(defaultRecords);
   benchmarkSettings = {age:27, household:'couple', basis:'median', target:'assets'};
-  planSettings = {target:30000000, years:5};
+  planSettings = {target:30000000, years:5, annualReturn:3, annualBonus:0};
   normalizeRecords();
   saveState();
   showToast('初期データに戻しました');
