@@ -3,121 +3,732 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>資産ダッシュボード</title>
+<title>月イチ純資産ノート</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
-body{font-family:sans-serif;background:#f5f3ee;margin:0;padding:20px;color:#222}
-h1{margin-bottom:10px}
-.panel{background:white;padding:20px;border-radius:16px;margin-bottom:16px}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.kpi{background:#18202a;color:white;padding:14px;border-radius:12px}
-.kpi small{opacity:.7}
-.kpi b{display:block;font-size:20px;margin-top:6px}
-.bs-row{display:flex;justify-content:space-between;padding:6px 0}
-.bs-total{font-weight:bold;border-top:1px solid #ccc;margin-top:6px;padding-top:6px}
-.bs-net{background:#18202a;color:white;padding:10px;border-radius:10px;margin-top:10px}
-canvas{max-width:100%}
+:root{
+  --bg:#f5f3ee; --paper:#fffaf1; --ink:#18202a; --muted:#7c8594;
+  --line:rgba(24,32,42,.10); --navy:#18202a; --gold:#b9935a;
+  --green:#2f8f66; --red:#c25b5b; --blue:#477cff;
+  --shadow:0 24px 80px rgba(24,32,42,.10);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:radial-gradient(circle at 10% 0%,rgba(185,147,90,.18),transparent 28%),var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+}
+.app{max-width:1120px;margin:auto;padding:20px 14px 92px}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0 18px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:44px;height:44px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--navy),#3b4658);color:white;font-weight:900}
+.brand small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.panel,.hero,.mini{background:rgba(255,250,241,.9);border:1px solid rgba(255,255,255,.78);border-radius:26px;box-shadow:var(--shadow);backdrop-filter:blur(14px)}
+.hero{padding:26px;background:linear-gradient(135deg,rgba(24,32,42,.98),rgba(42,52,67,.94));color:white;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-70px;top:-90px;width:230px;height:230px;border-radius:50%;background:rgba(185,147,90,.25)}
+.hero-top{display:flex;justify-content:space-between;gap:10px;color:rgba(255,255,255,.62);position:relative;z-index:1}
+.pill{padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12);color:white;font-size:12px;font-weight:800}
+.total{display:block;font-size:clamp(42px,8vw,72px);letter-spacing:-.06em;margin:16px 0;position:relative;z-index:1}
+.hero-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;position:relative;z-index:1}
+.hero-metrics div{background:rgba(255,255,255,.08);border-radius:18px;padding:14px}
+.hero-metrics small{color:rgba(255,255,255,.58)}
+.hero-metrics b{display:block;margin-top:6px}
+.goal-box{margin-top:14px;padding:16px;border-radius:18px;background:rgba(255,255,255,.10);position:relative;z-index:1}
+.goal-box small{color:rgba(255,255,255,.62)}
+.goal-box b{display:block;margin-top:4px}
+.goal-bar{height:10px;background:rgba(255,255,255,.16);border-radius:999px;overflow:hidden;margin-top:10px}
+.goal-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(135deg,#d9bd8e,#fff3c4)}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-top:14px}
+.grid-even{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.panel,.mini{padding:20px}
+.label{color:var(--gold);font-size:11px;letter-spacing:.22em;font-weight:900;margin:0}
+h1{margin:0;font-size:20px}
+h2{font-size:22px;margin:6px 0 16px;letter-spacing:-.03em}
+h3{font-size:15px;margin:18px 0 6px;color:var(--gold);letter-spacing:.08em}
+.mini span{color:var(--muted);font-size:13px}
+.mini b{display:block;font-size:24px;margin:8px 0 4px;letter-spacing:-.04em;word-break:break-word}
+.mini small{color:var(--muted)}
+.input,select,button{font:inherit}
+.input,select{width:100%;border:1px solid var(--line);background:white;border-radius:16px;padding:13px 14px}
+.btn{border:0;border-radius:16px;padding:13px 16px;background:var(--navy);color:white;font-weight:900;cursor:pointer}
+.btn:hover,.delete:hover,.edit:hover,.mini-btn:hover{filter:brightness(.97)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#d9bd8e);color:#20170b}
+.btn-soft{background:white;color:var(--ink);border:1px solid var(--line)}
+.form{display:grid;gap:10px}
+.two{grid-template-columns:1fr 1fr;display:grid;gap:10px}
+.three{grid-template-columns:1fr 1fr 1fr;display:grid;gap:10px}
+.note{color:var(--muted);line-height:1.7;font-size:13px}
+.asset-row{display:grid;grid-template-columns:12px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.dot{width:10px;height:10px;border-radius:999px}
+.asset-row small{color:var(--muted)}
+.bar{height:8px;background:#eee6d9;border-radius:999px;overflow:hidden;margin-top:7px}
+.bar i{display:block;height:100%;border-radius:999px}
+.actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.delete,.edit,.mini-btn{background:white;color:var(--ink);border:1px solid rgba(24,32,42,.10);padding:8px 10px;border-radius:12px;font-size:12px;cursor:pointer}
+.delete{background:#fff0ee;color:var(--red);border:1px solid rgba(194,91,91,.18)}
+canvas{width:100%!important;max-height:320px}
+.report{line-height:1.85;color:#475160}
+.report b{color:var(--ink)}
+.pos{color:var(--green)!important}
+.neg{color:var(--red)!important}
+.bs-box{display:grid;gap:6px}
+.bs-row,.bs-total,.bs-net{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.bs-row span{color:#475160}
+.bs-total{font-weight:900;border-top:1px solid var(--line)}
+.bs-net{margin-top:14px;padding:16px;border-radius:18px;background:linear-gradient(135deg,var(--navy),#3b4658);color:white;border-bottom:0}
+.bs-net b{color:white;font-size:22px}
+.muted-row{color:var(--muted)}
+.tools{display:grid;gap:10px}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:rgba(24,32,42,.92);color:white;padding:10px 14px;border-radius:999px;font-size:13px;box-shadow:0 18px 60px rgba(0,0,0,.22);opacity:0;pointer-events:none;transition:.25s;z-index:20}
+.toast.show{opacity:1}
+.footer-nav{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);width:min(620px,92vw);background:rgba(24,32,42,.88);border-radius:999px;padding:8px;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;box-shadow:0 20px 70px rgba(0,0,0,.24);backdrop-filter:blur(18px);z-index:10}
+.footer-nav a{color:rgba(255,255,255,.68);text-decoration:none;text-align:center;font-size:12px;padding:9px 4px;border-radius:999px}
+.footer-nav a.active{background:white;color:var(--ink);font-weight:900}
+@media(max-width:860px){
+  .app{padding:16px 12px 96px}
+  .header{align-items:flex-start}
+  .grid,.grid-even,.kpis,.hero-metrics,.two,.three{grid-template-columns:1fr}
+  .panel,.hero,.mini{border-radius:22px}
+  .mini b{font-size:22px}
+}
 </style>
 </head>
-
 <body>
+<div class="app">
+<header class="header">
+  <div class="brand">
+    <div class="logo">純</div>
+    <div>
+      <h1>月イチ純資産ノート</h1>
+      <small>カテゴリを自由に作って、月1回だけBS風に資産管理。</small>
+    </div>
+  </div>
+  <span class="pill" id="latestMonthPill">-</span>
+</header>
 
-<h1>資産ダッシュボード</h1>
+<section class="hero" id="home">
+  <div class="hero-top">
+    <span>Current Net Assets</span>
+    <span class="pill">ブラウザ保存版</span>
+  </div>
+  <strong class="total" id="totalDisplay">¥0</strong>
+  <div class="hero-metrics">
+    <div><small>資産合計</small><b id="heroAssets">-</b></div>
+    <div><small>負債合計</small><b id="heroLiabilities">-</b></div>
+    <div><small>目標達成率</small><b id="heroGoalRate">-</b></div>
+  </div>
+  <div class="goal-box">
+    <small>目標純資産</small>
+    <b><span id="goalAmountText">¥10,000,000</span> / <span id="goalProgressText">-</span></b>
+    <div class="goal-bar"><i id="goalProgressBar" style="width:0%"></i></div>
+  </div>
+</section>
 
-<div class="panel">
-<div class="kpis">
-<div class="kpi"><small>前月比</small><b id="mom">-</b></div>
-<div class="kpi"><small>前年比</small><b id="yoy">-</b></div>
-<div class="kpi"><small>投資比率</small><b id="invest">-</b></div>
-<div class="kpi"><small>現金余力</small><b id="cash">-</b></div>
-</div>
+<section class="kpis">
+  <div class="mini">
+    <span>前月比</span>
+    <b id="kpiMoM">-</b>
+    <small id="kpiMoMRate">-</small>
+  </div>
+  <div class="mini">
+    <span>前年比</span>
+    <b id="kpiYoY">-</b>
+    <small id="kpiYoYRate">-</small>
+  </div>
+  <div class="mini">
+    <span>投資比率</span>
+    <b id="kpiInvestRatio">-</b>
+    <small id="kpiInvestAmount">-</small>
+  </div>
+  <div class="mini">
+    <span>現金余力</span>
+    <b id="kpiCashAmount">-</b>
+    <small id="kpiCashRatio">-</small>
+  </div>
+</section>
+
+<section class="grid" id="charts">
+  <div class="panel">
+    <p class="label">TREND</p>
+    <h2>純資産推移</h2>
+    <canvas id="trendChart"></canvas>
+  </div>
+  <div class="panel">
+    <p class="label">ALLOCATION</p>
+    <h2>最新月の資産構成</h2>
+    <canvas id="allocationChart"></canvas>
+  </div>
+</section>
+
+<section class="grid-even" id="bs">
+  <div class="panel report">
+    <p class="label">BALANCE SHEET</p>
+    <h2>BS風サマリー</h2>
+    <div id="balanceSheet"></div>
+  </div>
+  <div class="panel">
+    <p class="label">BS CHART</p>
+    <h2>BS構成チャート</h2>
+    <canvas id="bsChart"></canvas>
+  </div>
+</section>
+
+<section class="grid" id="input">
+  <div class="panel">
+    <p class="label">MONTHLY INPUT</p>
+    <h2>月次データを入力</h2>
+    <div class="form">
+      <input class="input" id="monthInput" placeholder="対象月 例：2026/05">
+      <div class="actions">
+        <button class="mini-btn" onclick="setNextMonth()">次月を作成</button>
+        <button class="mini-btn" onclick="copyLatestAmounts()">最新月をコピー</button>
+        <button class="mini-btn" onclick="clearAmounts()">金額を0にする</button>
+      </div>
+      <div id="categoryInputs"></div>
+      <button class="btn btn-gold" onclick="saveMonth()">この月のデータを保存</button>
+      <button class="btn btn-soft" onclick="resetAll()">初期データに戻す</button>
+    </div>
+    <p class="note">資産カテゴリはプラス、負債カテゴリは借入・カード未払などをプラス金額で入力してください。純資産は「資産合計 − 負債合計」で自動計算されます。</p>
+  </div>
+
+  <div class="panel">
+    <p class="label">CATEGORY SETTING</p>
+    <h2>カテゴリを自由に設定</h2>
+    <div class="three">
+      <input class="input" id="newCategoryName" placeholder="例：楽天証券、住宅ローン">
+      <select id="newCategorySide">
+        <option value="asset">資産</option>
+        <option value="liability">負債</option>
+      </select>
+      <select id="newCategoryType">
+        <option value="cash">現金・預金系</option>
+        <option value="invest">投資系</option>
+        <option value="retire">退職資産系</option>
+        <option value="other">その他</option>
+      </select>
+    </div>
+    <button class="btn" style="margin-top:10px;width:100%" onclick="addCategory()">カテゴリを追加</button>
+    <div id="categoryList" style="margin-top:12px"></div>
+  </div>
+</section>
+
+<section class="grid" id="report">
+  <div class="panel report">
+    <p class="label">AI MONTHLY ANALYSIS</p>
+    <h2>AI風 月次分析</h2>
+    <div id="monthlyReport"></div>
+  </div>
+  <div class="panel report">
+    <p class="label">DETAIL</p>
+    <h2>最新月の内訳</h2>
+    <div id="assetList"></div>
+  </div>
+</section>
+
+<section class="grid-even" id="tools">
+  <div class="panel">
+    <p class="label">GOAL</p>
+    <h2>目標設定</h2>
+    <div class="form">
+      <input class="input" id="goalInput" placeholder="目標純資産 例：10000000">
+      <button class="btn" onclick="saveGoal()">目標を保存</button>
+    </div>
+  </div>
+  <div class="panel">
+    <p class="label">BACKUP</p>
+    <h2>データ管理</h2>
+    <div class="tools">
+      <button class="btn btn-soft" onclick="exportJSON()">JSONを書き出し</button>
+      <button class="btn btn-soft" onclick="exportCSV()">CSVを書き出し</button>
+      <input class="input" type="file" id="importFile" accept=".json,application/json" onchange="importJSON(event)">
+    </div>
+  </div>
+</section>
+
 </div>
 
-<div class="panel">
-<h2>Balance Sheet</h2>
-<div id="bs"></div>
-</div>
+<nav class="footer-nav">
+  <a href="#home" class="active">ホーム</a>
+  <a href="#charts">グラフ</a>
+  <a href="#bs">BS</a>
+  <a href="#input">入力</a>
+  <a href="#report">分析</a>
+</nav>
 
-<div class="panel">
-<h2>BSチャート</h2>
-<canvas id="bsChart"></canvas>
-</div>
+<div class="toast" id="toast">保存しました</div>
 
 <script>
-const categories = [
-{name:'預金',side:'asset',type:'cash'},
-{name:'NASDAQ',side:'asset',type:'invest'},
-{name:'インド',side:'asset',type:'invest'},
-{name:'BTC',side:'asset',type:'invest'},
-{name:'DC',side:'asset',type:'retire'},
-{name:'持株会',side:'asset',type:'invest'},
-{name:'住宅ローン',side:'liability',type:'other'}
+const yen = n => new Intl.NumberFormat('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}).format(Number(n)||0);
+const colors = ['#b9935a','#477cff','#2f8f66','#8b6cf6','#22b8cf','#f59f00','#c25b5b','#7c8594','#12b886','#e64980'];
+const typeNames = {cash:'現金・預金系', invest:'投資系', retire:'退職資産系', other:'その他'};
+const sideNames = {asset:'資産', liability:'負債'};
+
+const defaultCategories = [
+  {name:'預金', side:'asset', type:'cash'},
+  {name:'NASDAQ', side:'asset', type:'invest'},
+  {name:'インド', side:'asset', type:'invest'},
+  {name:'Bitcoin', side:'asset', type:'invest'},
+  {name:'Doge', side:'asset', type:'invest'},
+  {name:'確定拠出年金', side:'asset', type:'retire'},
+  {name:'持株会', side:'asset', type:'invest'},
+  {name:'カード未払', side:'liability', type:'other'},
+  {name:'住宅ローン', side:'liability', type:'other'}
 ];
 
-const records = [
-{month:'2025/04',values:{預金:500000,NASDAQ:300000,インド:200000,BTC:100000,DC:2000000,持株会:1000000,住宅ローン:0}},
-{month:'2026/04',values:{預金:600000,NASDAQ:600000,インド:500000,BTC:100000,DC:3000000,持株会:2000000,住宅ローン:0}}
+const defaultRecords = [
+  {month:'2026/01', values:{預金:1117299,NASDAQ:403268,インド:372283,Bitcoin:79540,Doge:76878,確定拠出年金:2878084,持株会:2154255,カード未払:0,住宅ローン:0}},
+  {month:'2026/02', values:{預金:1011660,NASDAQ:435617,インド:418854,Bitcoin:64783,Doge:56357,確定拠出年金:2845990,持株会:2372231,カード未払:0,住宅ローン:0}},
+  {month:'2026/03', values:{預金:816387,NASDAQ:487749,インド:425933,Bitcoin:82096,Doge:58770,確定拠出年金:2650389,持株会:2151560,カード未払:0,住宅ローン:0}},
+  {month:'2026/04', values:{預金:644667,NASDAQ:605254,インド:510791,Bitcoin:102871,Doge:60549,確定拠出年金:2941357,持株会:2291265,カード未払:0,住宅ローン:0}}
 ];
 
-const yen = n => "¥"+n.toLocaleString();
-
-const latest = records[records.length-1];
-const prev = records[records.length-2];
-
-function totalOf(r){
-return categories.reduce((s,c)=>s+(r.values[c.name]||0),0);
+function safeParse(key, fallback){
+  try{
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(fallback));
+  }catch(e){
+    return JSON.parse(JSON.stringify(fallback));
+  }
 }
 
-const total = totalOf(latest);
-const prevTotal = totalOf(prev);
+let categories = safeParse('categories', defaultCategories).map(c=>({
+  side:'asset',
+  type:'other',
+  ...c
+}));
+let records = safeParse('records', defaultRecords);
+let goalAmount = Number(localStorage.getItem('goalAmount') || 10000000);
 
-const mom = total - prevTotal;
-const momRate = mom/prevTotal*100;
+let trendChart, allocationChart, bsChart;
 
-const yearAgo = records.find(r=>r.month==="2025/04");
-const yoy = total - totalOf(yearAgo);
-
-const cash = latest.values['預金'];
-const invest = categories
-.filter(c=>c.type==='invest')
-.reduce((s,c)=>s+(latest.values[c.name]||0),0);
-
-document.getElementById('mom').innerText = yen(mom);
-document.getElementById('yoy').innerText = yen(yoy);
-document.getElementById('invest').innerText = ((invest/total*100).toFixed(1)+"%");
-document.getElementById('cash').innerText = yen(cash);
-
-const assets = categories.filter(c=>c.side==='asset');
-const liabilities = categories.filter(c=>c.side==='liability');
-
-const totalAssets = assets.reduce((s,c)=>s+(latest.values[c.name]||0),0);
-const totalLiabilities = liabilities.reduce((s,c)=>s+(latest.values[c.name]||0),0);
-const net = totalAssets - totalLiabilities;
-
-document.getElementById('bs').innerHTML = `
-<h3>資産</h3>
-${assets.map(c=>`<div class="bs-row"><span>${c.name}</span><b>${yen(latest.values[c.name]||0)}</b></div>`).join('')}
-<div class="bs-total">資産合計 ${yen(totalAssets)}</div>
-
-<h3>負債</h3>
-${liabilities.map(c=>`<div class="bs-row"><span>${c.name}</span><b>${yen(latest.values[c.name]||0)}</b></div>`).join('')}
-<div class="bs-total">負債合計 ${yen(totalLiabilities)}</div>
-
-<div class="bs-net">純資産 ${yen(net)}</div>
-`;
-
-new Chart(document.getElementById('bsChart'), {
-type:'bar',
-data:{
-labels:['資産','負債','純資産'],
-datasets:[{
-data:[totalAssets,totalLiabilities,net],
-backgroundColor:['#b9935a','#c25b5b','#2f8f66']
-}]
+function saveState(){
+  localStorage.setItem('categories', JSON.stringify(categories));
+  localStorage.setItem('records', JSON.stringify(records));
+  localStorage.setItem('goalAmount', String(goalAmount));
 }
+
+function showToast(message='保存しました'){
+  const t = document.getElementById('toast');
+  t.textContent = message;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1600);
+}
+
+function latestRecord(){ return records[records.length-1]; }
+
+function totalsOf(record){
+  const totalAssets = categories
+    .filter(c=>c.side !== 'liability')
+    .reduce((s,c)=>s + Number(record?.values?.[c.name] || 0),0);
+  const totalLiabilities = categories
+    .filter(c=>c.side === 'liability')
+    .reduce((s,c)=>s + Number(record?.values?.[c.name] || 0),0);
+  return {totalAssets,totalLiabilities,netAssets:totalAssets-totalLiabilities};
+}
+
+function netOf(record){ return totalsOf(record).netAssets; }
+
+function addMonths(month, diff){
+  const [y,m] = month.split('/').map(Number);
+  const d = new Date(y, m - 1 + diff, 1);
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+function render(){
+  records.sort((a,b)=>a.month.localeCompare(b.month));
+  if(!records.length) records = JSON.parse(JSON.stringify(defaultRecords));
+
+  const latest = latestRecord();
+  const prev = records[records.length-2];
+  const {totalAssets,totalLiabilities,netAssets} = totalsOf(latest);
+
+  document.getElementById('latestMonthPill').textContent = latest.month;
+  document.getElementById('totalDisplay').textContent = yen(netAssets);
+  document.getElementById('heroAssets').textContent = yen(totalAssets);
+  document.getElementById('heroLiabilities').textContent = yen(totalLiabilities);
+
+  renderGoal(netAssets);
+  renderSmartKpis(latest, prev, netAssets);
+  renderCategoryInputs(latest);
+  renderCategoryList();
+  renderAssetList(latest);
+  renderBalanceSheet(latest);
+  renderReport(latest, prev);
+  renderCharts();
+  document.getElementById('goalInput').value = goalAmount;
+}
+
+function renderGoal(netAssets){
+  const progress = goalAmount ? netAssets / goalAmount * 100 : 0;
+  document.getElementById('goalAmountText').textContent = yen(goalAmount);
+  document.getElementById('goalProgressText').textContent = `${progress.toFixed(1)}% 達成`;
+  document.getElementById('heroGoalRate').textContent = `${progress.toFixed(1)}%`;
+  document.getElementById('goalProgressBar').style.width = Math.min(Math.max(progress,0),100) + '%';
+}
+
+function renderSmartKpis(latest, prev, netAssets){
+  const prevNet = prev ? netOf(prev) : 0;
+  const mom = prev ? netAssets - prevNet : 0;
+  const momRate = prevNet ? mom / prevNet * 100 : 0;
+
+  const yearAgoMonth = addMonths(latest.month, -12);
+  const yearAgoRecord = records.find(r=>r.month === yearAgoMonth);
+  const yearAgoNet = yearAgoRecord ? netOf(yearAgoRecord) : 0;
+  const yoy = yearAgoRecord ? netAssets - yearAgoNet : null;
+  const yoyRate = yearAgoNet ? yoy / yearAgoNet * 100 : null;
+
+  const assetTotal = totalsOf(latest).totalAssets;
+  const entries = categories.map(c=>({...c, amount:Number(latest.values[c.name]||0)}));
+  const cash = entries.filter(e=>e.side !== 'liability' && e.type === 'cash').reduce((s,e)=>s+e.amount,0);
+  const invest = entries.filter(e=>e.side !== 'liability' && e.type === 'invest').reduce((s,e)=>s+e.amount,0);
+
+  document.getElementById('kpiMoM').innerHTML = prev
+    ? `<span class="${mom>=0?'pos':'neg'}">${mom>=0?'+':''}${yen(mom)}</span>`
+    : '-';
+  document.getElementById('kpiMoMRate').textContent = prev ? `${momRate>=0?'+':''}${momRate.toFixed(1)}%` : '-';
+
+  document.getElementById('kpiYoY').innerHTML = yoy !== null
+    ? `<span class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':''}${yen(yoy)}</span>`
+    : '-';
+  document.getElementById('kpiYoYRate').textContent = yoyRate !== null ? `${yoyRate>=0?'+':''}${yoyRate.toFixed(1)}%` : '前年同月データなし';
+
+  document.getElementById('kpiInvestRatio').textContent = assetTotal ? `${(invest/assetTotal*100).toFixed(1)}%` : '-';
+  document.getElementById('kpiInvestAmount').textContent = yen(invest);
+  document.getElementById('kpiCashAmount').textContent = yen(cash);
+  document.getElementById('kpiCashRatio').textContent = assetTotal ? `${(cash/assetTotal*100).toFixed(1)}% of assets` : '-';
+}
+
+function renderCategoryInputs(latest){
+  document.getElementById('monthInput').value = latest.month;
+  document.getElementById('categoryInputs').innerHTML = categories.map(c=>`
+    <div style="margin-bottom:10px">
+      <label style="font-size:13px;color:var(--muted)">${c.name} / ${sideNames[c.side]} / ${typeNames[c.type]}</label>
+      <input class="input amount-input" data-category="${escapeAttr(c.name)}" value="${formatInput(latest.values[c.name]||0)}" placeholder="${c.name}の金額" onblur="formatAmountInput(this)" inputmode="numeric">
+    </div>
+  `).join('');
+}
+
+function renderCategoryList(){
+  document.getElementById('categoryList').innerHTML = categories.map((c,i)=>`
+    <div class="asset-row">
+      <span class="dot" style="background:${c.side==='liability' ? 'var(--red)' : colors[i%colors.length]}"></span>
+      <div><b>${c.name}</b><br><small>${sideNames[c.side]} / ${typeNames[c.type]}</small></div>
+      <div class="actions">
+        <button class="edit" onclick="moveCategory(${i},-1)">↑</button>
+        <button class="edit" onclick="moveCategory(${i},1)">↓</button>
+        <button class="edit" onclick="renameCategory('${escapeJs(c.name)}')">編集</button>
+        <button class="delete" onclick="deleteCategory('${escapeJs(c.name)}')">削除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderAssetList(latest){
+  const assetTotal = totalsOf(latest).totalAssets;
+  const entries = categories
+    .map(c=>({...c, amount:Number(latest.values[c.name]||0)}))
+    .sort((a,b)=>b.amount-a.amount);
+
+  document.getElementById('assetList').innerHTML = entries.map((e,i)=>{
+    const ratioBase = e.side === 'liability' ? totalsOf(latest).totalLiabilities : assetTotal;
+    const ratio = ratioBase ? e.amount / ratioBase * 100 : 0;
+    const color = e.side === 'liability' ? 'var(--red)' : colors[i%colors.length];
+
+    return `
+      <div class="asset-row">
+        <span class="dot" style="background:${color}"></span>
+        <div>
+          <b>${e.name}</b><br><small>${sideNames[e.side]} / ${typeNames[e.type]}</small>
+          <div class="bar"><i style="width:${Math.min(ratio,100)}%;background:${color}"></i></div>
+        </div>
+        <div style="text-align:right"><b>${yen(e.amount)}</b><br><small>${ratio.toFixed(1)}%</small></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderBalanceSheet(latest){
+  const assetItems = categories
+    .filter(c=>c.side !== 'liability')
+    .map(c=>({name:c.name, amount:Number(latest.values[c.name]||0)}))
+    .filter(e=>e.amount !== 0);
+
+  const liabilityItems = categories
+    .filter(c=>c.side === 'liability')
+    .map(c=>({name:c.name, amount:Number(latest.values[c.name]||0)}))
+    .filter(e=>e.amount !== 0);
+
+  const {totalAssets,totalLiabilities,netAssets} = totalsOf(latest);
+
+  document.getElementById('balanceSheet').innerHTML = `
+    <div class="bs-box">
+      <h3>資産</h3>
+      ${assetItems.length ? assetItems.map(e=>`
+        <div class="bs-row"><span>${e.name}</span><b>${yen(e.amount)}</b></div>
+      `).join('') : `<div class="bs-row muted-row"><span>資産なし</span><b>${yen(0)}</b></div>`}
+      <div class="bs-total"><span>資産合計</span><b>${yen(totalAssets)}</b></div>
+
+      <h3>負債</h3>
+      ${liabilityItems.length ? liabilityItems.map(e=>`
+        <div class="bs-row"><span>${e.name}</span><b>${yen(e.amount)}</b></div>
+      `).join('') : `<div class="bs-row muted-row"><span>負債なし</span><b>${yen(0)}</b></div>`}
+      <div class="bs-total"><span>負債合計</span><b>${yen(totalLiabilities)}</b></div>
+
+      <div class="bs-net"><span>純資産</span><b>${yen(netAssets)}</b></div>
+    </div>
+  `;
+}
+
+function renderReport(latest, prev){
+  const {totalAssets,totalLiabilities,netAssets} = totalsOf(latest);
+  const prevNet = prev ? netOf(prev) : 0;
+  const mom = prev ? netAssets - prevNet : 0;
+  const momRate = prevNet ? mom / prevNet * 100 : 0;
+
+  const entries = categories.map(c=>({...c, amount:Number(latest.values[c.name]||0)}));
+  const cash = entries.filter(e=>e.side!=='liability' && e.type==='cash').reduce((s,e)=>s+e.amount,0);
+  const invest = entries.filter(e=>e.side!=='liability' && e.type==='invest').reduce((s,e)=>s+e.amount,0);
+  const cashRatio = totalAssets ? cash/totalAssets*100 : 0;
+  const investRatio = totalAssets ? invest/totalAssets*100 : 0;
+  const debtRatio = totalAssets ? totalLiabilities/totalAssets*100 : 0;
+
+  let cashComment = cashRatio > 45 ? '現金比率が高めです。投資余力があります。'
+    : cashRatio < 15 ? '現金比率が低めです。生活防衛資金を確認したい水準です。'
+    : '現金比率は比較的バランスが取れています。';
+
+  let debtComment = totalLiabilities > 0
+    ? `負債比率は${debtRatio.toFixed(1)}%です。住宅ローン等の返済余力も合わせて確認すると良いです。`
+    : '負債はありません。BS上は非常にシンプルな状態です。';
+
+  document.getElementById('monthlyReport').innerHTML = `
+    <ul>
+      <li>最新月の純資産は <b>${yen(netAssets)}</b>、資産合計は <b>${yen(totalAssets)}</b>、負債合計は <b>${yen(totalLiabilities)}</b> です。</li>
+      <li>前月比は <b class="${mom>=0?'pos':'neg'}">${prev ? (mom>=0?'+':'')+yen(mom)+'（'+(momRate>=0?'+':'')+momRate.toFixed(1)+'%）' : '-'}</b> です。</li>
+      <li>投資系資産は <b>${yen(invest)}</b>、資産合計に対する投資比率は <b>${investRatio.toFixed(1)}%</b> です。</li>
+      <li>現金・預金系は <b>${yen(cash)}</b>。${cashComment}</li>
+      <li>${debtComment}</li>
+    </ul>
+  `;
+}
+
+function renderCharts(){
+  const labels = records.map(r=>r.month);
+  const nets = records.map(r=>netOf(r));
+  const latest = latestRecord();
+  const {totalAssets,totalLiabilities,netAssets} = totalsOf(latest);
+
+  const assetEntries = categories
+    .filter(c=>c.side !== 'liability')
+    .map(c=>({name:c.name, amount:Number(latest.values[c.name]||0)}))
+    .filter(e=>e.amount>0);
+
+  if(trendChart) trendChart.destroy();
+  if(allocationChart) allocationChart.destroy();
+  if(bsChart) bsChart.destroy();
+
+  trendChart = new Chart(document.getElementById('trendChart'), {
+    type:'line',
+    data:{labels,datasets:[{data:nets,borderColor:'#b9935a',backgroundColor:'rgba(185,147,90,.16)',fill:true,tension:.35,pointRadius:3}]},
+    options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>yen(c.raw)}}},scales:{x:{grid:{display:false}},y:{ticks:{callback:v=>Math.round(v/10000)+'万'}}}}
+  });
+
+  allocationChart = new Chart(document.getElementById('allocationChart'), {
+    type:'doughnut',
+    data:{labels:assetEntries.map(e=>e.name),datasets:[{data:assetEntries.map(e=>e.amount),backgroundColor:assetEntries.map((_,i)=>colors[i%colors.length]),borderWidth:0}]},
+    options:{cutout:'68%',plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.label}: ${yen(c.raw)}`}}}}
+  });
+
+  bsChart = new Chart(document.getElementById('bsChart'), {
+    type:'bar',
+    data:{labels:['資産合計','負債合計','純資産'],datasets:[{data:[totalAssets,totalLiabilities,netAssets],backgroundColor:['#b9935a','#c25b5b','#2f8f66'],borderWidth:0,borderRadius:14}]},
+    options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>yen(c.raw)}}},scales:{x:{grid:{display:false}},y:{ticks:{callback:v=>Math.round(v/10000)+'万'}}}}
+  });
+}
+
+function addCategory(){
+  const name = document.getElementById('newCategoryName').value.trim();
+  const side = document.getElementById('newCategorySide').value;
+  const type = document.getElementById('newCategoryType').value;
+  if(!name){ alert('カテゴリ名を入力してください'); return; }
+  if(categories.some(c=>c.name===name)){ alert('同じカテゴリ名があります'); return; }
+
+  categories.push({name,side,type});
+  records.forEach(r=>{ if(r.values[name]===undefined) r.values[name]=0; });
+  document.getElementById('newCategoryName').value='';
+  saveState();
+  render();
+  showToast('カテゴリを追加しました');
+}
+
+function renameCategory(oldName){
+  const current = categories.find(c=>c.name===oldName);
+  if(!current) return;
+
+  const newName = prompt('新しいカテゴリ名を入力してください', oldName);
+  if(!newName || newName === oldName) return;
+  if(categories.some(c=>c.name===newName)){ alert('同じカテゴリ名があります'); return; }
+
+  const newSide = prompt('資産なら asset、負債なら liability と入力してください', current.side) || current.side;
+  const newType = prompt('cash / invest / retire / other のいずれかを入力してください', current.type) || current.type;
+
+  current.name = newName;
+  current.side = ['asset','liability'].includes(newSide) ? newSide : current.side;
+  current.type = ['cash','invest','retire','other'].includes(newType) ? newType : current.type;
+
+  records.forEach(r=>{
+    r.values[newName] = r.values[oldName] || 0;
+    delete r.values[oldName];
+  });
+
+  saveState();
+  render();
+  showToast('カテゴリを編集しました');
+}
+
+function deleteCategory(name){
+  if(!confirm(name+' を削除しますか？')) return;
+  categories = categories.filter(c=>c.name!==name);
+  records.forEach(r=>delete r.values[name]);
+  saveState();
+  render();
+  showToast('カテゴリを削除しました');
+}
+
+function moveCategory(index, direction){
+  const next = index + direction;
+  if(next < 0 || next >= categories.length) return;
+  [categories[index], categories[next]] = [categories[next], categories[index]];
+  saveState();
+  render();
+}
+
+function saveMonth(){
+  const month = document.getElementById('monthInput').value.trim();
+  if(!/^\d{4}\/\d{2}$/.test(month)){ alert('対象月は 2026/05 の形式で入力してください'); return; }
+
+  const values = {};
+  document.querySelectorAll('.amount-input').forEach(input=>{
+    values[input.dataset.category] = Number(String(input.value).replace(/,/g,'')) || 0;
+  });
+
+  const existing = records.find(r=>r.month===month);
+  if(existing) existing.values = values;
+  else records.push({month,values});
+
+  categories.forEach(c=>{
+    records.forEach(r=>{ if(r.values[c.name]===undefined) r.values[c.name]=0; });
+  });
+
+  saveState();
+  render();
+  showToast('月次データを保存しました');
+}
+
+function resetAll(){
+  if(!confirm('初期データに戻しますか？')) return;
+  localStorage.removeItem('categories');
+  localStorage.removeItem('records');
+  localStorage.removeItem('goalAmount');
+  categories = JSON.parse(JSON.stringify(defaultCategories));
+  records = JSON.parse(JSON.stringify(defaultRecords));
+  goalAmount = 10000000;
+  saveState();
+  render();
+  showToast('初期データに戻しました');
+}
+
+function setNextMonth(){
+  document.getElementById('monthInput').value = addMonths(latestRecord().month, 1);
+  copyLatestAmounts(false);
+  showToast('次月を作成しました');
+}
+
+function copyLatestAmounts(withMessage=true){
+  const latest = latestRecord();
+  document.querySelectorAll('.amount-input').forEach(input=>{
+    input.value = formatInput(latest.values[input.dataset.category] || 0);
+  });
+  if(withMessage) showToast('最新月の金額をコピーしました');
+}
+
+function clearAmounts(){
+  document.querySelectorAll('.amount-input').forEach(input=>input.value='0');
+  showToast('金額を0にしました');
+}
+
+function saveGoal(){
+  const v = Number(String(document.getElementById('goalInput').value).replace(/,/g,''));
+  if(!v || v < 0){ alert('目標金額を入力してください'); return; }
+  goalAmount = v;
+  saveState();
+  render();
+  showToast('目標を保存しました');
+}
+
+function exportJSON(){
+  const data = {categories, records, goalAmount, exportedAt:new Date().toISOString()};
+  downloadFile('asset-note-backup.json', JSON.stringify(data,null,2), 'application/json');
+}
+
+function importJSON(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result);
+      if(!Array.isArray(data.categories) || !Array.isArray(data.records)) throw new Error('invalid');
+      categories = data.categories.map(c=>({side:'asset',type:'other',...c}));
+      records = data.records;
+      goalAmount = Number(data.goalAmount || goalAmount);
+      saveState();
+      render();
+      showToast('データを復元しました');
+    }catch(e){
+      alert('JSONの形式が正しくありません');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function exportCSV(){
+  const header = ['month', ...categories.map(c=>c.name), '資産合計', '負債合計', '純資産'];
+  const rows = records.map(r=>{
+    const t = totalsOf(r);
+    return [r.month, ...categories.map(c=>r.values[c.name]||0), t.totalAssets, t.totalLiabilities, t.netAssets];
+  });
+  const csv = [header, ...rows].map(row=>row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  downloadFile('asset-note.csv', csv, 'text/csv');
+}
+
+function downloadFile(filename, content, type){
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function formatInput(n){ return Number(n||0).toLocaleString('ja-JP'); }
+function formatAmountInput(input){
+  input.value = formatInput(Number(String(input.value).replace(/,/g,'')) || 0);
+}
+function escapeJs(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function escapeAttr(s){ return String(s).replace(/"/g,'&quot;'); }
+
+document.querySelectorAll('.footer-nav a').forEach(a=>{
+  a.addEventListener('click',()=>{
+    document.querySelectorAll('.footer-nav a').forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+  });
 });
-</script>
 
+render();
+</script>
 </body>
 </html>
