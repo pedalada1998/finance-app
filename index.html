@@ -3,77 +3,665 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>資産ノート</title>
+<title>資産ノート | 月1回の総資産管理</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
-body {
-  background:#f5f3ee;
-  color:#18202a;
-  font-family:-apple-system;
-  padding:20px;
+:root{
+  --bg:#f5f3ee;
+  --paper:#fffaf1;
+  --ink:#18202a;
+  --muted:#7c8594;
+  --line:rgba(24,32,42,.10);
+  --navy:#18202a;
+  --gold:#b9935a;
+  --green:#2f8f66;
+  --red:#c25b5b;
+  --blue:#477cff;
+  --purple:#8b6cf6;
+  --cyan:#22b8cf;
+  --orange:#f59f00;
+  --shadow:0 24px 80px rgba(24,32,42,.10);
 }
-.card {
-  background:#fff;
-  padding:20px;
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 10% 0%,rgba(185,147,90,.18),transparent 28%),
+    radial-gradient(circle at 100% 10%,rgba(71,124,255,.10),transparent 24%),
+    var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+}
+
+.app{
+  max-width:1180px;
+  margin:0 auto;
+  padding:22px 14px 80px;
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  padding:10px 0 18px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.logo{
+  width:44px;
+  height:44px;
+  border-radius:16px;
+  display:grid;
+  place-items:center;
+  color:white;
+  background:linear-gradient(135deg,var(--navy),#3b4658);
+  box-shadow:var(--shadow);
+  font-weight:900;
+}
+
+.brand small{
+  display:block;
+  color:var(--muted);
+  margin-top:2px;
+  font-size:12px;
+}
+
+.month-select{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.72);
+  border-radius:999px;
+  padding:11px 14px;
+  color:var(--ink);
+  font-weight:700;
+}
+
+.hero{
+  display:grid;
+  grid-template-columns:1.45fr .8fr;
+  gap:16px;
+}
+
+.hero-card,.panel,.mini-card{
+  background:rgba(255,250,241,.88);
+  border:1px solid rgba(255,255,255,.75);
+  border-radius:28px;
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(14px);
+}
+
+.hero-card{
+  padding:26px;
+  background:
+    linear-gradient(135deg,rgba(24,32,42,.98),rgba(42,52,67,.94));
+  color:white;
+  overflow:hidden;
+  position:relative;
+}
+
+.hero-card:after{
+  content:"";
+  position:absolute;
+  right:-60px;
+  top:-80px;
+  width:220px;
+  height:220px;
+  border-radius:50%;
+  background:rgba(185,147,90,.25);
+}
+
+.eyebrow{
+  color:#d9bd8e;
+  font-size:11px;
+  letter-spacing:.22em;
+  font-weight:900;
+  margin:0 0 12px;
+}
+
+.hero-top{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  color:rgba(255,255,255,.62);
+  position:relative;
+  z-index:1;
+}
+
+.pill{
+  display:inline-flex;
+  align-items:center;
+  padding:7px 11px;
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.12);
+  color:white;
+  font-size:12px;
+  font-weight:800;
+}
+
+.total{
+  display:block;
+  font-size:clamp(42px,7vw,72px);
+  letter-spacing:-.06em;
+  margin:16px 0 20px;
+  position:relative;
+  z-index:1;
+}
+
+.hero-metrics{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  position:relative;
+  z-index:1;
+}
+
+.hero-metrics div{
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:18px;
+  padding:14px;
+}
+
+.hero-metrics small{
+  color:rgba(255,255,255,.58);
+}
+
+.hero-metrics b{
+  display:block;
+  margin-top:6px;
+}
+
+.summary{
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+.summary h2,.panel h2{
+  margin:6px 0 0;
+  font-size:22px;
+  letter-spacing:-.03em;
+}
+
+.summary p{
+  color:var(--muted);
+  line-height:1.8;
+}
+
+.ai-box{
+  background:#f0eadf;
   border-radius:20px;
-  margin-top:20px;
+  padding:16px;
+  line-height:1.7;
+  color:#475160;
 }
-input,button {
-  padding:10px;
-  margin:5px;
-  border-radius:10px;
-  border:1px solid #ccc;
+
+.pos{color:var(--green)!important}
+.neg{color:var(--red)!important}
+
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  margin:16px 0;
 }
-button {
-  background:#18202a;
-  color:#fff;
+
+.mini-card{
+  padding:20px;
+}
+
+.mini-card span{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.mini-card b{
+  display:block;
+  font-size:28px;
+  letter-spacing:-.04em;
+  margin:8px 0 4px;
+}
+
+.mini-card small{
+  color:var(--muted);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1.25fr .85fr;
+  gap:16px;
+  margin:16px 0;
+}
+
+.panel{
+  padding:22px;
+  overflow:hidden;
+}
+
+.panel-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:18px;
+}
+
+.label{
+  color:var(--gold);
+  font-size:11px;
+  letter-spacing:.22em;
+  font-weight:900;
+  margin:0;
+}
+
+canvas{
+  width:100%!important;
+  max-height:330px;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:14px;
+}
+
+input,select,button{
+  font:inherit;
+}
+
+.input{
+  width:100%;
+  border:1px solid var(--line);
+  background:white;
+  border-radius:16px;
+  padding:13px 14px;
+}
+
+.btn{
+  border:0;
+  border-radius:16px;
+  padding:13px 16px;
+  background:var(--navy);
+  color:white;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.btn-gold{
+  background:linear-gradient(135deg,var(--gold),#d9bd8e);
+  color:#20170b;
+}
+
+.asset-list{
+  display:grid;
+  gap:10px;
+}
+
+.asset-row{
+  display:grid;
+  grid-template-columns:12px 1fr auto;
+  gap:10px;
+  align-items:center;
+  padding:12px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+}
+
+.asset-row span{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.bar{
+  height:8px;
+  background:#eee6d9;
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:7px;
+}
+
+.bar i{
+  display:block;
+  height:100%;
+  border-radius:999px;
+}
+
+.report{
+  line-height:1.9;
+  color:#475160;
+}
+
+.report ul{
+  margin:8px 0 0;
+  padding-left:1.2em;
+}
+
+.report b{
+  color:var(--ink);
+}
+
+.table-wrap{
+  overflow:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:680px;
+}
+
+th,td{
+  padding:14px;
+  border-bottom:1px solid var(--line);
+  text-align:left;
+}
+
+th{
+  color:var(--muted);
+  font-size:12px;
+  letter-spacing:.08em;
+}
+
+.footer-nav{
+  position:fixed;
+  left:50%;
+  bottom:14px;
+  transform:translateX(-50%);
+  width:min(520px,92vw);
+  background:rgba(24,32,42,.88);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:999px;
+  padding:8px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:4px;
+  box-shadow:0 20px 70px rgba(0,0,0,.24);
+  backdrop-filter:blur(18px);
+}
+
+.footer-nav a{
+  color:rgba(255,255,255,.68);
+  text-decoration:none;
+  text-align:center;
+  font-size:12px;
+  padding:9px 4px;
+  border-radius:999px;
+}
+
+.footer-nav a.active{
+  background:white;
+  color:var(--ink);
+  font-weight:900;
+}
+
+@media(max-width:860px){
+  .app{padding:16px 12px 90px}
+  .header{align-items:flex-start}
+  .brand strong{font-size:16px}
+  .hero,.grid,.kpis{grid-template-columns:1fr}
+  .hero-metrics{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .panel,.hero-card,.summary,.mini-card{border-radius:22px}
 }
 </style>
 </head>
 
 <body>
+<div class="app">
+  <header class="header">
+    <div class="brand">
+      <div class="logo">資</div>
+      <div>
+        <strong>資産ノート</strong>
+        <small>月1回、5分だけ。我が家の総資産を見える化。</small>
+      </div>
+    </div>
+    <select class="month-select">
+      <option>2026年04月末</option>
+    </select>
+  </header>
 
-<h1>📊 資産ダッシュボード</h1>
+  <section class="hero" id="home">
+    <div class="hero-card">
+      <div class="hero-top">
+        <span>Current Financial Assets</span>
+        <span class="pill">2026年04月末</span>
+      </div>
+      <strong class="total">¥7,156,754</strong>
+      <div class="hero-metrics">
+        <div><small>前月比</small><b class="pos">+¥483,870</b></div>
+        <div><small>記録開始比</small><b class="pos">+¥2,183,984</b></div>
+        <div><small>最高残高</small><b>¥8,257,449</b></div>
+      </div>
+    </div>
 
-<div class="card">
-  <input id="month" placeholder="月（例：2026/05）">
-  <input id="amount" placeholder="総資産">
-  <button onclick="addData()">追加</button>
+    <div class="summary">
+      <div>
+        <p class="label">MONTHLY COMMENT</p>
+        <h2>今月の資産サマリー</h2>
+      </div>
+      <p>2026年04月末の金融資産は、前月比で大きく回復。DC・持株会・NASDAQが増加を牽引しています。</p>
+      <div class="ai-box">
+        <b>AIメモ：</b>預金比率は9.0%と低め。投資・退職資産中心の構成なので、生活防衛資金の目安も一緒に管理するとより実用的です。
+      </div>
+    </div>
+  </section>
+
+  <section class="kpis">
+    <div class="mini-card"><span>預金比率</span><b>9.0%</b><small>¥644,667</small></div>
+    <div class="mini-card"><span>DC＋持株会</span><b>73.1%</b><small>¥5,232,622</small></div>
+    <div class="mini-card"><span>投信・株式等</span><b>15.6%</b><small>¥1,116,045</small></div>
+    <div class="mini-card"><span>暗号資産</span><b>2.3%</b><small>¥163,420</small></div>
+  </section>
+
+  <section class="grid" id="charts">
+    <div class="panel">
+      <div class="panel-head">
+        <div><p class="label">TREND</p><h2>総資産推移</h2></div>
+      </div>
+      <canvas id="trendChart"></canvas>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div><p class="label">ALLOCATION</p><h2>資産構成</h2></div>
+      </div>
+      <canvas id="allocationChart"></canvas>
+    </div>
+  </section>
+
+  <section class="grid" id="input">
+    <div class="panel">
+      <div class="panel-head">
+        <div><p class="label">INPUT</p><h2>月次資産を入力</h2></div>
+      </div>
+      <div class="form-grid">
+        <input class="input" id="monthInput" placeholder="例：2026/05">
+        <input class="input" id="amountInput" placeholder="総資産額">
+        <button class="btn btn-gold" onclick="addMonth()">総資産を追加</button>
+        <button class="btn" onclick="resetData()">初期データに戻す</button>
+      </div>
+      <p style="color:var(--muted);line-height:1.7">入力した総資産はブラウザ内に保存されます。まずは個人利用のMVPとして使えます。</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div><p class="label">CATEGORY</p><h2>2026年04月末 内訳</h2></div>
+      </div>
+      <div class="asset-list" id="assetList"></div>
+    </div>
+  </section>
+
+  <section class="grid" id="report">
+    <div class="panel report">
+      <p class="label">AI MONTHLY ANALYSIS</p>
+      <h2>AI月次分析</h2>
+      <ul>
+        <li>2026年04月末の金融資産は <b>¥7,156,754</b>。前月比は <b class="pos">+¥483,870</b> です。</li>
+        <li>増加寄与は <b>確定拠出年金</b>、<b>持株会</b>、<b>NASDAQ</b> が中心です。</li>
+        <li>預金比率は <b>9.0%</b>。長期資産形成に寄ったポートフォリオです。</li>
+      </ul>
+    </div>
+
+    <div class="panel report">
+      <p class="label">PORTFOLIO REPORT</p>
+      <h2>保有資産レポート</h2>
+      <ul>
+        <li>記録開始から直近まで、総資産は <b class="pos">+¥2,183,984</b> 増加しています。</li>
+        <li>最高残高は <b>2025年12月末：¥8,257,449</b> です。</li>
+        <li>DC＋持株会は <b>73.1%</b>。資産形成の中心になっています。</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div><p class="label">DETAIL</p><h2>資産内訳テーブル</h2></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>資産</th><th>金額</th><th>割合</th><th>前月比</th></tr>
+        </thead>
+        <tbody id="detailTable"></tbody>
+      </table>
+    </div>
+  </section>
 </div>
 
-<div class="card">
-  <canvas id="chart"></canvas>
-</div>
+<nav class="footer-nav">
+  <a href="#home" class="active">ホーム</a>
+  <a href="#charts">グラフ</a>
+  <a href="#input">入力</a>
+  <a href="#report">分析</a>
+</nav>
 
 <script>
-let labels = ['2026/01','02','03','04'];
-let data = [7081607,7205492,6672884,7156754];
+const yen = n => new Intl.NumberFormat('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}).format(n);
+const colors = ['#b9935a','#477cff','#2f8f66','#8b6cf6','#22b8cf','#f59f00','#c25b5b'];
 
-const ctx = document.getElementById('chart');
+const defaultLabels = ['2025/02','03','04','05','06','07','08','09','10','11','12','2026/01','02','03','04'];
+const defaultTotals = [4972770,4908101,5214204,5897636,7391463,7617247,7419663,7347519,7412161,7367206,8257449,7081607,7205492,6672884,7156754];
 
-let chart = new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: labels,
-    datasets: [{
-      label: '総資産',
-      data: data,
-      borderColor: '#b9935a'
+let labels = JSON.parse(localStorage.getItem('assetLabels') || JSON.stringify(defaultLabels));
+let totals = JSON.parse(localStorage.getItem('assetTotals') || JSON.stringify(defaultTotals));
+
+const allocation = [
+  ['確定拠出年金',2941357,41.1,290968],
+  ['持株会',2291265,32.0,139705],
+  ['預金',644667,9.0,-171720],
+  ['NASDAQ',605254,8.5,117505],
+  ['インド',510791,7.1,84858],
+  ['Bitcoin',102871,1.4,20775],
+  ['Doge',60549,0.8,1779],
+];
+
+let trendChart = new Chart(document.getElementById('trendChart'), {
+  type:'line',
+  data:{
+    labels,
+    datasets:[{
+      label:'総資産',
+      data:totals,
+      borderColor:'#b9935a',
+      backgroundColor:'rgba(185,147,90,.16)',
+      fill:true,
+      tension:.35,
+      pointRadius:3,
+      pointHoverRadius:6
     }]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{display:false}},
+      y:{ticks:{callback:v=>Math.round(v/10000)+'万'}}
+    }
   }
 });
 
-function addData(){
-  const m = document.getElementById('month').value;
-  const a = Number(document.getElementById('amount').value);
+new Chart(document.getElementById('allocationChart'), {
+  type:'doughnut',
+  data:{
+    labels:allocation.map(x=>x[0]),
+    datasets:[{
+      data:allocation.map(x=>x[1]),
+      backgroundColor:colors,
+      borderWidth:0
+    }]
+  },
+  options:{
+    cutout:'68%',
+    plugins:{legend:{position:'bottom'}}
+  }
+});
+
+function renderAssets(){
+  document.getElementById('assetList').innerHTML = allocation.map((a,i)=>`
+    <div class="asset-row">
+      <span class="dot" style="background:${colors[i]}"></span>
+      <div>
+        <b>${a[0]}</b>
+        <div class="bar"><i style="width:${a[2]}%;background:${colors[i]}"></i></div>
+      </div>
+      <div style="text-align:right">
+        <b>${yen(a[1])}</b><br>
+        <span>${a[2]}%</span>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('detailTable').innerHTML = allocation.map((a,i)=>`
+    <tr>
+      <td><span class="dot" style="background:${colors[i]};vertical-align:middle;margin-right:8px"></span><b>${a[0]}</b></td>
+      <td>${yen(a[1])}</td>
+      <td>${a[2]}%</td>
+      <td class="${a[3]>=0?'pos':'neg'}">${a[3]>=0?'+':''}${yen(a[3])}</td>
+    </tr>
+  `).join('');
+}
+
+function addMonth(){
+  const m = document.getElementById('monthInput').value;
+  const a = Number(String(document.getElementById('amountInput').value).replace(/,/g,''));
+  if(!m || !a){ alert('月と金額を入力してください'); return; }
 
   labels.push(m);
-  data.push(a);
+  totals.push(a);
+  localStorage.setItem('assetLabels', JSON.stringify(labels));
+  localStorage.setItem('assetTotals', JSON.stringify(totals));
 
-  chart.update();
+  trendChart.data.labels = labels;
+  trendChart.data.datasets[0].data = totals;
+  trendChart.update();
+
+  document.getElementById('monthInput').value = '';
+  document.getElementById('amountInput').value = '';
 }
-</script>
 
+function resetData(){
+  localStorage.removeItem('assetLabels');
+  localStorage.removeItem('assetTotals');
+  location.reload();
+}
+
+renderAssets();
+</script>
 </body>
 </html>
