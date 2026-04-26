@@ -31,7 +31,7 @@ body{
 .hero-top{display:flex;justify-content:space-between;gap:10px;color:rgba(255,255,255,.62);position:relative;z-index:1}
 .pill{padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12);color:white;font-size:12px;font-weight:800}
 .total{display:block;font-size:clamp(42px,8vw,72px);letter-spacing:-.06em;margin:16px 0;position:relative;z-index:1}
-.hero-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;position:relative;z-index:1}
+.hero-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;position:relative;z-index:1}
 .hero-metrics div{background:rgba(255,255,255,.08);border-radius:18px;padding:14px}
 .hero-metrics small{color:rgba(255,255,255,.58)}
 .hero-metrics b{display:block;margin-top:6px}
@@ -69,6 +69,12 @@ h3{font-size:15px;margin:18px 0 6px;color:var(--gold);letter-spacing:.08em}
 .actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .delete,.edit,.mini-btn{background:white;color:var(--ink);border:1px solid rgba(24,32,42,.10);padding:8px 10px;border-radius:12px;font-size:12px;cursor:pointer}
 .delete{background:#fff0ee;color:var(--red);border:1px solid rgba(194,91,91,.18)}
+.segmented{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.segmented button{border:1px solid var(--line);background:white;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer}
+.segmented button.active{background:var(--navy);color:white}
+.composition-list{display:grid;gap:8px;margin-top:12px}
+.composition-item{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:13px;padding:8px 0;border-bottom:1px solid var(--line)}
+.composition-name{display:flex;align-items:center;gap:8px;color:#475160}
 canvas{width:100%!important;max-height:320px}
 .report{line-height:1.85;color:#475160}
 .report b{color:var(--ink)}
@@ -118,7 +124,8 @@ canvas{width:100%!important;max-height:320px}
   <div class="hero-metrics">
     <div><small>資産合計</small><b id="heroAssets">-</b></div>
     <div><small>負債合計</small><b id="heroLiabilities">-</b></div>
-    <div><small>目標達成率</small><b id="heroGoalRate">-</b></div>
+    <div><small>前月増減</small><b id="heroMoM">-</b><small id="heroMoMRate">-</small></div>
+    <div><small>前年増減</small><b id="heroYoY">-</b><small id="heroYoYRate">-</small></div>
   </div>
   <div class="goal-box">
     <small>目標純資産</small>
@@ -127,52 +134,38 @@ canvas{width:100%!important;max-height:320px}
   </div>
 </section>
 
-<section class="kpis">
-  <div class="mini">
-    <span>前月比</span>
-    <b id="kpiMoM">-</b>
-    <small id="kpiMoMRate">-</small>
-  </div>
-  <div class="mini">
-    <span>前年比</span>
-    <b id="kpiYoY">-</b>
-    <small id="kpiYoYRate">-</small>
-  </div>
-  <div class="mini">
-    <span>投資比率</span>
-    <b id="kpiInvestRatio">-</b>
-    <small id="kpiInvestAmount">-</small>
-  </div>
-  <div class="mini">
-    <span>現金余力</span>
-    <b id="kpiCashAmount">-</b>
-    <small id="kpiCashRatio">-</small>
-  </div>
-</section>
-
 <section class="grid" id="charts">
   <div class="panel">
     <p class="label">TREND</p>
     <h2>純資産推移</h2>
+    <div class="segmented" id="trendRangeButtons">
+      <button class="active" onclick="setTrendRange(3, this)">3ヶ月</button>
+      <button onclick="setTrendRange(6, this)">6ヶ月</button>
+      <button onclick="setTrendRange(12, this)">1年</button>
+      <button onclick="setTrendRange(36, this)">3年</button>
+      <button onclick="setTrendRange(60, this)">5年</button>
+      <button onclick="setTrendRange(120, this)">10年</button>
+    </div>
     <canvas id="trendChart"></canvas>
   </div>
   <div class="panel">
     <p class="label">ALLOCATION</p>
     <h2>最新月の資産構成</h2>
     <canvas id="allocationChart"></canvas>
+    <div class="composition-list" id="allocationLegend"></div>
   </div>
 </section>
 
 <section class="grid-even" id="bs">
-  <div class="panel report">
-    <p class="label">BALANCE SHEET</p>
-    <h2>BS風サマリー</h2>
-    <div id="balanceSheet"></div>
-  </div>
   <div class="panel">
     <p class="label">BS CHART</p>
     <h2>BS構成チャート</h2>
     <canvas id="bsChart"></canvas>
+  </div>
+  <div class="panel report">
+    <p class="label">SNAPSHOT</p>
+    <h2>最新月の内訳</h2>
+    <div id="assetList"></div>
   </div>
 </section>
 
@@ -182,6 +175,7 @@ canvas{width:100%!important;max-height:320px}
     <h2>月次データを入力</h2>
     <div class="form">
       <input class="input" id="monthInput" placeholder="対象月 例：2026/05">
+      <select id="recordSelect" onchange="loadSelectedMonth()"></select>
       <div class="actions">
         <button class="mini-btn" onclick="setNextMonth()">次月を作成</button>
         <button class="mini-btn" onclick="copyLatestAmounts()">最新月をコピー</button>
@@ -222,9 +216,9 @@ canvas{width:100%!important;max-height:320px}
     <div id="monthlyReport"></div>
   </div>
   <div class="panel report">
-    <p class="label">DETAIL</p>
-    <h2>最新月の内訳</h2>
-    <div id="assetList"></div>
+    <p class="label">INPUT GUIDE</p>
+    <h2>過去分の入力方法</h2>
+    <p class="note">対象月に <b>2025/12</b> のように入力して保存すると、過去月も追加・更新できます。上のプルダウンから既存月を選ぶと、その月の金額を読み込んで修正できます。</p>
   </div>
 </section>
 
@@ -303,6 +297,7 @@ let records = safeParse('records', defaultRecords);
 let goalAmount = Number(localStorage.getItem('goalAmount') || 10000000);
 
 let trendChart, allocationChart, bsChart;
+let trendRangeMonths = 3;
 
 function saveState(){
   localStorage.setItem('categories', JSON.stringify(categories));
@@ -349,13 +344,13 @@ function render(){
   document.getElementById('totalDisplay').textContent = yen(netAssets);
   document.getElementById('heroAssets').textContent = yen(totalAssets);
   document.getElementById('heroLiabilities').textContent = yen(totalLiabilities);
+  renderHeroChanges(latest, prev, netAssets);
 
   renderGoal(netAssets);
-  renderSmartKpis(latest, prev, netAssets);
+  renderRecordSelect(latest.month);
   renderCategoryInputs(latest);
   renderCategoryList();
   renderAssetList(latest);
-  renderBalanceSheet(latest);
   renderReport(latest, prev);
   renderCharts();
   document.getElementById('goalInput').value = goalAmount;
@@ -365,14 +360,13 @@ function renderGoal(netAssets){
   const progress = goalAmount ? netAssets / goalAmount * 100 : 0;
   document.getElementById('goalAmountText').textContent = yen(goalAmount);
   document.getElementById('goalProgressText').textContent = `${progress.toFixed(1)}% 達成`;
-  document.getElementById('heroGoalRate').textContent = `${progress.toFixed(1)}%`;
   document.getElementById('goalProgressBar').style.width = Math.min(Math.max(progress,0),100) + '%';
 }
 
-function renderSmartKpis(latest, prev, netAssets){
+function renderHeroChanges(latest, prev, netAssets){
   const prevNet = prev ? netOf(prev) : 0;
-  const mom = prev ? netAssets - prevNet : 0;
-  const momRate = prevNet ? mom / prevNet * 100 : 0;
+  const mom = prev ? netAssets - prevNet : null;
+  const momRate = prevNet ? mom / prevNet * 100 : null;
 
   const yearAgoMonth = addMonths(latest.month, -12);
   const yearAgoRecord = records.find(r=>r.month === yearAgoMonth);
@@ -380,25 +374,38 @@ function renderSmartKpis(latest, prev, netAssets){
   const yoy = yearAgoRecord ? netAssets - yearAgoNet : null;
   const yoyRate = yearAgoNet ? yoy / yearAgoNet * 100 : null;
 
-  const assetTotal = totalsOf(latest).totalAssets;
-  const entries = categories.map(c=>({...c, amount:Number(latest.values[c.name]||0)}));
-  const cash = entries.filter(e=>e.side !== 'liability' && e.type === 'cash').reduce((s,e)=>s+e.amount,0);
-  const invest = entries.filter(e=>e.side !== 'liability' && e.type === 'invest').reduce((s,e)=>s+e.amount,0);
-
-  document.getElementById('kpiMoM').innerHTML = prev
+  document.getElementById('heroMoM').innerHTML = mom !== null
     ? `<span class="${mom>=0?'pos':'neg'}">${mom>=0?'+':''}${yen(mom)}</span>`
     : '-';
-  document.getElementById('kpiMoMRate').textContent = prev ? `${momRate>=0?'+':''}${momRate.toFixed(1)}%` : '-';
+  document.getElementById('heroMoMRate').textContent = momRate !== null
+    ? `${momRate>=0?'+':''}${momRate.toFixed(1)}%`
+    : '-';
 
-  document.getElementById('kpiYoY').innerHTML = yoy !== null
+  document.getElementById('heroYoY').innerHTML = yoy !== null
     ? `<span class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':''}${yen(yoy)}</span>`
     : '-';
-  document.getElementById('kpiYoYRate').textContent = yoyRate !== null ? `${yoyRate>=0?'+':''}${yoyRate.toFixed(1)}%` : '前年同月データなし';
+  document.getElementById('heroYoYRate').textContent = yoyRate !== null
+    ? `${yoyRate>=0?'+':''}${yoyRate.toFixed(1)}%`
+    : '前年同月なし';
+}
 
-  document.getElementById('kpiInvestRatio').textContent = assetTotal ? `${(invest/assetTotal*100).toFixed(1)}%` : '-';
-  document.getElementById('kpiInvestAmount').textContent = yen(invest);
-  document.getElementById('kpiCashAmount').textContent = yen(cash);
-  document.getElementById('kpiCashRatio').textContent = assetTotal ? `${(cash/assetTotal*100).toFixed(1)}% of assets` : '-';
+function renderRecordSelect(selectedMonth){
+  const select = document.getElementById('recordSelect');
+  if(!select) return;
+  select.innerHTML = '<option value="">過去月を選択して修正</option>' + records
+    .slice()
+    .sort((a,b)=>b.month.localeCompare(a.month))
+    .map(r=>`<option value="${r.month}" ${r.month===selectedMonth?'selected':''}>${r.month} を読み込む</option>`)
+    .join('');
+}
+
+function loadSelectedMonth(){
+  const month = document.getElementById('recordSelect').value;
+  if(!month) return;
+  const record = records.find(r=>r.month === month);
+  if(!record) return;
+  renderCategoryInputs(record);
+  showToast(month + ' を読み込みました');
 }
 
 function renderCategoryInputs(latest){
@@ -515,15 +522,18 @@ function renderReport(latest, prev){
 }
 
 function renderCharts(){
-  const labels = records.map(r=>r.month);
-  const nets = records.map(r=>netOf(r));
   const latest = latestRecord();
   const {totalAssets,totalLiabilities,netAssets} = totalsOf(latest);
+
+  const trendRecords = records.slice(-trendRangeMonths);
+  const labels = trendRecords.map(r=>r.month);
+  const nets = trendRecords.map(r=>netOf(r));
 
   const assetEntries = categories
     .filter(c=>c.side !== 'liability')
     .map(c=>({name:c.name, amount:Number(latest.values[c.name]||0)}))
-    .filter(e=>e.amount>0);
+    .filter(e=>e.amount>0)
+    .sort((a,b)=>b.amount-a.amount);
 
   if(trendChart) trendChart.destroy();
   if(allocationChart) allocationChart.destroy();
@@ -536,16 +546,30 @@ function renderCharts(){
   });
 
   allocationChart = new Chart(document.getElementById('allocationChart'), {
-    type:'doughnut',
-    data:{labels:assetEntries.map(e=>e.name),datasets:[{data:assetEntries.map(e=>e.amount),backgroundColor:assetEntries.map((_,i)=>colors[i%colors.length]),borderWidth:0}]},
-    options:{cutout:'68%',plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.label}: ${yen(c.raw)}`}}}}
+    type:'pie',
+    data:{labels:assetEntries.map(e=>e.name),datasets:[{data:assetEntries.map(e=>e.amount),backgroundColor:assetEntries.map((_,i)=>colors[i%colors.length]),borderWidth:2,borderColor:'#fffaf1'}]},
+    options:{plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.label}: ${yen(c.raw)}（${(c.raw/totalAssets*100).toFixed(1)}%）`}}}}
   });
+
+  document.getElementById('allocationLegend').innerHTML = assetEntries.map((e,i)=>`
+    <div class="composition-item">
+      <span class="composition-name"><span class="dot" style="background:${colors[i%colors.length]}"></span>${e.name}</span>
+      <b>${yen(e.amount)} / ${totalAssets ? (e.amount/totalAssets*100).toFixed(1) : 0}%</b>
+    </div>
+  `).join('');
 
   bsChart = new Chart(document.getElementById('bsChart'), {
     type:'bar',
     data:{labels:['資産合計','負債合計','純資産'],datasets:[{data:[totalAssets,totalLiabilities,netAssets],backgroundColor:['#b9935a','#c25b5b','#2f8f66'],borderWidth:0,borderRadius:14}]},
     options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>yen(c.raw)}}},scales:{x:{grid:{display:false}},y:{ticks:{callback:v=>Math.round(v/10000)+'万'}}}}
   });
+}
+
+function setTrendRange(months, button){
+  trendRangeMonths = months;
+  document.querySelectorAll('#trendRangeButtons button').forEach(b=>b.classList.remove('active'));
+  if(button) button.classList.add('active');
+  renderCharts();
 }
 
 function addCategory(){
