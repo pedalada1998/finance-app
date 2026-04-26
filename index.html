@@ -332,6 +332,46 @@ canvas{width:100%!important;max-height:350px}
   .hero-metrics{grid-template-columns:1fr}
   .closing-badge{position:relative;right:auto;top:auto;display:inline-flex;margin-top:12px}
 }
+
+/* v3 refinements */
+.hero-metrics{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+  max-width:760px!important;
+}
+.hero-metrics div{
+  padding:11px 12px!important;
+  border-radius:16px!important;
+}
+.hero-metrics small{font-size:11px!important}
+.hero-metrics b{font-size:15px!important;margin-top:4px!important}
+.ai-toggle-btn{
+  margin-top:12px;
+  border:1px solid rgba(185,147,90,.28);
+  background:#fffaf1;
+  color:#6a522a;
+  padding:9px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:950;
+  cursor:pointer;
+}
+.ai-section-comment{display:none}
+.ai-section-comment.show{display:block}
+.plan-chart-wrap{
+  padding:12px;
+  border-radius:20px;
+  background:linear-gradient(180deg,#fffaf1,#fff);
+  border:1px solid var(--line);
+  margin:12px 0;
+}
+.plan-chart-wrap canvas{max-height:260px!important}
+@media(max-width:520px){
+  .hero-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .hero-metrics div{padding:10px!important}
+  .hero-metrics b{font-size:14px!important}
+}
+
 </style>
 </head>
 <body>
@@ -359,7 +399,7 @@ canvas{width:100%!important;max-height:350px}
   <div class="closing-badge" id="closingMonthBadge">-</div>
 
   <div class="hero-copy">
-    <h2>会社だけじゃない。<br>個人資産も、決算するべきだ。</h2>
+    <h2>会社だけじゃない。<br>あなたの資産にも、決算が必要だ。</h2>
     <p>あなた自身をひとつの会社として捉え、資産・負債・純資産を月次で分析する。</p>
   </div>
 
@@ -402,6 +442,7 @@ canvas{width:100%!important;max-height:350px}
     </div>
     <canvas id="trendChart"></canvas>
     <div id="trendEmpty" class="empty-state" style="display:none">月次データがないため、グラフを表示できません。</div>
+    <button class="ai-toggle-btn" onclick="toggleAiComment('trendAiComment')">AIコメントを見る</button>
     <div class="ai-section-comment" id="trendAiComment"></div>
   </div>
 
@@ -421,6 +462,7 @@ canvas{width:100%!important;max-height:350px}
     <div id="allocationEmpty" class="empty-state" style="display:none">資産データがないため、チャートを表示できません。</div>
     <div id="compositionList" class="composition-list"></div>
     <div class="composition-action"><button class="btn btn-gold" onclick="startLatestMonthInput()">最新月の月次決算を入力</button></div>
+    <button class="ai-toggle-btn" onclick="toggleAiComment('compositionAiComment')">AIコメントを見る</button>
     <div class="ai-section-comment" id="compositionAiComment"></div>
   </div>
 </section>
@@ -435,6 +477,7 @@ canvas{width:100%!important;max-height:350px}
       <button id="tabPlan" onclick="setStatementView('plan')">中期資産計画</button>
     </div>
     <div id="statementBody"></div>
+    <button class="ai-toggle-btn" onclick="toggleAiComment('statementAiComment')">AIコメントを見る</button>
     <div class="ai-section-comment" id="statementAiComment"></div>
   </div>
 
@@ -471,7 +514,8 @@ canvas{width:100%!important;max-height:350px}
       </div>
       <canvas id="benchmarkChart"></canvas>
       <div id="benchmarkResult"></div>
-      <div class="ai-section-comment" id="benchmarkAiComment"></div>
+      <button class="ai-toggle-btn" onclick="toggleAiComment('benchmarkAiComment')">AIコメントを見る</button>
+    <div class="ai-section-comment" id="benchmarkAiComment"></div>
       <div class="footnote">
         注：比較データはJ-FLEC「家計の金融行動に関する世論調査2025年」の年代別「金融資産保有額（金融資産を保有していない世帯を含む）」の平均値・中央値をアプリ内に固定値として持たせています。<br>
         同調査の「金融資産」は、預貯金、株式、投資信託、保険などを含む一方、日常的な出し入れ・引落しに備える普通預金残高は含まれない旨の注記があります。本アプリの「資産合計」は入力カテゴリの合計であり、統計上の金融資産定義と完全には一致しません。比較は目安として利用してください。推定上位割合は、平均値・中央値から対数正規分布を近似して算出した参考値であり、厳密な順位ではありません。
@@ -787,6 +831,13 @@ function formatAmountInput(input){
 function escapeAttr(str){ return String(str).replace(/'/g,"\\'"); }
 function safeId(str){ return String(str).replace(/[^a-zA-Z0-9_\-\u3040-\u30ff\u3400-\u9fff]/g,'_'); }
 
+
+
+function toggleAiComment(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.toggle('show');
+}
 
 function setAiComment(id, html){
   const el = document.getElementById(id);
@@ -1321,14 +1372,14 @@ function renderStatement(){
   const liabilities = liabilityTotalOf(latest);
   const net = netAssetOf(latest);
   const assetRows = assetItems.map(e=>`
-    <tr><td><span class="account-color-cell"><span class="account-color-chip" style="background:#b9935a"></span>${e.name}</span></td><td>${e.side}</td><td>${assets ? (e.amount/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(e.amount)}</td></tr>
+    <tr><td><span class="account-color-cell"><span class="account-color-chip" style="background:#b9935a"></span>${e.name}</span></td><td>${assets ? (e.amount/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(e.amount)}</td></tr>
   `).join('');
   const liabilityRows = liabilityItems.length ? liabilityItems.map(e=>`
-    <tr><td><span class="account-color-cell"><span class="account-color-chip" style="background:#c25b5b"></span>${e.name}</span></td><td>${e.side}</td><td>${liabilities ? (e.amount/liabilities*100).toFixed(1) : '0.0'}%</td><td>${yen(e.amount)}</td></tr>
-  `).join('') : `<tr><td>負債なし</td><td>負債</td><td>-</td><td>¥0</td></tr>`;
+    <tr><td><span class="account-color-cell"><span class="account-color-chip" style="background:#c25b5b"></span>${e.name}</span></td><td>${liabilities ? (e.amount/liabilities*100).toFixed(1) : '0.0'}%</td><td>${yen(e.amount)}</td></tr>
+  `).join('') : `<tr><td><span class="account-color-cell"><span class="account-color-chip" style="background:#c25b5b"></span>負債なし</span></td><td>-</td><td>¥0</td></tr>`;
   body.innerHTML = `
     <table class="statement-table">
-      <thead><tr><th>勘定科目</th><th>区分</th><th>構成比</th><th>金額</th></tr></thead>
+      <thead><tr><th>勘定科目</th><th>構成比</th><th>金額</th></tr></thead>
       <tbody>
         ${assetRows}
         <tr class="subtotal"><td><span class="account-color-cell"><span class="account-color-chip" style="background:#b9935a"></span>資産合計</span></td><td>資産</td><td>100.0%</td><td>${yen(assets)}</td></tr>
@@ -1365,7 +1416,7 @@ function renderPlanStatement(){
       <div class="actions" style="justify-content:flex-start;margin-bottom:12px">
         <button class="btn btn-gold" onclick="savePlanSettings()">中期資産計画を更新</button>
       </div>
-      <canvas id="planChart"></canvas>
+      <div class="plan-chart-wrap"><canvas id="planChart"></canvas></div>
       <div class="plan-result">
         <div class="plan-card"><small>現在の純資産</small><b>${yen(latestNet)}</b></div>
         <div class="plan-card"><small>目標までの残額</small><b>${yen(remaining)}</b></div>
@@ -1382,37 +1433,88 @@ function renderPlanChart(){
   const canvas = document.getElementById('planChart');
   if(!canvas || typeof Chart === 'undefined') return;
   if(planChart) planChart.destroy();
+
   const latest = latestRecord();
   const years = Number(planSettings.years || 1);
   const target = Number(planSettings.target || 0);
+
   const actualLabels = records.map(r=>r.month);
   const actualData = records.map(r=>netAssetOf(r));
+
   const futureLabels = [];
   const futureData = [];
   const startNet = netAssetOf(latest);
   const months = Math.max(years * 12, 1);
+
   for(let i=0;i<=months;i++){
     const m = addMonths(latest.month,i);
     futureLabels.push(m);
     const v = startNet + (target - startNet) * (i/months);
     futureData.push(v);
   }
+
   const labels = [...actualLabels, ...futureLabels.slice(1)];
   const actualSeries = labels.map(l=>actualLabels.includes(l) ? actualData[actualLabels.indexOf(l)] : null);
   const forecastSeries = labels.map(l=>futureLabels.includes(l) ? futureData[futureLabels.indexOf(l)] : null);
-  new Chart(canvas,{
+
+  planChart = new Chart(canvas,{
     type:'line',
     data:{
       labels,
       datasets:[
-        {label:'実績',data:actualSeries,borderColor:'#b9935a',backgroundColor:'rgba(185,147,90,.12)',tension:.35,spanGaps:false},
-        {label:'中期資産計画',data:forecastSeries,borderColor:'#477cff',borderDash:[6,5],backgroundColor:'rgba(71,124,255,.08)',tension:.35,spanGaps:false}
+        {
+          label:'実績',
+          data:actualSeries,
+          borderColor:'#b9935a',
+          backgroundColor:'rgba(185,147,90,.14)',
+          pointBackgroundColor:'#b9935a',
+          pointRadius:3,
+          pointHoverRadius:5,
+          borderWidth:3,
+          tension:.36,
+          fill:true,
+          spanGaps:false
+        },
+        {
+          label:'中期資産計画',
+          data:forecastSeries,
+          borderColor:'#477cff',
+          backgroundColor:'rgba(71,124,255,.06)',
+          pointBackgroundColor:'#477cff',
+          pointRadius:0,
+          pointHoverRadius:4,
+          borderWidth:3,
+          borderDash:[8,6],
+          tension:.36,
+          fill:false,
+          spanGaps:false
+        }
       ]
     },
     options:{
       responsive:true,
-      plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${yen(ctx.raw)}`}}},
-      scales:{x:{grid:{display:false}},y:{ticks:{callback:v=>axisTickFormatter(v)}}}
+      maintainAspectRatio:true,
+      plugins:{
+        legend:{
+          position:'bottom',
+          labels:{usePointStyle:true, boxWidth:8, padding:18}
+        },
+        tooltip:{
+          callbacks:{
+            label:ctx=>`${ctx.dataset.label}: ${yen(ctx.raw)}`
+          }
+        }
+      },
+      scales:{
+        x:{
+          grid:{display:false},
+          ticks:{maxTicksLimit:6}
+        },
+        y:{
+          grid:{color:'rgba(23,32,43,.08)'},
+          ticks:{callback:v=>axisTickFormatter(v)}
+        }
+      }
     }
   });
 }
