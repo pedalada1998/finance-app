@@ -586,6 +586,104 @@ canvas{
 }
 
 
+
+.ai-comment-row{
+  display:none;
+  margin:8px 0 12px;
+  padding:12px 14px;
+  border-radius:16px;
+  background:rgba(185,147,90,.10);
+  border:1px solid rgba(185,147,90,.18);
+  color:#5a4b31;
+  font-size:13px;
+  line-height:1.7;
+}
+.ai-comment-row.show{
+  display:block;
+}
+.ai-mini-btn{
+  border:1px solid rgba(185,147,90,.28);
+  background:#fffaf1;
+  color:#6a522a;
+  padding:7px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:900;
+  cursor:pointer;
+}
+.statement-table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+  border-radius:18px;
+  border:1px solid var(--line);
+  background:white;
+}
+.statement-table th,
+.statement-table td{
+  padding:12px 12px;
+  border-bottom:1px solid var(--line);
+  text-align:left;
+  font-size:13px;
+}
+.statement-table th{
+  background:#f5f3ee;
+  color:var(--muted);
+  font-weight:900;
+}
+.statement-table td:last-child,
+.statement-table th:last-child{
+  text-align:right;
+}
+.statement-table tr:last-child td{
+  border-bottom:0;
+}
+.statement-table .subtotal td{
+  background:#fbf7ef;
+  font-weight:900;
+}
+.statement-table .net-row td{
+  background:linear-gradient(135deg,var(--navy),#3b4658);
+  color:white;
+  font-weight:900;
+}
+.plan-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:12px;
+}
+.plan-result{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+.plan-card{
+  padding:14px;
+  border-radius:18px;
+  background:#f5f3ee;
+  border:1px solid var(--line);
+}
+.plan-card small{
+  color:var(--muted);
+  display:block;
+  font-weight:900;
+  margin-bottom:6px;
+}
+.plan-card b{
+  display:block;
+  font-size:20px;
+  font-variant-numeric:tabular-nums;
+}
+.inline-month-label{
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+  font-weight:900;
+  margin-bottom:3px;
+}
+
 .benchmark-box{
   margin-top:18px;
   padding:16px;
@@ -651,7 +749,7 @@ canvas{
   .readonly-money{text-align:left}
   .actions{justify-content:flex-start}
   .statement-tabs{grid-template-columns:1fr}
-  .benchmark-grid,.benchmark-result{grid-template-columns:1fr}
+  .benchmark-grid,.benchmark-result,.plan-grid,.plan-result{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -759,13 +857,9 @@ canvas{
   </div>
 
   <div class="panel report" id="report">
-    <p class="label">MANAGEMENT COMMENTARY</p>
-    <h2>AI決算コメント</h2>
-    <div id="monthlyReport"></div>
-
+    <p class="label">AGE BENCHMARK</p>
+    <h2>同世代ベンチマーク</h2>
     <div class="benchmark-box">
-      <p class="label">AGE BENCHMARK</p>
-      <h2>同年代ベンチマーク</h2>
       <div class="benchmark-grid">
         <div>
           <label class="small-label">年齢</label>
@@ -788,7 +882,7 @@ canvas{
         <div>
           <label class="small-label">比較対象</label>
           <select id="benchmarkTarget" onchange="saveBenchmarkSettings(); renderBenchmark();">
-            <option value="assets">資産合計</option>
+            <option value="assets">個人資産額（資産合計）</option>
             <option value="net">純資産</option>
           </select>
         </div>
@@ -796,7 +890,7 @@ canvas{
       <div id="benchmarkResult"></div>
       <div class="footnote">
         注：比較データはJ-FLEC「家計の金融行動に関する世論調査2025年」の年代別「金融資産保有額（金融資産を保有していない世帯を含む）」の平均値・中央値をアプリ内に固定値として持たせています。<br>
-        同調査の「金融資産」は、預貯金、株式、投資信託、保険などを含む一方、日常的な出し入れ・引落しに備える普通預金残高は含まれない旨の注記があります。本アプリの「資産合計」は入力カテゴリの合計であり、統計上の金融資産定義と完全には一致しません。比較は目安として利用してください。
+        同調査の「金融資産」は、預貯金、株式、投資信託、保険などを含む一方、日常的な出し入れ・引落しに備える普通預金残高は含まれない旨の注記があります。本アプリの「資産合計」は入力カテゴリの合計であり、統計上の金融資産定義と完全には一致しません。比較は目安として利用してください。推定上位割合は、平均値・中央値から対数正規分布を近似して算出した参考値であり、厳密な順位ではありません。
       </div>
     </div>
   </div>
@@ -883,7 +977,7 @@ canvas{
   <a href="#home" class="active">トップ</a>
   <a href="#charts">成長</a>
   <a href="#statement">決算</a>
-  <a href="#report">コメント</a>
+  <a href="#report">比較</a>
   <a href="#input">入力</a>
 </nav>
 
@@ -952,6 +1046,7 @@ let trendChart;
 let allocationChart;
 let statementView = 'bs';
 let benchmarkSettings = {age:27, household:'couple', basis:'median', target:'assets'};
+let planSettings = {target:30000000, years:5};
 
 function clone(obj){
   return JSON.parse(JSON.stringify(obj));
@@ -979,6 +1074,7 @@ function loadState(){
       categories = saved.categories.map(normalizeCategory);
       records = saved.records;
       if(saved.benchmarkSettings) benchmarkSettings = {...benchmarkSettings, ...saved.benchmarkSettings};
+      if(saved.planSettings) planSettings = {...planSettings, ...saved.planSettings};
     }else{
       categories = clone(defaultCategories);
       records = clone(defaultRecords);
@@ -999,7 +1095,7 @@ function loadState(){
 }
 
 function saveState(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({categories,records,benchmarkSettings}));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({categories,records,benchmarkSettings,planSettings}));
 }
 
 function sortRecords(){
@@ -1100,7 +1196,7 @@ function render(){
   renderCategoryList();
   renderCharts();
   renderCompositionList();
-  renderReport();
+  // renderReport();
   renderStatement();
   renderBenchmark();
 }
@@ -1147,13 +1243,17 @@ function renderCategoryInputs(){
         <div class="cat-title">
           <b>${c.name}</b>
           <small>${sideNames[c.side]} / ${typeNames[c.type]}</small>
+          <button type="button" class="ai-mini-btn" onclick="toggleCategoryComment('${escapeAttr(c.name)}')">AIコメント</button>
+          <div id="ai-comment-${safeId(c.name)}" class="ai-comment-row"></div>
         </div>
 
         <div class="readonly-money" title="前々月 ${prev2Month}">
+          <span class="inline-month-label">前々月（${prev2Month}）</span>
           ${prev2 === null ? '-' : yen(prev2)}
         </div>
 
         <div class="readonly-money" title="前月 ${prevMonth}">
+          <span class="inline-month-label">前月（${prevMonth}）</span>
           ${prev === null ? '-' : yen(prev)}
         </div>
 
@@ -1193,6 +1293,10 @@ function renderCategoryList(){
 
 function escapeAttr(str){
   return String(str).replace(/'/g,"\\'");
+}
+
+function safeId(str){
+  return String(str).replace(/[^a-zA-Z0-9_\-\u3040-\u30ff\u3400-\u9fff]/g,'_');
 }
 
 function formatNumber(n){
@@ -1354,34 +1458,48 @@ function renderStatement(){
       : 0;
 
     body.innerHTML = `
-      <div class="statement-card">
-        <div class="statement-row"><span>決算月</span><b>${latest.month}</b></div>
-        <div class="statement-row"><span>純資産</span><b>${yen(latestNet)}</b></div>
-        <div class="statement-row"><span>前月増減</span><b class="${change>=0?'pos':'neg'}">${change>=0?'+':''}${yen(change)}（${rate>=0?'+':''}${rate.toFixed(1)}%）</b></div>
-        <div class="statement-row"><span>月次平均増加額</span><b>${yen(monthlyAverage)}</b></div>
-        <div class="statement-total">月次決算コメント：純資産の増減要因を、入金・投資評価・支出に分けて確認すると精度が上がります。</div>
-      </div>
+      <table class="statement-table">
+        <thead><tr><th>項目</th><th>金額・内容</th></tr></thead>
+        <tbody>
+          <tr><td>決算月</td><td>${latest.month}</td></tr>
+          <tr><td>純資産</td><td>${yen(latestNet)}</td></tr>
+          <tr><td>前月増減</td><td class="${change>=0?'pos':'neg'}">${change>=0?'+':''}${yen(change)}（${rate>=0?'+':''}${rate.toFixed(1)}%）</td></tr>
+          <tr><td>月次平均増加額</td><td>${yen(monthlyAverage)}</td></tr>
+          <tr class="subtotal"><td>コメント</td><td>純資産の増減要因を、入金・投資評価・支出に分けて確認すると精度が上がります。</td></tr>
+        </tbody>
+      </table>
     `;
     return;
   }
 
   if(statementView === 'plan'){
     const latestNet = netAssetOf(latest);
-    const target = 30000000;
+    const target = Number(planSettings.target || 0);
+    const years = Number(planSettings.years || 1);
     const progress = target ? latestNet / target * 100 : 0;
-    const first = records[0];
-    const years = Math.max((records.length-1)/12, 1/12);
-    const firstNet = netAssetOf(first);
-    const cagr = firstNet > 0 ? (Math.pow(latestNet / firstNet, 1/years) - 1) * 100 : 0;
     const remaining = Math.max(target - latestNet, 0);
+    const requiredCagr = latestNet > 0 && target > 0 ? (Math.pow(target / latestNet, 1 / years) - 1) * 100 : 0;
+    const requiredMonthlyIncrease = remaining / Math.max(years * 12,1);
 
     body.innerHTML = `
       <div class="statement-card">
-        <div class="statement-row"><span>中期資産計画の目標純資産</span><b>${yen(target)}</b></div>
-        <div class="statement-row"><span>現在の純資産</span><b>${yen(latestNet)}</b></div>
-        <div class="statement-row"><span>進捗率</span><b>${progress.toFixed(1)}%</b></div>
-        <div class="statement-row"><span>目標までの残額</span><b>${yen(remaining)}</b></div>
-        <div class="statement-row"><span>実績CAGR</span><b>${cagr.toFixed(1)}%</b></div>
+        <div class="plan-grid">
+          <div>
+            <label class="small-label">目標純資産</label>
+            <input class="input" id="planTarget" value="${formatNumber(target)}" oninput="formatAmountInput(this)" onchange="savePlanSettings()">
+          </div>
+          <div>
+            <label class="small-label">達成までの年数</label>
+            <input class="input" id="planYears" type="number" min="1" max="50" value="${years}" onchange="savePlanSettings()">
+          </div>
+        </div>
+        <div class="plan-result">
+          <div class="plan-card"><small>現在の純資産</small><b>${yen(latestNet)}</b></div>
+          <div class="plan-card"><small>目標までの残額</small><b>${yen(remaining)}</b></div>
+          <div class="plan-card"><small>必要年率成長率</small><b>${requiredCagr.toFixed(1)}%</b></div>
+          <div class="plan-card"><small>必要月次増加額</small><b>${yen(requiredMonthlyIncrease)}</b></div>
+          <div class="plan-card"><small>進捗率</small><b>${progress.toFixed(1)}%</b></div>
+        </div>
         <div class="statement-net"><span>中期資産計画メッセージ</span><br><b>人生という資産を、計画的に成長させる。</b></div>
       </div>
     `;
@@ -1390,114 +1508,57 @@ function renderStatement(){
 
   const assetItems = categories
     .filter(c=>c.side !== 'liability')
-    .map(c=>({name:c.name, amount:Number(latest.values[c.name]||0)}))
+    .map(c=>({name:c.name, side:'資産', type:typeNames[c.type], amount:Number(latest.values[c.name]||0)}))
     .filter(e=>e.amount>0);
 
   const liabilityItems = categories
     .filter(c=>c.side === 'liability')
-    .map(c=>({name:c.name, amount:Number(latest.values[c.name]||0)}))
+    .map(c=>({name:c.name, side:'負債', type:typeNames[c.type], amount:Number(latest.values[c.name]||0)}))
     .filter(e=>e.amount>0);
 
   const assets = assetTotalOf(latest);
   const liabilities = liabilityTotalOf(latest);
   const net = netAssetOf(latest);
 
+  const assetRows = assetItems.map(e=>`
+    <tr>
+      <td>${e.name}</td>
+      <td>${e.side}</td>
+      <td>${e.type}</td>
+      <td>${assets ? (e.amount/assets*100).toFixed(1) : '0.0'}%</td>
+      <td>${yen(e.amount)}</td>
+    </tr>
+  `).join('');
+
+  const liabilityRows = liabilityItems.length ? liabilityItems.map(e=>`
+    <tr>
+      <td>${e.name}</td>
+      <td>${e.side}</td>
+      <td>${e.type}</td>
+      <td>${liabilities ? (e.amount/liabilities*100).toFixed(1) : '0.0'}%</td>
+      <td>${yen(e.amount)}</td>
+    </tr>
+  `).join('') : `<tr><td>負債なし</td><td>負債</td><td>-</td><td>-</td><td>¥0</td></tr>`;
+
   body.innerHTML = `
-    <div class="statement-card">
-      <h3>資産</h3>
-      ${assetItems.map(e=>`<div class="statement-row"><span>${e.name}</span><b>${yen(e.amount)}</b></div>`).join('')}
-      <div class="statement-total">資産合計　${yen(assets)}</div>
-
-      <h3>負債</h3>
-      ${liabilityItems.length ? liabilityItems.map(e=>`<div class="statement-row"><span>${e.name}</span><b>${yen(e.amount)}</b></div>`).join('') : '<div class="statement-row"><span>負債なし</span><b>¥0</b></div>'}
-      <div class="statement-total">負債合計　${yen(liabilities)}</div>
-
-      <div class="statement-net"><span>純資産</span><br><b>${yen(net)}</b></div>
-    </div>
-  `;
-}
-
-
-function axisTickFormatter(value){
-  const abs = Math.abs(Number(value) || 0);
-  if(abs >= 100000000) return (value / 100000000).toFixed(abs >= 1000000000 ? 1 : 0) + '億';
-  if(abs >= 1000000) return (value / 1000000).toFixed(abs >= 10000000 ? 0 : 1) + '百万';
-  if(abs >= 10000) return Math.round(value / 10000) + '万';
-  return Math.round(value).toLocaleString('ja-JP');
-}
-
-function chartRange(values){
-  const nums = values.filter(v=>Number.isFinite(v));
-  if(!nums.length) return {min:0,max:1};
-  const min = Math.min(...nums);
-  const max = Math.max(...nums);
-  const span = Math.max(max - min, Math.abs(max) * 0.12, 100000);
-  return {min:min - span * 0.15, max:max + span * 0.15};
-}
-
-function ageBucket(age){
-  const a = Number(age) || 0;
-  if(a < 30) return 20;
-  if(a < 40) return 30;
-  if(a < 50) return 40;
-  if(a < 60) return 50;
-  if(a < 70) return 60;
-  return 70;
-}
-
-function saveBenchmarkSettings(){
-  benchmarkSettings = {
-    age:Number(document.getElementById('benchmarkAge')?.value || benchmarkSettings.age),
-    household:document.getElementById('benchmarkHousehold')?.value || benchmarkSettings.household,
-    basis:document.getElementById('benchmarkBasis')?.value || benchmarkSettings.basis,
-    target:document.getElementById('benchmarkTarget')?.value || benchmarkSettings.target
-  };
-  saveState();
-}
-
-function renderBenchmark(){
-  const latest = latestRecord();
-  const ageEl = document.getElementById('benchmarkAge');
-  const householdEl = document.getElementById('benchmarkHousehold');
-  const basisEl = document.getElementById('benchmarkBasis');
-  const targetEl = document.getElementById('benchmarkTarget');
-  if(!ageEl || !householdEl || !basisEl || !targetEl) return;
-
-  ageEl.value = benchmarkSettings.age;
-  householdEl.value = benchmarkSettings.household;
-  basisEl.value = benchmarkSettings.basis;
-  targetEl.value = benchmarkSettings.target;
-
-  const bucket = ageBucket(benchmarkSettings.age);
-  const stat = benchmarkData2025[benchmarkSettings.household][bucket][benchmarkSettings.basis];
-  const compareValue = benchmarkSettings.target === 'net' ? netAssetOf(latest) : assetTotalOf(latest);
-  const diff = compareValue - stat;
-  const ratio = stat ? compareValue / stat * 100 : 0;
-  const above = stat ? (diff / stat * 100) : 0;
-
-  const householdName = benchmarkSettings.household === 'single' ? '単身世帯' : '二人以上世帯';
-  const basisName = benchmarkSettings.basis === 'median' ? '中央値' : '平均値';
-  const targetName = benchmarkSettings.target === 'net' ? '純資産' : '資産合計';
-
-  document.getElementById('benchmarkResult').innerHTML = `
-    <div class="benchmark-result">
-      <div class="benchmark-card">
-        <small>${benchmarkSettings.age}歳 / ${householdName} / ${basisName}</small>
-        <b>${yen(stat)}</b>
-      </div>
-      <div class="benchmark-card">
-        <small>${targetName}との差分</small>
-        <b class="${diff>=0?'pos':'neg'}">${diff>=0?'+':''}${yen(diff)}</b>
-      </div>
-      <div class="benchmark-card">
-        <small>統計値を100とした場合</small>
-        <b>${ratio.toFixed(1)}%</b>
-      </div>
-      <div class="benchmark-card">
-        <small>統計値に対する超過率</small>
-        <b class="${diff>=0?'pos':'neg'}">${diff>=0?'+':''}${above.toFixed(1)}%</b>
-      </div>
-    </div>
+    <table class="statement-table">
+      <thead>
+        <tr>
+          <th>勘定科目</th>
+          <th>区分</th>
+          <th>分類</th>
+          <th>構成比</th>
+          <th>金額</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${assetRows}
+        <tr class="subtotal"><td>資産合計</td><td>資産</td><td>-</td><td>100.0%</td><td>${yen(assets)}</td></tr>
+        ${liabilityRows}
+        <tr class="subtotal"><td>負債合計</td><td>負債</td><td>-</td><td>${assets ? (liabilities/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(liabilities)}</td></tr>
+        <tr class="net-row"><td>純資産</td><td>純資産</td><td>-</td><td>${assets ? (net/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(net)}</td></tr>
+      </tbody>
+    </table>
   `;
 }
 
@@ -1621,6 +1682,58 @@ function renderCharts(){
       }
     }
   });
+}
+
+
+function categoryCommentText(categoryName){
+  const latest = latestRecord();
+  const idx = records.findIndex(r=>r.month === latest.month);
+  const prev = idx > 0 ? records[idx-1] : null;
+  const c = categories.find(x=>x.name === categoryName);
+  if(!c) return '';
+  const current = Number(latest.values[c.name] || 0);
+  const previous = prev ? Number(prev.values[c.name] || 0) : 0;
+  const change = prev ? current - previous : null;
+  const assetBase = c.side === 'liability' ? Math.max(liabilityTotalOf(latest),1) : Math.max(assetTotalOf(latest),1);
+  const ratio = current / assetBase * 100;
+
+  let tone = '';
+  if(c.side === 'liability'){
+    tone = current === 0 ? '負債残高はありません。純資産成長を妨げる要素は限定的です。' : '負債は返済計画と金利条件の確認が重要です。資産成長率より負債コストが高くならないかを確認しましょう。';
+  }else if(c.type === 'cash'){
+    tone = '現金・預金は生活防衛資金と投資余力の源泉です。多すぎる場合は機会損失、少なすぎる場合は流動性リスクに注意です。';
+  }else if(c.type === 'invest'){
+    tone = '投資資産は純資産成長のエンジンです。特定銘柄やテーマに偏りすぎていないか、定期的に確認しましょう。';
+  }else if(c.type === 'retire'){
+    tone = '退職資産は長期の資産形成基盤です。短期の値動きよりも、継続拠出と長期リターンを重視するのが自然です。';
+  }else{
+    tone = 'その他資産は定義が曖昧になりやすいため、継続的に同じ基準で入力することが重要です。';
+  }
+
+  const changeText = change === null ? '前月比較データはまだありません。' : `前月比は ${change>=0?'+':''}${yen(change)} です。`;
+  return `<b>${c.name}</b><br>${sideNames[c.side]} / ${typeNames[c.type]}。最新残高は <b>${yen(current)}</b>、構成比は <b>${ratio.toFixed(1)}%</b> です。${changeText}<br>${tone}`;
+}
+
+function toggleCategoryComment(categoryName){
+  const el = document.getElementById('ai-comment-' + safeId(categoryName));
+  if(!el) return;
+  if(el.classList.contains('show')){
+    el.classList.remove('show');
+    return;
+  }
+  el.innerHTML = categoryCommentText(categoryName);
+  el.classList.add('show');
+}
+
+function savePlanSettings(){
+  planSettings = {
+    target:rawNumber(document.getElementById('planTarget')?.value || planSettings.target),
+    years:Number(document.getElementById('planYears')?.value || planSettings.years)
+  };
+  if(!planSettings.target || planSettings.target < 0) planSettings.target = 0;
+  if(!planSettings.years || planSettings.years <= 0) planSettings.years = 1;
+  saveState();
+  renderStatement();
 }
 
 function prepareNextMonth(){
