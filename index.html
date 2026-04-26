@@ -7,10 +7,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body {background:#0d1117;color:#fff;font-family:-apple-system;padding:20px}
-.card {background:#161b22;padding:20px;border-radius:12px;margin-top:20px}
-input,button {padding:10px;margin:5px;border-radius:8px;border:none}
-button {background:#c9a46a;color:#000}
+body {background:#f5f3ee;color:#18202a;font-family:-apple-system;padding:20px}
+.card {background:#fff;padding:20px;border-radius:20px;margin-top:20px}
+input,button {padding:10px;margin:5px;border-radius:10px;border:1px solid #ccc}
+button {background:#18202a;color:#fff}
 </style>
 </head>
 
@@ -20,7 +20,7 @@ button {background:#c9a46a;color:#000}
 
 <div class="card">
   <input id="month" placeholder="月（例：2026/05）">
-  <input id="amount" placeholder="金額">
+  <input id="amount" placeholder="総資産">
   <button onclick="addData()">追加</button>
 </div>
 
@@ -41,7 +41,7 @@ let chart = new Chart(ctx, {
     datasets: [{
       label: '総資産',
       data: data,
-      borderColor: '#c9a46a'
+      borderColor: '#b9935a'
     }]
   }
 });
