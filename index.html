@@ -372,6 +372,58 @@ canvas{width:100%!important;max-height:350px}
   .hero-metrics b{font-size:14px!important}
 }
 
+
+.benchmark-pyramid{
+  margin-top:14px;
+  display:grid;
+  gap:8px;
+}
+.pyramid-row{
+  display:grid;
+  grid-template-columns:72px 1fr 74px;
+  gap:10px;
+  align-items:center;
+  font-size:12px;
+}
+.pyramid-label{
+  color:var(--muted);
+  font-weight:900;
+}
+.pyramid-track{
+  height:18px;
+  border-radius:999px;
+  background:#eee8dc;
+  overflow:hidden;
+  position:relative;
+}
+.pyramid-fill{
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,#d8c29a,#b9935a);
+}
+.pyramid-marker{
+  position:absolute;
+  top:-5px;
+  width:4px;
+  height:28px;
+  border-radius:999px;
+  background:#17202b;
+  box-shadow:0 0 0 3px rgba(255,255,255,.8);
+}
+.pyramid-you{
+  margin-top:10px;
+  padding:12px 14px;
+  border-radius:16px;
+  background:#17202b;
+  color:white;
+  font-size:13px;
+  line-height:1.7;
+}
+.pyramid-you b{color:white}
+.benchmark-result.compact{
+  grid-template-columns:1fr 1fr;
+}
+
 </style>
 </head>
 <body>
@@ -382,7 +434,7 @@ canvas{width:100%!important;max-height:350px}
     <div class="logo">PFS</div>
     <div>
       <h1>Personal Financial Statement</h1>
-      <small>個人資産も、決算するべきだ。</small>
+      <small>あなたの資産にも、決算が必要だ。</small>
     </div>
   </div>
   <div class="top-actions">
@@ -410,10 +462,11 @@ canvas{width:100%!important;max-height:350px}
   </div>
 
   <div class="hero-metrics">
+    <div><small>前月比</small><b id="momKpiDisplay">-</b></div>
+    <div><small>前年比</small><b id="yoyDisplay">-</b></div>
     <div><small>資産合計</small><b id="assetTotalDisplay">-</b></div>
     <div><small>負債合計</small><b id="liabilityTotalDisplay">-</b></div>
-    <div><small>過去最高純資産比</small><b id="highWatermarkDisplay">-</b></div>
-    <div><small>前年増減</small><b id="yoyDisplay">-</b></div>
+    <div><small>過去最高資産比</small><b id="highWatermarkDisplay">-</b></div>
     <div><small>同世代推定順位</small><b id="topPercentDisplay">-</b></div>
   </div>
 
@@ -512,7 +565,7 @@ canvas{width:100%!important;max-height:350px}
           </select>
         </div>
       </div>
-      <canvas id="benchmarkChart"></canvas>
+      <div id="benchmarkPyramid"></div>
       <div id="benchmarkResult"></div>
       <button class="ai-toggle-btn" onclick="toggleAiComment('benchmarkAiComment')">AIコメントを見る</button>
     <div class="ai-section-comment" id="benchmarkAiComment"></div>
@@ -668,7 +721,7 @@ let benchmarkSettings = {age:27, household:'couple', basis:'median', target:'ass
 let planSettings = {target:30000000, years:5};
 let trendChart = null;
 let allocationChart = null;
-let benchmarkChart = null;
+
 let planChart = null;
 
 const yen = n => new Intl.NumberFormat('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}).format(Number(n)||0);
@@ -927,13 +980,14 @@ function render(){
     document.getElementById('netAssetLabel').textContent = `NET ASSETS / ${displayMonth(latest.month)}`;
     document.getElementById('netAssetDisplay').textContent = yen(netAssets);
     document.getElementById('netAssetChangeDisplay').innerHTML = '前月比 ' + formatChange(mom,momRate);
+    document.getElementById('momKpiDisplay').innerHTML = formatChange(mom,momRate);
     document.getElementById('assetTotalDisplay').textContent = yen(totalAssets);
     document.getElementById('liabilityTotalDisplay').textContent = yen(totalLiabilities);
     document.getElementById('yoyDisplay').innerHTML = formatChange(yoy,yoyRate);
 
-    const highest = Math.max(...records.map(r=>netAssetOf(r)));
-    const highRatio = highest ? netAssets / highest * 100 : 0;
-    document.getElementById('highWatermarkDisplay').textContent = `${yen(netAssets)} / ${highRatio.toFixed(1)}%`;
+    const highestAsset = Math.max(...records.map(r=>assetTotalOf(r)));
+    const highRatio = highestAsset ? totalAssets / highestAsset * 100 : 0;
+    document.getElementById('highWatermarkDisplay').textContent = `${yen(totalAssets)} / ${highRatio.toFixed(1)}%`;
 
     const compTitle = document.getElementById('compositionTitle');
     if(compTitle) compTitle.textContent = `${latest.month} の資産構成`;
@@ -1237,40 +1291,65 @@ function renderBenchmark(){
   const targetName = benchmarkSettings.target === 'net' ? '純資産' : '個人資産額';
 
   resultEl.innerHTML = `
-    <div class="benchmark-result">
-      <div class="benchmark-card"><small>${benchmarkSettings.age}歳 / ${householdName} / ${basisName}</small><b>${yen(stat)}</b></div>
-      <div class="benchmark-card"><small>${targetName}との差分</small><b class="${diff>=0?'pos':'neg'}">${diff>=0?'+':''}${yen(diff)}</b></div>
-      <div class="benchmark-card"><small>統計値を100とした場合</small><b>${ratio.toFixed(1)}%</b></div>
-      <div class="benchmark-card"><small>統計値に対する超過率</small><b class="${diff>=0?'pos':'neg'}">${diff>=0?'+':''}${above.toFixed(1)}%</b></div>
+    <div class="benchmark-result compact">
       <div class="benchmark-card"><small>推定上位割合</small><b>${topPercent === null ? '-' : `上位${topPercent.toFixed(1)}%`}</b></div>
+      <div class="benchmark-card"><small>${benchmarkSettings.age}歳 / ${householdName}</small><b>${basisName}: ${yen(stat)}</b></div>
     </div>
   `;
   const topEl = document.getElementById('topPercentDisplay');
   if(topEl) topEl.textContent = topPercent === null ? '-' : `上位${topPercent.toFixed(1)}%`;
 
-  renderBenchmarkChart(compareValue, stat, basisName);
+  renderBenchmarkPyramid(compareValue, bucketData, topPercent, basisName);
   renderBenchmarkAiComment(compareValue, stat, topPercent, basisName);
 }
-function renderBenchmarkChart(compareValue, stat, basisName){
-  const canvas = document.getElementById('benchmarkChart');
-  if(!canvas || typeof Chart === 'undefined') return;
-  if(benchmarkChart) benchmarkChart.destroy();
-  benchmarkChart = new Chart(canvas, {
-    type:'bar',
-    data:{
-      labels:['あなた', basisName],
-      datasets:[{
-        data:[compareValue, stat],
-        backgroundColor:['#b9935a','#7c8594'],
-        borderRadius:14
-      }]
-    },
-    options:{
-      responsive:true,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>yen(ctx.raw)}}},
-      scales:{x:{grid:{display:false}},y:{ticks:{callback:v=>axisTickFormatter(v)}}}
-    }
-  });
+function renderBenchmarkPyramid(compareValue, bucketData, topPercent, basisName){
+  const el = document.getElementById('benchmarkPyramid');
+  if(!el) return;
+
+  const median = bucketData.median;
+  const average = bucketData.average;
+  const upper10 = estimateValueAtTopPercent(10, average, median);
+  const upper5 = estimateValueAtTopPercent(5, average, median);
+  const upper1 = estimateValueAtTopPercent(1, average, median);
+  const maxValue = Math.max(compareValue, upper1, average, median, 1);
+
+  const rows = [
+    {label:'上位1%', value:upper1},
+    {label:'上位5%', value:upper5},
+    {label:'上位10%', value:upper10},
+    {label:'平均値', value:average},
+    {label:'中央値', value:median}
+  ];
+
+  el.className = 'benchmark-pyramid';
+  el.innerHTML = `
+    ${rows.map(r=>{
+      const width = Math.max(4, Math.min(100, r.value / maxValue * 100));
+      const marker = Math.max(0, Math.min(100, compareValue / maxValue * 100));
+      return `<div class="pyramid-row">
+        <div class="pyramid-label">${r.label}</div>
+        <div class="pyramid-track">
+          <div class="pyramid-fill" style="width:${width}%"></div>
+          <div class="pyramid-marker" style="left:calc(${marker}% - 2px)"></div>
+        </div>
+        <div style="text-align:right;font-weight:900">${yen(r.value)}</div>
+      </div>`;
+    }).join('')}
+    <div class="pyramid-you">
+      あなたの位置：<b>${yen(compareValue)}</b> / ${topPercent === null ? '順位推定なし' : `推定 上位${topPercent.toFixed(1)}%`}<br>
+      黒い縦線があなたの現在位置です。分布は平均値・中央値からの近似推定です。
+    </div>
+  `;
+}
+
+function estimateValueAtTopPercent(topPercent, average, median){
+  if(!average || !median || average <= median) return average || median || 0;
+  const sigma2 = Math.max(0.0001, 2 * Math.log(average / median));
+  const sigma = Math.sqrt(sigma2);
+  const mu = Math.log(median);
+  const zTable = {10:1.2816,5:1.6449,1:2.3263};
+  const z = zTable[topPercent] || 1.2816;
+  return Math.exp(mu + sigma * z);
 }
 
 function categoryCommentText(categoryName){
