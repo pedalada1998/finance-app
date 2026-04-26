@@ -7,20 +7,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body {
-  background:#0d1117;
-  color:#fff;
-  font-family:-apple-system;
-  padding:20px;
-}
-h1 {font-size:28px}
-
-.card {
-  background:#161b22;
-  padding:20px;
-  border-radius:12px;
-  margin-top:20px;
-}
+body {background:#0d1117;color:#fff;font-family:-apple-system;padding:20px}
+.card {background:#161b22;padding:20px;border-radius:12px;margin-top:20px}
+input,button {padding:10px;margin:5px;border-radius:8px;border:none}
+button {background:#c9a46a;color:#000}
 </style>
 </head>
 
@@ -29,36 +19,42 @@ h1 {font-size:28px}
 <h1>📊 資産ダッシュボード</h1>
 
 <div class="card">
-  <canvas id="lineChart"></canvas>
+  <input id="month" placeholder="月（例：2026/05）">
+  <input id="amount" placeholder="金額">
+  <button onclick="addData()">追加</button>
 </div>
 
 <div class="card">
-  <canvas id="pieChart"></canvas>
+  <canvas id="chart"></canvas>
 </div>
 
 <script>
-new Chart(document.getElementById('lineChart'), {
+let labels = ['2026/01','02','03','04'];
+let data = [7081607,7205492,6672884,7156754];
+
+const ctx = document.getElementById('chart');
+
+let chart = new Chart(ctx, {
   type: 'line',
   data: {
-    labels: ['2025/02','03','04','05','06','07','08','09','10','11','12','2026/01','02','03','04'],
+    labels: labels,
     datasets: [{
       label: '総資産',
-      data: [4972770,4908101,5214204,5897636,7391463,7617247,7419663,7347519,7412161,7367206,8257449,7081607,7205492,6672884,7156754],
+      data: data,
       borderColor: '#c9a46a'
     }]
   }
 });
 
-new Chart(document.getElementById('pieChart'), {
-  type: 'doughnut',
-  data: {
-    labels: ['預金','NASDAQ','インド','DC','持株会'],
-    datasets: [{
-      data: [644667,605254,510791,2941357,2291265],
-      backgroundColor: ['#888','#4da6ff','#00cc99','#c9a46a','#ffcc66']
-    }]
-  }
-});
+function addData(){
+  const m = document.getElementById('month').value;
+  const a = Number(document.getElementById('amount').value);
+
+  labels.push(m);
+  data.push(a);
+
+  chart.update();
+}
 </script>
 
 </body>
