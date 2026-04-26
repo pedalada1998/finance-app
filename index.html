@@ -234,13 +234,92 @@ canvas{width:100%!important;max-height:350px}
   color:rgba(255,255,255,.68);text-decoration:none;text-align:center;font-size:12px;padding:9px 4px;border-radius:999px
 }
 .footer-nav a.active{background:white;color:var(--ink);font-weight:950}
+
+.ai-section-comment{
+  margin-top:14px;
+  padding:14px 16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,rgba(185,147,90,.13),rgba(255,255,255,.72));
+  border:1px solid rgba(185,147,90,.22);
+  color:#5a4b31;
+  font-size:13px;
+  line-height:1.8;
+}
+.ai-section-comment b{color:var(--ink)}
+.account-color-cell{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.account-color-chip{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  flex:0 0 auto;
+}
+.compare-dashboard{
+  display:grid;
+  gap:12px;
+}
+.compare-hero-card{
+  padding:18px;
+  border-radius:22px;
+  background:linear-gradient(135deg,var(--navy),#3b4658);
+  color:white;
+}
+.compare-hero-card small{
+  color:rgba(255,255,255,.62);
+  display:block;
+  font-weight:900;
+  margin-bottom:8px;
+}
+.compare-hero-card b{
+  display:block;
+  font-size:28px;
+  letter-spacing:-.04em;
+}
+.compare-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.compare-card{
+  padding:14px;
+  border-radius:18px;
+  background:white;
+  border:1px solid var(--line);
+}
+.compare-card small{
+  display:block;
+  color:var(--muted);
+  font-weight:900;
+  margin-bottom:6px;
+}
+.compare-card b{
+  display:block;
+  font-size:18px;
+  font-variant-numeric:tabular-nums;
+}
+.compare-bar{
+  height:9px;
+  background:#eee8dc;
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:10px;
+}
+.compare-bar span{
+  display:block;
+  height:100%;
+  border-radius:999px;
+}
+
 .empty-state{
   padding:18px;border-radius:18px;background:#fff;border:1px dashed var(--line);color:var(--muted);font-size:13px;line-height:1.7
 }
 @media(max-width:900px){
   .app{padding:16px 12px 90px}
   .header{align-items:flex-start}
-  .grid,.two,.three,.benchmark-grid,.benchmark-result,.plan-grid,.plan-result{grid-template-columns:1fr}
+  .grid,.two,.three,.benchmark-grid,.benchmark-result,.plan-grid,.plan-result,.compare-grid{grid-template-columns:1fr}
   .hero-metrics{grid-template-columns:repeat(2,1fr)}
   .panel,.hero{border-radius:22px}
   .input-head{display:none}
@@ -323,6 +402,7 @@ canvas{width:100%!important;max-height:350px}
     </div>
     <canvas id="trendChart"></canvas>
     <div id="trendEmpty" class="empty-state" style="display:none">月次データがないため、グラフを表示できません。</div>
+    <div class="ai-section-comment" id="trendAiComment"></div>
   </div>
 
   <div class="panel panel-clean">
@@ -341,6 +421,7 @@ canvas{width:100%!important;max-height:350px}
     <div id="allocationEmpty" class="empty-state" style="display:none">資産データがないため、チャートを表示できません。</div>
     <div id="compositionList" class="composition-list"></div>
     <div class="composition-action"><button class="btn btn-gold" onclick="startLatestMonthInput()">最新月の月次決算を入力</button></div>
+    <div class="ai-section-comment" id="compositionAiComment"></div>
   </div>
 </section>
 
@@ -354,6 +435,7 @@ canvas{width:100%!important;max-height:350px}
       <button id="tabPlan" onclick="setStatementView('plan')">中期資産計画</button>
     </div>
     <div id="statementBody"></div>
+    <div class="ai-section-comment" id="statementAiComment"></div>
   </div>
 
   <div class="panel panel-clean report" id="report">
@@ -389,6 +471,7 @@ canvas{width:100%!important;max-height:350px}
       </div>
       <canvas id="benchmarkChart"></canvas>
       <div id="benchmarkResult"></div>
+      <div class="ai-section-comment" id="benchmarkAiComment"></div>
       <div class="footnote">
         注：比較データはJ-FLEC「家計の金融行動に関する世論調査2025年」の年代別「金融資産保有額（金融資産を保有していない世帯を含む）」の平均値・中央値をアプリ内に固定値として持たせています。<br>
         同調査の「金融資産」は、預貯金、株式、投資信託、保険などを含む一方、日常的な出し入れ・引落しに備える普通預金残高は含まれない旨の注記があります。本アプリの「資産合計」は入力カテゴリの合計であり、統計上の金融資産定義と完全には一致しません。比較は目安として利用してください。推定上位割合は、平均値・中央値から対数正規分布を近似して算出した参考値であり、厳密な順位ではありません。
@@ -704,6 +787,73 @@ function formatAmountInput(input){
 function escapeAttr(str){ return String(str).replace(/'/g,"\\'"); }
 function safeId(str){ return String(str).replace(/[^a-zA-Z0-9_\-\u3040-\u30ff\u3400-\u9fff]/g,'_'); }
 
+
+function setAiComment(id, html){
+  const el = document.getElementById(id);
+  if(el) el.innerHTML = html;
+}
+
+function renderTrendAiComment(){
+  if(records.length < 2){
+    setAiComment('trendAiComment','<b>AIコメント：</b>月次データを2ヶ月以上入力すると、純資産の成長トレンドを分析できます。');
+    return;
+  }
+  const latest = latestRecord();
+  const first = records[0];
+  const prev = records[records.length-2];
+  const latestNet = netAssetOf(latest);
+  const firstNet = netAssetOf(first);
+  const prevNet = netAssetOf(prev);
+  const totalGrowth = latestNet - firstNet;
+  const mom = latestNet - prevNet;
+  const monthlyAvg = (latestNet - firstNet) / Math.max(records.length-1,1);
+  const direction = mom >= 0 ? '増加' : '減少';
+  setAiComment('trendAiComment',
+    `<b>AIコメント：</b>初回記録から純資産は <b class="${totalGrowth>=0?'pos':'neg'}">${totalGrowth>=0?'+':''}${yen(totalGrowth)}</b>。直近月は前月比で <b class="${mom>=0?'pos':'neg'}">${mom>=0?'+':''}${yen(mom)}</b> と${direction}しています。月次平均では <b>${yen(monthlyAvg)}</b> のペースで推移しています。`
+  );
+}
+
+function renderCompositionAiComment(){
+  const latest = latestRecord();
+  const assets = assetTotalOf(latest);
+  const cash = categories.filter(c=>c.side!=='liability' && c.type==='cash').reduce((s,c)=>s+Number(latest.values[c.name]||0),0);
+  const invest = categories.filter(c=>c.side!=='liability' && c.type==='invest').reduce((s,c)=>s+Number(latest.values[c.name]||0),0);
+  const retire = categories.filter(c=>c.side!=='liability' && c.type==='retire').reduce((s,c)=>s+Number(latest.values[c.name]||0),0);
+  const cashRatio = assets ? cash/assets*100 : 0;
+  const investRatio = assets ? invest/assets*100 : 0;
+  const retireRatio = assets ? retire/assets*100 : 0;
+  let msg = '現金・投資・退職資産のバランスを毎月見ることで、流動性と成長性の両方を確認できます。';
+  if(cashRatio > 45) msg = '現金比率が高めです。生活防衛資金を確保できている一方、長期の投資余力もありそうです。';
+  if(cashRatio < 15) msg = '現金比率が低めです。短期支出や急な出費に備える余力を確認しましょう。';
+  if(investRatio > 55) msg = '投資比率が高めです。成長性はありますが、相場変動時の下振れリスクも意識したい構成です。';
+  setAiComment('compositionAiComment',
+    `<b>AIコメント：</b>資産合計に対して、現金・預金系は <b>${cashRatio.toFixed(1)}%</b>、投資系は <b>${investRatio.toFixed(1)}%</b>、退職資産系は <b>${retireRatio.toFixed(1)}%</b> です。${msg}`
+  );
+}
+
+function renderStatementAiComment(){
+  const latest = latestRecord();
+  const assets = assetTotalOf(latest);
+  const liabilities = liabilityTotalOf(latest);
+  const net = netAssetOf(latest);
+  const equityRatio = assets ? net/assets*100 : 0;
+  const debtRatio = assets ? liabilities/assets*100 : 0;
+  let msg = '個人BSとしては、純資産比率を高めながら、資産の中身を成長資産と安全資産に分けて見るのが有効です。';
+  if(debtRatio > 50) msg = '負債比率が高めです。返済負担と金利上昇への耐性を確認したい状態です。';
+  if(equityRatio > 90) msg = '純資産比率が非常に高く、財務安全性は高い状態です。次は資産の成長性をどう高めるかが論点です。';
+  setAiComment('statementAiComment',
+    `<b>AIコメント：</b>資産合計 <b>${yen(assets)}</b> に対し、負債比率は <b>${debtRatio.toFixed(1)}%</b>、純資産比率は <b>${equityRatio.toFixed(1)}%</b> です。${msg}`
+  );
+}
+
+function renderBenchmarkAiComment(compareValue, stat, topPercent, basisName){
+  const ratio = stat ? compareValue/stat*100 : 0;
+  const topText = topPercent === null ? '推定順位は算出できません。' : `推定では <b>上位${topPercent.toFixed(1)}%</b> 水準です。`;
+  setAiComment('benchmarkAiComment',
+    `<b>AIコメント：</b>あなたの比較対象額は ${basisName} の <b>${ratio.toFixed(1)}%</b> です。${topText} ただし、統計定義と本アプリの入力定義は完全には一致しないため、目安として見てください。`
+  );
+}
+
 function render(){
   safeRun('render', ()=>{
     normalizeRecords();
@@ -742,8 +892,11 @@ function render(){
     renderCategoryList();
     safeRenderCharts();
     renderCompositionList();
+    renderTrendAiComment();
+    renderCompositionAiComment();
     renderBenchmark();
     renderStatement();
+    renderStatementAiComment();
     setStatus('Ready');
   });
 }
@@ -777,8 +930,6 @@ function renderCategoryInputs(){
         <div class="cat-title">
           <b>${c.name}</b>
           <small>${sideNames[c.side]} / ${typeNames[c.type] || 'その他'}</small>
-          <button type="button" class="ai-mini-btn" onclick="toggleCategoryComment('${escapeAttr(c.name)}')">AIコメント</button>
-          <div id="ai-comment-${safeId(c.name)}" class="ai-comment-row"></div>
         </div>
         <div class="readonly-money" title="前々月 ${prev2Month}">
           <span class="inline-month-label">前々月（${prev2Month}）</span>${prev2 === null ? '-' : yen(prev2)}
@@ -1047,6 +1198,7 @@ function renderBenchmark(){
   if(topEl) topEl.textContent = topPercent === null ? '-' : `上位${topPercent.toFixed(1)}%`;
 
   renderBenchmarkChart(compareValue, stat, basisName);
+  renderBenchmarkAiComment(compareValue, stat, topPercent, basisName);
 }
 function renderBenchmarkChart(compareValue, stat, basisName){
   const canvas = document.getElementById('benchmarkChart');
@@ -1111,6 +1263,7 @@ function setStatementView(view){
   document.getElementById('tabMonthly').classList.toggle('active', view==='monthly');
   document.getElementById('tabPlan').classList.toggle('active', view==='plan');
   renderStatement();
+  renderStatementAiComment();
 }
 function renderStatement(){
   const latest = latestRecord();
@@ -1130,20 +1283,27 @@ function renderStatement(){
       ['純資産', prevNet, latestNet]
     ];
     body.innerHTML = `
-      <table class="compare-table">
-        <thead><tr><th>項目</th><th>前月</th><th>当月</th><th>増減</th><th>増減率</th></tr></thead>
-        <tbody>
+      <div class="compare-dashboard">
+        <div class="compare-hero-card">
+          <small>NET ASSETS / 前月比較</small>
+          <b class="${(latestNet-prevNet)>=0?'pos':'neg'}">${(latestNet-prevNet)>=0?'+':''}${yen(latestNet-prevNet)}</b>
+          <div style="margin-top:6px;color:rgba(255,255,255,.72)">前月 ${yen(prevNet)} → 当月 ${yen(latestNet)}</div>
+        </div>
+        <div class="compare-grid">
           ${rows.map(([name,previous,current])=>{
             const diff = current - previous;
             const rate = previous ? diff / previous * 100 : 0;
-            return `<tr>
-              <td>${name}</td><td>${yen(previous)}</td><td>${yen(current)}</td>
-              <td class="${diff>=0?'pos':'neg'}">${diff>=0?'+':''}${yen(diff)}</td>
-              <td class="${diff>=0?'pos':'neg'}">${diff>=0?'+':''}${rate.toFixed(1)}%</td>
-            </tr>`;
+            const positive = diff >= 0;
+            const barWidth = Math.min(Math.abs(rate),100);
+            return `<div class="compare-card">
+              <small>${name}</small>
+              <b>${yen(current)}</b>
+              <div class="${positive?'pos':'neg'}" style="font-weight:900;margin-top:4px">${positive?'+':''}${yen(diff)} / ${positive?'+':''}${rate.toFixed(1)}%</div>
+              <div class="compare-bar"><span style="width:${barWidth}%;background:${positive?'#24885f':'#c45050'}"></span></div>
+            </div>`;
           }).join('')}
-        </tbody>
-      </table>
+        </div>
+      </div>
     `;
     return;
   }
@@ -1161,20 +1321,20 @@ function renderStatement(){
   const liabilities = liabilityTotalOf(latest);
   const net = netAssetOf(latest);
   const assetRows = assetItems.map(e=>`
-    <tr><td>${e.name}</td><td>${e.side}</td><td>${assets ? (e.amount/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(e.amount)}</td></tr>
+    <tr><td><span class="account-color-cell"><span class="account-color-chip" style="background:#b9935a"></span>${e.name}</span></td><td>${e.side}</td><td>${assets ? (e.amount/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(e.amount)}</td></tr>
   `).join('');
   const liabilityRows = liabilityItems.length ? liabilityItems.map(e=>`
-    <tr><td>${e.name}</td><td>${e.side}</td><td>${liabilities ? (e.amount/liabilities*100).toFixed(1) : '0.0'}%</td><td>${yen(e.amount)}</td></tr>
+    <tr><td><span class="account-color-cell"><span class="account-color-chip" style="background:#c25b5b"></span>${e.name}</span></td><td>${e.side}</td><td>${liabilities ? (e.amount/liabilities*100).toFixed(1) : '0.0'}%</td><td>${yen(e.amount)}</td></tr>
   `).join('') : `<tr><td>負債なし</td><td>負債</td><td>-</td><td>¥0</td></tr>`;
   body.innerHTML = `
     <table class="statement-table">
       <thead><tr><th>勘定科目</th><th>区分</th><th>構成比</th><th>金額</th></tr></thead>
       <tbody>
         ${assetRows}
-        <tr class="subtotal"><td>資産合計</td><td>資産</td><td>100.0%</td><td>${yen(assets)}</td></tr>
+        <tr class="subtotal"><td><span class="account-color-cell"><span class="account-color-chip" style="background:#b9935a"></span>資産合計</span></td><td>資産</td><td>100.0%</td><td>${yen(assets)}</td></tr>
         ${liabilityRows}
-        <tr class="subtotal"><td>負債合計</td><td>負債</td><td>${assets ? (liabilities/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(liabilities)}</td></tr>
-        <tr class="net-row"><td>純資産</td><td>純資産</td><td>${assets ? (net/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(net)}</td></tr>
+        <tr class="subtotal"><td><span class="account-color-cell"><span class="account-color-chip" style="background:#c25b5b"></span>負債合計</span></td><td>負債</td><td>${assets ? (liabilities/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(liabilities)}</td></tr>
+        <tr class="net-row"><td><span class="account-color-cell"><span class="account-color-chip" style="background:#2f8f66"></span>純資産</span></td><td>純資産</td><td>${assets ? (net/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(net)}</td></tr>
       </tbody>
     </table>
   `;
