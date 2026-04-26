@@ -816,7 +816,7 @@ body.input-mode .header{margin-bottom:10px}
 <div id="toast" class="toast">保存しました</div>
 
 <script>
-const STORAGE_KEY = 'personal-financial-statement-stable-v8-demo';
+const STORAGE_KEY = 'pfs-stable-demo-v9';
 
 const defaultCategories = [
   {name:'預金', side:'asset', type:'cash'},
@@ -934,50 +934,46 @@ function normalizeRecords(){
 }
 
 function loadState(){
+  const demoDeposits = {
+    NASDAQ:52500,
+    インド:52500,
+    Bitcoin:10000,
+    確定拠出年金:54200,
+    持株会:55000
+  };
+
   try{
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
 
-    const hasValidSavedData =
+    if(
       saved &&
       Array.isArray(saved.categories) &&
       saved.categories.length > 0 &&
       Array.isArray(saved.records) &&
-      saved.records.length > 0;
-
-    if(hasValidSavedData){
-      categories = saved.categories;
-      records = saved.records;
+      saved.records.length > 0
+    ){
+      categories = clone(saved.categories);
+      records = clone(saved.records);
       if(saved.benchmarkSettings) benchmarkSettings = {...benchmarkSettings, ...saved.benchmarkSettings};
       if(saved.planSettings) planSettings = {...planSettings, ...saved.planSettings};
       if(saved.planDeposits) planDeposits = {...planDeposits, ...saved.planDeposits};
     }else{
       categories = clone(defaultCategories);
       records = clone(defaultRecords);
-      planDeposits = {
-        NASDAQ:52500,
-        インド:52500,
-        Bitcoin:10000,
-        確定拠出年金:54200,
-        持株会:55000
-      };
+      planDeposits = {...demoDeposits};
     }
   }catch(e){
     categories = clone(defaultCategories);
     records = clone(defaultRecords);
-    planDeposits = {
-      NASDAQ:52500,
-      インド:52500,
-      Bitcoin:10000,
-      確定拠出年金:54200,
-      持株会:55000
-    };
+    planDeposits = {...demoDeposits};
   }
 
   normalizeRecords();
 
-  if(!records || records.length === 0 || !categories || categories.length === 0){
+  if(!records.length || !categories.length){
     categories = clone(defaultCategories);
     records = clone(defaultRecords);
+    planDeposits = {...demoDeposits};
     normalizeRecords();
   }
 
@@ -1944,51 +1940,3 @@ function renameCategory(oldName){
   saveState();
   showToast('勘定科目名を変更しました');
   render();
-}
-function deleteCategory(name){
-  if(!confirm(name + ' を削除しますか？')) return;
-  categories = categories.filter(c=>c.name !== name);
-  records.forEach(r=>delete r.values[name]);
-  normalizeRecords();
-  saveState();
-  showToast('勘定科目を削除しました');
-  render();
-}
-function moveCategory(index,delta){
-  const next = index + delta;
-  if(next < 0 || next >= categories.length) return;
-  const temp = categories[index];
-  categories[index] = categories[next];
-  categories[next] = temp;
-  saveState();
-  render();
-}
-function exportJSON(){
-  const data = JSON.stringify({categories,records,benchmarkSettings,planSettings,planDeposits},null,2);
-  const blob = new Blob([data],{type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'personal-financial-statement-backup.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-function importJSON(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e=>{
-    try{
-      const data = JSON.parse(e.target.result);
-      if(!Array.isArray(data.categories) || !Array.isArray(data.records)) throw new Error('invalid');
-      categories = data.categories.map(normalizeCategory);
-      records = data.records;
-      if(data.benchmarkSettings) benchmarkSettings = {...benchmarkSettings, ...data.benchmarkSettings};
-      if(data.planSettings) planSettings = {...planSettings, ...data.planSettings};
-      if(data.planDeposits) planDeposits = {...planDeposits, ...data.planDeposits};
-      normalizeRecords();
-      saveState();
-      showToast('データを復元しました');
-      render();
-    }catch(err){
-      alert('
