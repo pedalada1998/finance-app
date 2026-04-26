@@ -3,896 +3,221 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>月イチ資産ノート</title>
+<title>Personal Financial Statement</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
-:root{
-  --bg:#f5f3ee;
-  --paper:#fffaf1;
-  --ink:#18202a;
-  --muted:#7c8594;
-  --line:rgba(24,32,42,.10);
-  --navy:#18202a;
-  --gold:#b9935a;
-  --green:#2f8f66;
-  --red:#c25b5b;
-  --blue:#477cff;
-  --shadow:0 24px 80px rgba(24,32,42,.10);
-}
-*{box-sizing:border-box}
 body{
+  font-family:-apple-system,system-ui;
+  background:#f5f3ee;
   margin:0;
-  background:
-    radial-gradient(circle at 10% 0%,rgba(185,147,90,.18),transparent 28%),
-    radial-gradient(circle at 90% 15%,rgba(71,124,255,.10),transparent 24%),
-    var(--bg);
-  color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+  padding:20px;
+  color:#18202a;
 }
-.app{max-width:1160px;margin:auto;padding:20px 14px 92px}
-.header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0 18px}
-.brand{display:flex;align-items:center;gap:12px}
-.logo{
-  width:44px;height:44px;border-radius:16px;display:grid;place-items:center;
-  background:linear-gradient(135deg,var(--navy),#3b4658);color:white;font-weight:900
+
+h1{margin-bottom:10px}
+
+.panel{
+  background:white;
+  padding:20px;
+  border-radius:16px;
+  margin-bottom:16px;
 }
-.brand small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
-.panel,.hero,.mini{
-  background:rgba(255,250,241,.9);
-  border:1px solid rgba(255,255,255,.78);
-  border-radius:26px;
-  box-shadow:var(--shadow);
-  backdrop-filter:blur(14px);
-}
+
 .hero{
-  padding:26px;
-  background:linear-gradient(135deg,rgba(24,32,42,.98),rgba(42,52,67,.94));
-  color:white;position:relative;overflow:hidden
+  background:#18202a;
+  color:white;
+  padding:24px;
+  border-radius:16px;
 }
-.hero:after{
-  content:"";position:absolute;right:-70px;top:-90px;width:230px;height:230px;border-radius:50%;
-  background:rgba(185,147,90,.25)
+
+.hero h2{
+  margin:0;
+  font-size:32px;
 }
-.hero-top{display:flex;justify-content:space-between;gap:10px;color:rgba(255,255,255,.62);position:relative;z-index:1}
-.pill{
-  padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.10);
-  border:1px solid rgba(255,255,255,.12);color:white;font-size:12px;font-weight:800
-}
+
 .total{
-  display:block;font-size:clamp(42px,8vw,72px);letter-spacing:-.06em;
-  margin:16px 0;position:relative;z-index:1
+  font-size:48px;
+  margin:10px 0;
 }
-.hero-metrics{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;position:relative;z-index:1
+
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
 }
-.hero-metrics div{background:rgba(255,255,255,.08);border-radius:18px;padding:14px}
-.hero-metrics small{color:rgba(255,255,255,.58)}
-.hero-metrics b{display:block;margin-top:6px;font-size:17px}
-.grid{display:grid;grid-template-columns:1.08fr .92fr;gap:14px;margin-top:14px}
-.grid.single{grid-template-columns:1fr}
-.panel,.mini{padding:20px}
-.label{color:var(--gold);font-size:11px;letter-spacing:.22em;font-weight:900;margin:0}
-h1{margin:0;font-size:20px}
-h2{font-size:22px;margin:6px 0 16px;letter-spacing:-.03em}
-h3{font-size:15px;margin:18px 0 8px}
-.input,select,button{font:inherit}
-.input,select{
-  width:100%;border:1px solid var(--line);background:white;border-radius:16px;padding:13px 14px
+
+.kpi{
+  background:#18202a;
+  color:white;
+  padding:12px;
+  border-radius:10px;
 }
-.btn{
-  border:0;border-radius:16px;padding:13px 16px;background:var(--navy);
-  color:white;font-weight:900;cursor:pointer
-}
-.btn-gold{background:linear-gradient(135deg,var(--gold),#d9bd8e);color:#20170b}
-.btn-light{background:white;color:var(--ink);border:1px solid var(--line)}
-.btn-danger{background:#fff0ee;color:var(--red);border:1px solid rgba(194,91,91,.18)}
-.form{display:grid;gap:10px}
-.two{grid-template-columns:1fr 1fr;display:grid;gap:10px}
-.three{grid-template-columns:1fr 1fr 1fr;display:grid;gap:10px}
-.note{color:var(--muted);line-height:1.7;font-size:13px}
-.actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-.delete,.edit,.move{
-  border:1px solid rgba(24,32,42,.10);padding:8px 10px;border-radius:12px;
-  font-size:12px;cursor:pointer;background:white
-}
-.delete{background:#fff0ee;color:var(--red);border:1px solid rgba(194,91,91,.18)}
-canvas{width:100%!important;max-height:340px}
-.report{line-height:1.85;color:#475160}
-.report b{color:var(--ink)}
-.pos{color:var(--green)!important}
-.neg{color:var(--red)!important}
-.muted{color:var(--muted)}
-.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px}
-.toolbar .select-wrap{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.small-label{font-size:12px;color:var(--muted);font-weight:800}
-.asset-row{
-  display:grid;grid-template-columns:12px 1fr auto;gap:10px;align-items:center;
-  padding:12px 0;border-bottom:1px solid var(--line)
-}
-.dot{width:10px;height:10px;border-radius:999px}
-.asset-row small{color:var(--muted)}
-.composition-list{display:grid;gap:8px;margin-top:14px}
-.comp-row{
-  display:grid;grid-template-columns:12px 1fr auto;gap:10px;align-items:center;
-  padding:10px 0;border-bottom:1px solid var(--line)
-}
-.comp-row small{color:var(--muted)}
-.input-table{display:grid;gap:8px}
-.input-head,.input-line{
-  display:grid;grid-template-columns:1.15fr .8fr .8fr 1fr;gap:8px;align-items:center
-}
-.input-head{
-  color:var(--muted);font-size:12px;font-weight:900;padding:0 2px
-}
-.input-line{
-  background:rgba(255,255,255,.62);border:1px solid var(--line);border-radius:18px;padding:10px
-}
-.cat-title b{display:block;font-size:15px}
-.cat-title small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
-.readonly-money{
-  border-radius:14px;padding:12px;background:#f5f3ee;color:#596271;text-align:right;font-variant-numeric:tabular-nums;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
-}
-.month-input{
-  text-align:right;font-variant-numeric:tabular-nums
-}
-.category-card{
-  display:grid;grid-template-columns:12px 1fr auto;gap:10px;align-items:center;
-  padding:12px 0;border-bottom:1px solid var(--line)
-}
-.category-card small{color:var(--muted)}
-.side-chip{
-  display:inline-flex;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:900;margin-right:4px;
-  background:#f1eadc;color:#6a522a
-}
-.side-chip.liability{background:#fff0ee;color:var(--red)}
-.toast{
-  position:fixed;left:50%;bottom:84px;transform:translateX(-50%) translateY(20px);
-  background:rgba(24,32,42,.92);color:white;border-radius:999px;padding:12px 18px;
-  opacity:0;pointer-events:none;transition:.25s;z-index:10;font-weight:800
-}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.footer-nav{
-  position:fixed;left:50%;bottom:14px;transform:translateX(-50%);
-  width:min(560px,92vw);background:rgba(24,32,42,.88);border-radius:999px;padding:8px;
-  display:grid;grid-template-columns:repeat(4,1fr);gap:4px;box-shadow:0 20px 70px rgba(0,0,0,.24);backdrop-filter:blur(18px)
-}
-.footer-nav a{
-  color:rgba(255,255,255,.68);text-decoration:none;text-align:center;font-size:12px;padding:9px 4px;border-radius:999px
-}
-.footer-nav a.active{background:white;color:var(--ink);font-weight:900}
-@media(max-width:900px){
-  .app{padding:16px 12px 90px}
-  .header{align-items:flex-start}
-  .grid,.hero-metrics,.two,.three{grid-template-columns:1fr}
-  .panel,.hero,.mini{border-radius:22px}
-  .input-head{display:none}
-  .input-line{grid-template-columns:1fr}
-  .readonly-money{text-align:left}
-  .actions{justify-content:flex-start}
-}
+
+.kpi small{opacity:.7}
+.kpi b{display:block;margin-top:6px}
+
+canvas{max-width:100%}
 </style>
 </head>
+
 <body>
-<div class="app">
 
-<header class="header">
-  <div class="brand">
-    <div class="logo">資</div>
-    <div>
-      <h1>月イチ資産ノート</h1>
-      <small>資産・負債を月1回だけ更新。純資産をBS風に管理。</small>
-    </div>
-  </div>
-  <span class="pill" id="latestMonthPill">-</span>
-</header>
+<div class="hero">
+<h2>Personal Financial Statement</h2>
+<p>個人資産も、決算するべきだ。</p>
 
-<section class="hero" id="home">
-  <div class="hero-top">
-    <span>Current Net Assets</span>
-    <span class="pill">ブラウザ保存版</span>
-  </div>
+<div class="total" id="net">¥0</div>
 
-  <strong class="total" id="netAssetDisplay">¥0</strong>
-
-  <div class="hero-metrics">
-    <div>
-      <small>資産合計</small>
-      <b id="assetTotalDisplay">-</b>
-    </div>
-    <div>
-      <small>負債合計</small>
-      <b id="liabilityTotalDisplay">-</b>
-    </div>
-    <div>
-      <small>前月増減</small>
-      <b id="momDisplay">-</b>
-    </div>
-    <div>
-      <small>前年増減</small>
-      <b id="yoyDisplay">-</b>
-    </div>
-  </div>
-</section>
-
-<section class="grid" id="charts">
-  <div class="panel">
-    <div class="toolbar">
-      <div>
-        <p class="label">TREND</p>
-        <h2>純資産推移</h2>
-      </div>
-      <div class="select-wrap">
-        <span class="small-label">表示期間</span>
-        <select id="trendPeriod" onchange="renderCharts()">
-          <option value="3">3ヶ月</option>
-          <option value="6" selected>6ヶ月</option>
-          <option value="12">1年</option>
-          <option value="36">3年</option>
-          <option value="60">5年</option>
-          <option value="120">10年</option>
-        </select>
-      </div>
-    </div>
-    <canvas id="trendChart"></canvas>
-  </div>
-
-  <div class="panel">
-    <div class="toolbar">
-      <div>
-        <p class="label">ALLOCATION</p>
-        <h2>最新月の資産構成</h2>
-      </div>
-      <div class="select-wrap">
-        <span class="small-label">表示</span>
-        <select id="compositionMode" onchange="renderCharts(); renderCompositionList();">
-          <option value="assetCategory">資産別</option>
-          <option value="assetType">分類別</option>
-          <option value="bs">BS表示</option>
-        </select>
-      </div>
-    </div>
-    <canvas id="allocationChart"></canvas>
-    <div id="compositionList" class="composition-list"></div>
-  </div>
-</section>
-
-<section class="grid single">
-  <div class="panel report" id="report">
-    <p class="label">AI MONTHLY ANALYSIS</p>
-    <h2>AI風 月次分析</h2>
-    <div id="monthlyReport"></div>
-  </div>
-</section>
-
-<section class="grid" id="input">
-  <div class="panel">
-    <p class="label">MONTHLY INPUT</p>
-    <h2>月次データを入力</h2>
-
-    <div class="form">
-      <div class="three">
-        <div>
-          <label class="small-label">入力対象月</label>
-          <input class="input" id="monthInput" placeholder="例：2026/05">
-        </div>
-        <div>
-          <label class="small-label">過去月を編集</label>
-          <select id="recordSelector" onchange="loadSelectedRecord()"></select>
-        </div>
-        <div style="display:flex;align-items:end">
-          <button class="btn btn-light" style="width:100%" onclick="prepareNextMonth()">次月を空欄で作成</button>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="btn btn-light" onclick="clearCurrentInputs()">入力月だけ空欄にする</button>
-        <button class="btn btn-light" onclick="copyPreviousToCurrent()">前月の数字をコピー</button>
-        <button class="btn btn-gold" onclick="saveMonth()">この月の資産・負債を保存</button>
-      </div>
-
-      <div class="input-table">
-        <div class="input-head">
-          <div>項目</div>
-          <div>前々月</div>
-          <div>前月</div>
-          <div>入力月</div>
-        </div>
-        <div id="categoryInputs"></div>
-      </div>
-    </div>
-
-    <p class="note">
-      入力対象月を変更すると、前月・前々月の数字を見ながら今月分だけ入力できます。過去月を選べば過去データも修正できます。
-    </p>
-  </div>
-
-  <div class="panel">
-    <p class="label">CATEGORY SETTING</p>
-    <h2>カテゴリを自由に設定</h2>
-
-    <div class="three">
-      <input class="input" id="newCategoryName" placeholder="例：楽天証券、住宅ローン">
-      <select id="newCategorySide">
-        <option value="asset">資産</option>
-        <option value="liability">負債</option>
-      </select>
-      <select id="newCategoryType">
-        <option value="cash">現金・預金系</option>
-        <option value="invest">投資系</option>
-        <option value="retire">退職資産系</option>
-        <option value="other">その他</option>
-      </select>
-    </div>
-
-    <button class="btn" style="margin-top:10px;width:100%" onclick="addCategory()">カテゴリを追加</button>
-    <div id="categoryList" style="margin-top:12px"></div>
-
-    <div class="actions" style="margin-top:16px">
-      <button class="btn btn-light" onclick="exportJSON()">データを書き出し</button>
-      <label class="btn btn-light" style="cursor:pointer">
-        データを復元
-        <input type="file" accept="application/json" onchange="importJSON(event)" style="display:none">
-      </label>
-      <button class="btn btn-danger" onclick="resetAll()">初期データに戻す</button>
-    </div>
-  </div>
-</section>
-
+<div class="kpis">
+<div class="kpi"><small>資産合計</small><b id="asset"></b></div>
+<div class="kpi"><small>負債合計</small><b id="debt"></b></div>
+<div class="kpi"><small>前月増減</small><b id="mom"></b></div>
+<div class="kpi"><small>前年増減</small><b id="yoy"></b></div>
+</div>
 </div>
 
-<nav class="footer-nav">
-  <a href="#home" class="active">ホーム</a>
-  <a href="#charts">グラフ</a>
-  <a href="#report">分析</a>
-  <a href="#input">入力</a>
-</nav>
+<div class="panel">
+<h3>純資産推移</h3>
+<select id="period" onchange="render()">
+<option value="3">3ヶ月</option>
+<option value="6">6ヶ月</option>
+<option value="12">1年</option>
+<option value="36">3年</option>
+<option value="60">5年</option>
+<option value="120">10年</option>
+</select>
+<canvas id="trend"></canvas>
+</div>
 
-<div id="toast" class="toast">保存しました</div>
+<div class="panel">
+<h3>資産構成</h3>
+<select id="mode" onchange="render()">
+<option value="cat">資産別</option>
+<option value="type">分類別</option>
+<option value="bs">BS</option>
+</select>
+<canvas id="pie"></canvas>
+</div>
+
+<div class="panel">
+<h3>AI決算コメント</h3>
+<div id="comment"></div>
+</div>
+
+<div class="panel">
+<h3>月次決算入力</h3>
+<input id="month" placeholder="2026/05">
+<button onclick="save()">決算確定</button>
+<div id="inputs"></div>
+</div>
 
 <script>
-const STORAGE_KEY = 'asset-note-bs-v4';
-const yen = n => new Intl.NumberFormat('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}).format(Number(n)||0);
-const colors = ['#b9935a','#477cff','#2f8f66','#8b6cf6','#22b8cf','#f59f00','#c25b5b','#7c8594','#12b886','#e64980','#845ef7','#15aabf'];
 
-const sideNames = {asset:'資産', liability:'負債'};
-const typeNames = {cash:'現金・預金系', invest:'投資系', retire:'退職資産系', other:'その他'};
-
-const defaultCategories = [
-  {name:'預金', side:'asset', type:'cash'},
-  {name:'NASDAQ', side:'asset', type:'invest'},
-  {name:'インド', side:'asset', type:'invest'},
-  {name:'Bitcoin', side:'asset', type:'invest'},
-  {name:'Doge', side:'asset', type:'invest'},
-  {name:'確定拠出年金', side:'asset', type:'retire'},
-  {name:'持株会', side:'asset', type:'invest'},
-  {name:'カード未払', side:'liability', type:'other'},
-  {name:'住宅ローン', side:'liability', type:'other'}
+const cat=[
+{name:"預金",side:"asset",type:"cash"},
+{name:"NASDAQ",side:"asset",type:"invest"},
+{name:"住宅ローン",side:"liability",type:"other"}
 ];
 
-const defaultRecords = [
-  {month:'2025/04', values:{預金:520000,NASDAQ:260000,インド:210000,Bitcoin:78000,Doge:45000,確定拠出年金:2100000,持株会:1450000,カード未払:0,住宅ローン:0}},
-  {month:'2026/01', values:{預金:1117299,NASDAQ:403268,インド:372283,Bitcoin:79540,Doge:76878,確定拠出年金:2878084,持株会:2154255,カード未払:0,住宅ローン:0}},
-  {month:'2026/02', values:{預金:1011660,NASDAQ:435617,インド:418854,Bitcoin:64783,Doge:56357,確定拠出年金:2845990,持株会:2372231,カード未払:0,住宅ローン:0}},
-  {month:'2026/03', values:{預金:816387,NASDAQ:487749,インド:425933,Bitcoin:82096,Doge:58770,確定拠出年金:2650389,持株会:2151560,カード未払:0,住宅ローン:0}},
-  {month:'2026/04', values:{預金:644667,NASDAQ:605254,インド:510791,Bitcoin:102871,Doge:60549,確定拠出年金:2941357,持株会:2291265,カード未払:0,住宅ローン:0}}
+let data=[
+{m:"2026/03",v:{預金:500000,NASDAQ:300000,住宅ローン:0}},
+{m:"2026/04",v:{預金:600000,NASDAQ:600000,住宅ローン:0}}
 ];
 
-let categories = [];
-let records = [];
-let trendChart;
-let allocationChart;
+const yen=n=>"¥"+n.toLocaleString();
 
-function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
-
-function normalizeCategory(c){
-  const side = c.side || ((c.name && (c.name.includes('ローン') || c.name.includes('未払') || c.name.includes('借入'))) ? 'liability' : 'asset');
-  return {
-    name:c.name,
-    side:side === 'liability' ? 'liability' : 'asset',
-    type:c.type || 'other'
-  };
+function total(r){
+return cat.reduce((s,c)=>s+(r.v[c.name]||0),0);
 }
 
-function loadState(){
-  try{
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-    if(saved && Array.isArray(saved.categories) && Array.isArray(saved.records)){
-      categories = saved.categories.map(normalizeCategory);
-      records = saved.records;
-    }else{
-      categories = clone(defaultCategories);
-      records = clone(defaultRecords);
-    }
-  }catch(e){
-    categories = clone(defaultCategories);
-    records = clone(defaultRecords);
-  }
-  records.forEach(r=>{
-    if(!r.values) r.values = {};
-    categories.forEach(c=>{
-      if(r.values[c.name] === undefined) r.values[c.name] = 0;
-    });
-  });
-  sortRecords();
+function asset(r){
+return cat.filter(c=>c.side==="asset").reduce((s,c)=>s+(r.v[c.name]||0),0);
 }
 
-function saveState(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({categories,records}));
+function debt(r){
+return cat.filter(c=>c.side==="liability").reduce((s,c)=>s+(r.v[c.name]||0),0);
 }
 
-function sortRecords(){
-  records.sort((a,b)=>a.month.localeCompare(b.month));
-}
-
-function showToast(msg='保存しました'){
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(()=>toast.classList.remove('show'),1600);
-}
-
-function latestRecord(){
-  sortRecords();
-  return records[records.length - 1];
-}
-
-function parseMonth(month){
-  const m = String(month).match(/^(\d{4})\/(\d{1,2})$/);
-  if(!m) return null;
-  return {year:Number(m[1]), month:Number(m[2])};
-}
-
-function formatMonth(year,month){
-  return `${year}/${String(month).padStart(2,'0')}`;
-}
-
-function addMonths(monthStr, diff){
-  const p = parseMonth(monthStr);
-  if(!p) return monthStr;
-  const date = new Date(p.year, p.month - 1 + diff, 1);
-  return formatMonth(date.getFullYear(), date.getMonth()+1);
-}
-
-function recordByMonth(month){
-  return records.find(r=>r.month === month);
-}
-
-function assetTotalOf(record){
-  if(!record) return 0;
-  return categories
-    .filter(c=>c.side !== 'liability')
-    .reduce((s,c)=>s + Number(record.values[c.name] || 0),0);
-}
-
-function liabilityTotalOf(record){
-  if(!record) return 0;
-  return categories
-    .filter(c=>c.side === 'liability')
-    .reduce((s,c)=>s + Number(record.values[c.name] || 0),0);
-}
-
-function netAssetOf(record){
-  return assetTotalOf(record) - liabilityTotalOf(record);
-}
+let tChart,pChart;
 
 function render(){
-  sortRecords();
-  const latest = latestRecord();
-  const latestIdx = records.length - 1;
-  const prev = records[latestIdx - 1];
-  const yearAgo = recordByMonth(addMonths(latest.month,-12));
+const last=data[data.length-1];
+const prev=data[data.length-2]||last;
 
-  const totalAssets = assetTotalOf(latest);
-  const totalLiabilities = liabilityTotalOf(latest);
-  const netAssets = netAssetOf(latest);
+const net=asset(last)-debt(last);
+const prevNet=asset(prev)-debt(prev);
 
-  const mom = prev ? netAssets - netAssetOf(prev) : null;
-  const momRate = prev && netAssetOf(prev) ? mom / netAssetOf(prev) * 100 : null;
-  const yoy = yearAgo ? netAssets - netAssetOf(yearAgo) : null;
-  const yoyRate = yearAgo && netAssetOf(yearAgo) ? yoy / netAssetOf(yearAgo) * 100 : null;
+document.getElementById("net").innerText=yen(net);
+document.getElementById("asset").innerText=yen(asset(last));
+document.getElementById("debt").innerText=yen(debt(last));
+document.getElementById("mom").innerText=yen(net-prevNet);
 
-  document.getElementById('latestMonthPill').textContent = latest.month;
-  document.getElementById('netAssetDisplay').textContent = yen(netAssets);
-  document.getElementById('assetTotalDisplay').textContent = yen(totalAssets);
-  document.getElementById('liabilityTotalDisplay').textContent = yen(totalLiabilities);
-  document.getElementById('momDisplay').innerHTML = formatChange(mom,momRate);
-  document.getElementById('yoyDisplay').innerHTML = formatChange(yoy,yoyRate);
+const year=data.find(r=>r.m==="2025/04");
+document.getElementById("yoy").innerText=year?yen(net-(asset(year)-debt(year))):"-";
 
-  renderRecordSelector();
-  renderCategoryInputs();
-  renderCategoryList();
-  renderCharts();
-  renderCompositionList();
-  renderReport();
+if(tChart) tChart.destroy();
+
+const p=Number(document.getElementById("period").value);
+const slice=data.slice(-p);
+
+tChart=new Chart(document.getElementById("trend"),{
+type:"line",
+data:{
+labels:slice.map(r=>r.m),
+datasets:[{data:slice.map(r=>asset(r)-debt(r)),borderColor:"#b9935a"}]
+}
+});
+
+if(pChart) pChart.destroy();
+
+const mode=document.getElementById("mode").value;
+
+let labels=[],values=[];
+
+if(mode==="cat"){
+labels=cat.filter(c=>c.side==="asset").map(c=>c.name);
+values=labels.map(n=>last.v[n]||0);
+}
+else if(mode==="type"){
+let sum={cash:0,invest:0,other:0};
+cat.forEach(c=>{
+if(c.side==="asset") sum[c.type]+=last.v[c.name]||0;
+});
+labels=Object.keys(sum);
+values=Object.values(sum);
+}
+else{
+labels=["資産","負債","純資産"];
+values=[asset(last),debt(last),net];
 }
 
-function formatChange(amount, rate){
-  if(amount === null || amount === undefined) return '-';
-  const cls = amount >= 0 ? 'pos' : 'neg';
-  const sign = amount >= 0 ? '+' : '';
-  const rateText = rate === null || rate === undefined ? '' : `（${rate >= 0 ? '+' : ''}${rate.toFixed(1)}%）`;
-  return `<span class="${cls}">${sign}${yen(amount)}${rateText}</span>`;
+pChart=new Chart(document.getElementById("pie"),{
+type:"pie",
+data:{labels,datasets:[{data:values}]}
+});
+
+document.getElementById("comment").innerText=
+"純資産は"+yen(net)+"。前月比"+yen(net-prevNet)+"。投資比率は"+Math.round(values[0]/net*100)+"%。";
 }
 
-function renderRecordSelector(){
-  const selector = document.getElementById('recordSelector');
-  const current = document.getElementById('monthInput').value || latestRecord().month;
-  selector.innerHTML = records.map(r=>`<option value="${r.month}">${r.month}</option>`).join('');
-  selector.value = records.some(r=>r.month===current) ? current : latestRecord().month;
-}
+function save(){
+const m=document.getElementById("month").value;
+if(!m) return alert("月を入力");
 
-function selectedInputMonth(){
-  return document.getElementById('monthInput').value.trim() || latestRecord().month;
-}
+const obj={m,v:{}};
 
-function renderCategoryInputs(){
-  const month = selectedInputMonth();
-  const currentRecord = recordByMonth(month);
-  const prevMonth = addMonths(month,-1);
-  const prev2Month = addMonths(month,-2);
-  const prevRecord = recordByMonth(prevMonth);
-  const prev2Record = recordByMonth(prev2Month);
+cat.forEach(c=>{
+obj.v[c.name]=Number(prompt(c.name)||0);
+});
 
-  document.getElementById('categoryInputs').innerHTML = categories.map(c=>{
-    const currentValue = currentRecord ? Number(currentRecord.values[c.name] || 0) : '';
-    const prev = prevRecord ? Number(prevRecord.values[c.name] || 0) : null;
-    const prev2 = prev2Record ? Number(prev2Record.values[c.name] || 0) : null;
-    return `
-      <div class="input-line">
-        <div class="cat-title">
-          <b>${c.name}</b>
-          <small>${sideNames[c.side]} / ${typeNames[c.type]}</small>
-        </div>
-        <div class="readonly-money" title="前々月 ${prev2Month}">${prev2 === null ? '-' : yen(prev2)}</div>
-        <div class="readonly-money" title="前月 ${prevMonth}">${prev === null ? '-' : yen(prev)}</div>
-        <input class="input month-input amount-input" data-category="${c.name}" value="${currentValue === '' ? '' : formatNumber(currentValue)}" placeholder="${c.name}の金額" oninput="formatAmountInput(this)">
-      </div>
-    `;
-  }).join('');
-}
-
-function renderCategoryList(){
-  document.getElementById('categoryList').innerHTML = categories.map((c,i)=>`
-    <div class="category-card">
-      <span class="dot" style="background:${colors[i%colors.length]}"></span>
-      <div>
-        <b>${c.name}</b><br>
-        <small><span class="side-chip ${c.side==='liability'?'liability':''}">${sideNames[c.side]}</span>${typeNames[c.type]}</small>
-      </div>
-      <div class="actions">
-        <button class="move" onclick="moveCategory(${i},-1)">↑</button>
-        <button class="move" onclick="moveCategory(${i},1)">↓</button>
-        <button class="edit" onclick="renameCategory('${escapeAttr(c.name)}')">編集</button>
-        <button class="delete" onclick="deleteCategory('${escapeAttr(c.name)}')">削除</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function escapeAttr(str){
-  return String(str).replace(/'/g,"\\'");
-}
-
-function formatNumber(n){
-  if(n === '' || n === null || n === undefined) return '';
-  return Number(n).toLocaleString('ja-JP');
-}
-
-function rawNumber(str){
-  return Number(String(str).replace(/,/g,'').trim()) || 0;
-}
-
-function formatAmountInput(input){
-  const caretEnd = input.selectionEnd === input.value.length;
-  const raw = String(input.value).replace(/[^\d.-]/g,'');
-  if(raw === '' || raw === '-' || raw === '.') {
-    input.value = raw;
-    return;
-  }
-  const num = Number(raw);
-  if(!Number.isNaN(num)){
-    input.value = num.toLocaleString('ja-JP');
-    if(caretEnd) input.setSelectionRange(input.value.length,input.value.length);
-  }
-}
-
-function compositionData(){
-  const latest = latestRecord();
-  const mode = document.getElementById('compositionMode').value;
-
-  if(mode === 'assetType'){
-    const sums = {cash:0, invest:0, retire:0, other:0};
-    categories.filter(c=>c.side !== 'liability').forEach(c=>{
-      sums[c.type] += Number(latest.values[c.name] || 0);
-    });
-    return Object.entries(sums)
-      .map(([type,amount])=>({name:typeNames[type], amount}))
-      .filter(e=>e.amount>0);
-  }
-
-  if(mode === 'bs'){
-    const assets = assetTotalOf(latest);
-    const liabilities = liabilityTotalOf(latest);
-    const net = netAssetOf(latest);
-    return [
-      {name:'資産合計', amount:assets},
-      {name:'負債合計', amount:liabilities},
-      {name:'純資産', amount:net}
-    ].filter(e=>e.amount>0);
-  }
-
-  return categories
-    .filter(c=>c.side !== 'liability')
-    .map(c=>({name:c.name, amount:Number(latest.values[c.name] || 0)}))
-    .filter(e=>e.amount>0)
-    .sort((a,b)=>b.amount-a.amount);
-}
-
-function renderCompositionList(){
-  const data = compositionData();
-  const total = data.reduce((s,e)=>s+e.amount,0);
-  document.getElementById('compositionList').innerHTML = data.map((e,i)=>{
-    const ratio = total ? e.amount / total * 100 : 0;
-    return `
-      <div class="comp-row">
-        <span class="dot" style="background:${colors[i%colors.length]}"></span>
-        <div><b>${e.name}</b><br><small>${ratio.toFixed(1)}%</small></div>
-        <div style="text-align:right"><b>${yen(e.amount)}</b></div>
-      </div>
-    `;
-  }).join('');
-}
-
-function renderReport(){
-  const latest = latestRecord();
-  const prev = records[records.length - 2];
-  const net = netAssetOf(latest);
-  const assets = assetTotalOf(latest);
-  const liabilities = liabilityTotalOf(latest);
-  const prevNet = prev ? netAssetOf(prev) : 0;
-  const mom = prev ? net - prevNet : 0;
-  const momRate = prevNet ? mom / prevNet * 100 : 0;
-
-  const cash = categories.filter(c=>c.side !== 'liability' && c.type==='cash').reduce((s,c)=>s+Number(latest.values[c.name]||0),0);
-  const invest = categories.filter(c=>c.side !== 'liability' && c.type==='invest').reduce((s,c)=>s+Number(latest.values[c.name]||0),0);
-  const cashRatio = assets ? cash / assets * 100 : 0;
-  const investRatio = assets ? invest / assets * 100 : 0;
-
-  let liquidityComment = '';
-  if(cashRatio < 15) liquidityComment = '現金比率は低めです。生活防衛資金や短期支出に備える余地があります。';
-  else if(cashRatio > 45) liquidityComment = '現金比率は高めです。投資余力がある状態といえます。';
-  else liquidityComment = '現金比率は大きく偏っておらず、比較的バランスが取れています。';
-
-  document.getElementById('monthlyReport').innerHTML = `
-    <ul>
-      <li>最新月の純資産は <b>${yen(net)}</b>、資産合計は <b>${yen(assets)}</b>、負債合計は <b>${yen(liabilities)}</b> です。</li>
-      <li>前月増減は <b class="${mom>=0?'pos':'neg'}">${mom>=0?'+':''}${yen(mom)}（${momRate>=0?'+':''}${momRate.toFixed(1)}%）</b> です。</li>
-      <li>投資系資産は <b>${yen(invest)}</b>、資産合計に対する投資比率は <b>${investRatio.toFixed(1)}%</b> です。</li>
-      <li>現金・預金系は <b>${yen(cash)}</b>、資産合計に対する比率は <b>${cashRatio.toFixed(1)}%</b> です。${liquidityComment}</li>
-    </ul>
-  `;
-}
-
-function renderCharts(){
-  const latest = latestRecord();
-  const period = Number(document.getElementById('trendPeriod').value || 6);
-  const filtered = records.slice(-period);
-
-  if(trendChart) trendChart.destroy();
-  if(allocationChart) allocationChart.destroy();
-
-  trendChart = new Chart(document.getElementById('trendChart'), {
-    type:'line',
-    data:{
-      labels:filtered.map(r=>r.month),
-      datasets:[{
-        label:'純資産',
-        data:filtered.map(r=>netAssetOf(r)),
-        borderColor:'#b9935a',
-        backgroundColor:'rgba(185,147,90,.16)',
-        fill:true,
-        tension:.35,
-        pointRadius:3
-      }]
-    },
-    options:{
-      plugins:{
-        legend:{display:false},
-        tooltip:{callbacks:{label:ctx=>yen(ctx.raw)}}
-      },
-      scales:{
-        x:{grid:{display:false}},
-        y:{ticks:{callback:v=>Math.round(v/10000)+'万'}}
-      }
-    }
-  });
-
-  const comp = compositionData();
-  allocationChart = new Chart(document.getElementById('allocationChart'), {
-    type:'pie',
-    data:{
-      labels:comp.map(e=>e.name),
-      datasets:[{
-        data:comp.map(e=>e.amount),
-        backgroundColor:comp.map((_,i)=>colors[i%colors.length]),
-        borderWidth:2,
-        borderColor:'#fffaf1'
-      }]
-    },
-    options:{
-      plugins:{
-        legend:{position:'bottom'},
-        tooltip:{
-          callbacks:{
-            label:ctx=>{
-              const total = ctx.dataset.data.reduce((s,v)=>s+Number(v),0);
-              const value = Number(ctx.raw);
-              const ratio = total ? value/total*100 : 0;
-              return `${ctx.label}: ${yen(value)}（${ratio.toFixed(1)}%）`;
-            }
-          }
-        }
-      }
-    }
-  });
-}
-
-function prepareNextMonth(){
-  const next = addMonths(latestRecord().month,1);
-  document.getElementById('monthInput').value = next;
-  document.getElementById('recordSelector').value = latestRecord().month;
-  renderCategoryInputs();
-  clearCurrentInputs();
-  showToast('次月を空欄で作成しました');
-}
-
-function clearCurrentInputs(){
-  document.querySelectorAll('.amount-input').forEach(input=>input.value='');
-}
-
-function copyPreviousToCurrent(){
-  const month = selectedInputMonth();
-  const prev = recordByMonth(addMonths(month,-1));
-  if(!prev){ showToast('前月データがありません'); return; }
-  document.querySelectorAll('.amount-input').forEach(input=>{
-    const name = input.dataset.category;
-    input.value = formatNumber(prev.values[name] || 0);
-  });
-  showToast('前月の数字をコピーしました');
-}
-
-function loadSelectedRecord(){
-  const month = document.getElementById('recordSelector').value;
-  document.getElementById('monthInput').value = month;
-  renderCategoryInputs();
-}
-
-function saveMonth(){
-  const month = selectedInputMonth();
-  if(!/^\\d{4}\\/\\d{2}$/.test(month)){
-    alert('対象月は 2026/05 の形式で入力してください');
-    return;
-  }
-
-  const values = {};
-  document.querySelectorAll('.amount-input').forEach(input=>{
-    values[input.dataset.category] = rawNumber(input.value);
-  });
-
-  const existing = recordByMonth(month);
-  if(existing) existing.values = values;
-  else records.push({month,values});
-
-  categories.forEach(c=>{
-    records.forEach(r=>{
-      if(r.values[c.name] === undefined) r.values[c.name] = 0;
-    });
-  });
-
-  saveState();
-  showToast('保存しました');
-  render();
-}
-
-function addCategory(){
-  const name = document.getElementById('newCategoryName').value.trim();
-  const side = document.getElementById('newCategorySide').value;
-  const type = document.getElementById('newCategoryType').value;
-
-  if(!name){ alert('カテゴリ名を入力してください'); return; }
-  if(categories.some(c=>c.name === name)){ alert('同じカテゴリ名があります'); return; }
-
-  categories.push({name,side,type});
-  records.forEach(r=>{ if(r.values[name] === undefined) r.values[name] = 0; });
-  document.getElementById('newCategoryName').value = '';
-  saveState();
-  showToast('カテゴリを追加しました');
-  render();
-}
-
-function renameCategory(oldName){
-  const current = categories.find(c=>c.name===oldName);
-  if(!current) return;
-  const newName = prompt('新しいカテゴリ名を入力してください', oldName);
-  if(!newName || newName === oldName) return;
-  if(categories.some(c=>c.name === newName)){ alert('同じカテゴリ名があります'); return; }
-
-  current.name = newName;
-  records.forEach(r=>{
-    r.values[newName] = r.values[oldName] || 0;
-    delete r.values[oldName];
-  });
-
-  saveState();
-  showToast('カテゴリ名を変更しました');
-  render();
-}
-
-function deleteCategory(name){
-  if(!confirm(name + ' を削除しますか？')) return;
-  categories = categories.filter(c=>c.name !== name);
-  records.forEach(r=>delete r.values[name]);
-  saveState();
-  showToast('カテゴリを削除しました');
-  render();
-}
-
-function moveCategory(index,delta){
-  const next = index + delta;
-  if(next < 0 || next >= categories.length) return;
-  const temp = categories[index];
-  categories[index] = categories[next];
-  categories[next] = temp;
-  saveState();
-  render();
-}
-
-function exportJSON(){
-  const data = JSON.stringify({categories,records},null,2);
-  const blob = new Blob([data],{type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'asset-note-backup.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function importJSON(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e=>{
-    try{
-      const data = JSON.parse(e.target.result);
-      if(!Array.isArray(data.categories) || !Array.isArray(data.records)) throw new Error('invalid');
-      categories = data.categories.map(normalizeCategory);
-      records = data.records;
-      saveState();
-      showToast('データを復元しました');
-      render();
-    }catch(err){
-      alert('読み込めないファイルです');
-    }
-  };
-  reader.readAsText(file);
-}
-
-function resetAll(){
-  if(!confirm('初期データに戻しますか？')) return;
-  categories = clone(defaultCategories);
-  records = clone(defaultRecords);
-  saveState();
-  showToast('初期データに戻しました');
-  render();
-}
-
-document.getElementById('monthInput').addEventListener('change', renderCategoryInputs);
-
-loadState();
-document.getElementById('monthInput').value = latestRecord().month;
+data.push(obj);
 render();
+}
+
+render();
+
 </script>
+
 </body>
 </html>
