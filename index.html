@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Personal Financial Statement</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -607,7 +607,7 @@ canvas{
     <div class="logo">PFS</div>
     <div>
       <h1>Personal Financial Statement</h1>
-      <small>åäººè³ç£ããæ±ºç®ããã¹ãã ã</small>
+      <small>個人資産も、決算するべきだ。</small>
     </div>
   </div>
   <span class="pill" id="latestMonthPill">-</span>
@@ -616,32 +616,32 @@ canvas{
 <section class="hero" id="home">
   <div class="hero-top">
     <span>PERSONAL MONTHLY CLOSING</span>
-    <span class="pill">åäººæ±ºç®ããã·ã¥ãã¼ã</span>
+    <span class="pill">個人決算ダッシュボード</span>
   </div>
 
   <div class="hero-copy">
-    <h2>ä¼ç¤¾ã ããããªãã<br>åäººè³ç£ããæ±ºç®ããã¹ãã ã</h2>
-    <p>ããªãèªèº«ãã²ã¨ã¤ã®ä¼ç¤¾ã¨ãã¦æããè³ç£ã»è² åµã»ç´è³ç£ãææ¬¡ã§éç¤ºããã</p>
+    <h2>会社だけじゃない。<br>個人資産も、決算するべきだ。</h2>
+    <p>あなた自身をひとつの会社として捉え、資産・負債・純資産を月次で開示する。</p>
   </div>
 
   <span class="total-label">NET ASSETS</span>
-  <strong class="total" id="netAssetDisplay">Â¥0</strong>
+  <strong class="total" id="netAssetDisplay">¥0</strong>
 
   <div class="hero-metrics">
     <div>
-      <small>è³ç£åè¨</small>
+      <small>資産合計</small>
       <b id="assetTotalDisplay">-</b>
     </div>
     <div>
-      <small>è² åµåè¨</small>
+      <small>負債合計</small>
       <b id="liabilityTotalDisplay">-</b>
     </div>
     <div>
-      <small>åæå¢æ¸</small>
+      <small>前月増減</small>
       <b id="momDisplay">-</b>
     </div>
     <div>
-      <small>åå¹´å¢æ¸</small>
+      <small>前年増減</small>
       <b id="yoyDisplay">-</b>
     </div>
   </div>
@@ -652,17 +652,17 @@ canvas{
     <div class="toolbar">
       <div>
         <p class="label">NET ASSET GROWTH</p>
-        <h2>ç´è³ç£æ¨ç§»</h2>
+        <h2>純資産推移</h2>
       </div>
       <div class="select-wrap">
-        <span class="small-label">è¡¨ç¤ºæé</span>
+        <span class="small-label">表示期間</span>
         <select id="trendPeriod" onchange="renderCharts()">
-          <option value="3">3ã¶æ</option>
-          <option value="6" selected>6ã¶æ</option>
-          <option value="12">1å¹´</option>
-          <option value="36">3å¹´</option>
-          <option value="60">5å¹´</option>
-          <option value="120">10å¹´</option>
+          <option value="3">3ヶ月</option>
+          <option value="6" selected>6ヶ月</option>
+          <option value="12">1年</option>
+          <option value="36">3年</option>
+          <option value="60">5年</option>
+          <option value="120">10年</option>
         </select>
       </div>
     </div>
@@ -673,14 +673,14 @@ canvas{
     <div class="toolbar">
       <div>
         <p class="label">PORTFOLIO</p>
-        <h2>ææ°æã®è³ç£æ§æ</h2>
+        <h2>最新月の資産構成</h2>
       </div>
       <div class="select-wrap">
-        <span class="small-label">è¡¨ç¤º</span>
+        <span class="small-label">表示</span>
         <select id="compositionMode" onchange="renderCharts(); renderCompositionList();">
-          <option value="assetCategory">è³ç£å¥</option>
-          <option value="assetType">åé¡å¥</option>
-          <option value="bs">BSè¡¨ç¤º</option>
+          <option value="assetCategory">資産別</option>
+          <option value="assetType">分類別</option>
+          <option value="bs">BS表示</option>
         </select>
       </div>
     </div>
@@ -692,18 +692,18 @@ canvas{
 <section class="grid" id="statement">
   <div class="panel">
     <p class="label">FINANCIAL STATEMENT</p>
-    <h2>åäººè²¡åè«¸è¡¨</h2>
+    <h2>個人財務諸表</h2>
     <div class="statement-tabs">
       <button id="tabBS" class="active" onclick="setStatementView('bs')">BS</button>
-      <button id="tabMonthly" onclick="setStatementView('monthly')">ææ¬¡æ±ºç®</button>
-      <button id="tabPlan" onclick="setStatementView('plan')">ä¸­è¨</button>
+      <button id="tabMonthly" onclick="setStatementView('monthly')">月次決算</button>
+      <button id="tabPlan" onclick="setStatementView('plan')">中計</button>
     </div>
     <div id="statementBody"></div>
   </div>
 
   <div class="panel report" id="report">
     <p class="label">MANAGEMENT COMMENTARY</p>
-    <h2>AIæ±ºç®ã³ã¡ã³ã</h2>
+    <h2>AI決算コメント</h2>
     <div id="monthlyReport"></div>
   </div>
 </section>
@@ -711,73 +711,73 @@ canvas{
 <section class="grid" id="input">
   <div class="panel">
     <p class="label">MONTHLY CLOSING</p>
-    <h2>ææ¬¡æ±ºç®ãå¥å</h2>
+    <h2>月次決算を入力</h2>
 
     <div class="form">
       <div class="three">
         <div>
-          <label class="small-label">æ±ºç®å¯¾è±¡æ</label>
-          <input class="input" id="monthInput" placeholder="ä¾ï¼2026/05">
+          <label class="small-label">決算対象月</label>
+          <input class="input" id="monthInput" placeholder="例：2026/05">
         </div>
         <div>
-          <label class="small-label">éå»æ±ºç®ãä¿®æ­£</label>
+          <label class="small-label">過去決算を修正</label>
           <select id="recordSelector" onchange="loadSelectedRecord()"></select>
         </div>
         <div style="display:flex;align-items:end">
-          <button class="btn btn-light" style="width:100%" onclick="prepareNextMonth()">æ¬¡æãç©ºæ¬ã§ä½æ</button>
+          <button class="btn btn-light" style="width:100%" onclick="prepareNextMonth()">次月を空欄で作成</button>
         </div>
       </div>
 
       <div class="actions">
-        <button class="btn btn-light" onclick="clearCurrentInputs()">å¥åæã ãç©ºæ¬ã«ãã</button>
-        <button class="btn btn-light" onclick="copyPreviousToCurrent()">åæã®æ°å­ãã³ãã¼</button>
-        <button class="btn btn-gold" onclick="saveMonth()">ææ¬¡æ±ºç®ãç¢ºå®</button>
+        <button class="btn btn-light" onclick="clearCurrentInputs()">入力月だけ空欄にする</button>
+        <button class="btn btn-light" onclick="copyPreviousToCurrent()">前月の数字をコピー</button>
+        <button class="btn btn-gold" onclick="saveMonth()">月次決算を確定</button>
       </div>
 
       <div class="input-table">
         <div class="input-head">
-          <div>åå®ç§ç®</div>
-          <div>åãæ</div>
-          <div>åæ</div>
-          <div>æ±ºç®æ</div>
+          <div>勘定科目</div>
+          <div>前々月</div>
+          <div>前月</div>
+          <div>決算月</div>
         </div>
         <div id="categoryInputs"></div>
       </div>
     </div>
 
     <p class="note">
-      åæã»åãæã®æ®é«ãè¦ãªãããæ±ºç®æã®æ®é«ã ãå¥åãã¾ããéå»æãé¸ã¹ã°ãéå»æ±ºç®ãä¿®æ­£ã§ãã¾ãã
+      前月・前々月の残高を見ながら、決算月の残高だけ入力します。過去月を選べば、過去決算も修正できます。
     </p>
   </div>
 
   <div class="panel">
     <p class="label">ACCOUNT SETTING</p>
-    <h2>åå®ç§ç®ãè¨­å®</h2>
+    <h2>勘定科目を設定</h2>
 
     <div class="three">
-      <input class="input" id="newCategoryName" placeholder="ä¾ï¼æ¥½å¤©è¨¼å¸ãä½å®ã­ã¼ã³">
+      <input class="input" id="newCategoryName" placeholder="例：楽天証券、住宅ローン">
       <select id="newCategorySide">
-        <option value="asset">è³ç£</option>
-        <option value="liability">è² åµ</option>
+        <option value="asset">資産</option>
+        <option value="liability">負債</option>
       </select>
       <select id="newCategoryType">
-        <option value="cash">ç¾éã»é éç³»</option>
-        <option value="invest">æè³ç³»</option>
-        <option value="retire">éè·è³ç£ç³»</option>
-        <option value="other">ãã®ä»</option>
+        <option value="cash">現金・預金系</option>
+        <option value="invest">投資系</option>
+        <option value="retire">退職資産系</option>
+        <option value="other">その他</option>
       </select>
     </div>
 
-    <button class="btn" style="margin-top:10px;width:100%" onclick="addCategory()">åå®ç§ç®ãè¿½å </button>
+    <button class="btn" style="margin-top:10px;width:100%" onclick="addCategory()">勘定科目を追加</button>
     <div id="categoryList" style="margin-top:12px"></div>
 
     <div class="actions" style="margin-top:16px">
-      <button class="btn btn-light" onclick="exportJSON()">ãã¼ã¿ãæ¸ãåºã</button>
+      <button class="btn btn-light" onclick="exportJSON()">データを書き出し</button>
       <label class="btn btn-light" style="cursor:pointer">
-        ãã¼ã¿ãå¾©å
+        データを復元
         <input type="file" accept="application/json" onchange="importJSON(event)" style="display:none">
       </label>
-      <button class="btn btn-danger" onclick="resetAll()">åæãã¼ã¿ã«æ»ã</button>
+      <button class="btn btn-danger" onclick="resetAll()">初期データに戻す</button>
     </div>
   </div>
 </section>
@@ -785,14 +785,14 @@ canvas{
 </div>
 
 <nav class="footer-nav">
-  <a href="#home" class="active">ããã</a>
-  <a href="#charts">æé·</a>
-  <a href="#statement">æ±ºç®</a>
-  <a href="#report">ã³ã¡ã³ã</a>
-  <a href="#input">å¥å</a>
+  <a href="#home" class="active">トップ</a>
+  <a href="#charts">成長</a>
+  <a href="#statement">決算</a>
+  <a href="#report">コメント</a>
+  <a href="#input">入力</a>
 </nav>
 
-<div id="toast" class="toast">ä¿å­ãã¾ãã</div>
+<div id="toast" class="toast">保存しました</div>
 
 <script>
 const STORAGE_KEY = 'personal-financial-statement-v2';
@@ -809,27 +809,27 @@ const colors = [
   '#845ef7','#15aabf'
 ];
 
-const sideNames = {asset:'è³ç£', liability:'è² åµ'};
-const typeNames = {cash:'ç¾éã»é éç³»', invest:'æè³ç³»', retire:'éè·è³ç£ç³»', other:'ãã®ä»'};
+const sideNames = {asset:'資産', liability:'負債'};
+const typeNames = {cash:'現金・預金系', invest:'投資系', retire:'退職資産系', other:'その他'};
 
 const defaultCategories = [
-  {name:'é é', side:'asset', type:'cash'},
+  {name:'預金', side:'asset', type:'cash'},
   {name:'NASDAQ', side:'asset', type:'invest'},
-  {name:'ã¤ã³ã', side:'asset', type:'invest'},
+  {name:'インド', side:'asset', type:'invest'},
   {name:'Bitcoin', side:'asset', type:'invest'},
   {name:'Doge', side:'asset', type:'invest'},
-  {name:'ç¢ºå®æ åºå¹´é', side:'asset', type:'retire'},
-  {name:'ææ ªä¼', side:'asset', type:'invest'},
-  {name:'ã«ã¼ãæªæ', side:'liability', type:'other'},
-  {name:'ä½å®ã­ã¼ã³', side:'liability', type:'other'}
+  {name:'確定拠出年金', side:'asset', type:'retire'},
+  {name:'持株会', side:'asset', type:'invest'},
+  {name:'カード未払', side:'liability', type:'other'},
+  {name:'住宅ローン', side:'liability', type:'other'}
 ];
 
 const defaultRecords = [
-  {month:'2025/04', values:{é é:520000,NASDAQ:260000,ã¤ã³ã:210000,Bitcoin:78000,Doge:45000,ç¢ºå®æ åºå¹´é:2100000,ææ ªä¼:1450000,ã«ã¼ãæªæ:0,ä½å®ã­ã¼ã³:0}},
-  {month:'2026/01', values:{é é:1117299,NASDAQ:403268,ã¤ã³ã:372283,Bitcoin:79540,Doge:76878,ç¢ºå®æ åºå¹´é:2878084,ææ ªä¼:2154255,ã«ã¼ãæªæ:0,ä½å®ã­ã¼ã³:0}},
-  {month:'2026/02', values:{é é:1011660,NASDAQ:435617,ã¤ã³ã:418854,Bitcoin:64783,Doge:56357,ç¢ºå®æ åºå¹´é:2845990,ææ ªä¼:2372231,ã«ã¼ãæªæ:0,ä½å®ã­ã¼ã³:0}},
-  {month:'2026/03', values:{é é:816387,NASDAQ:487749,ã¤ã³ã:425933,Bitcoin:82096,Doge:58770,ç¢ºå®æ åºå¹´é:2650389,ææ ªä¼:2151560,ã«ã¼ãæªæ:0,ä½å®ã­ã¼ã³:0}},
-  {month:'2026/04', values:{é é:644667,NASDAQ:605254,ã¤ã³ã:510791,Bitcoin:102871,Doge:60549,ç¢ºå®æ åºå¹´é:2941357,ææ ªä¼:2291265,ã«ã¼ãæªæ:0,ä½å®ã­ã¼ã³:0}}
+  {month:'2025/04', values:{預金:520000,NASDAQ:260000,インド:210000,Bitcoin:78000,Doge:45000,確定拠出年金:2100000,持株会:1450000,カード未払:0,住宅ローン:0}},
+  {month:'2026/01', values:{預金:1117299,NASDAQ:403268,インド:372283,Bitcoin:79540,Doge:76878,確定拠出年金:2878084,持株会:2154255,カード未払:0,住宅ローン:0}},
+  {month:'2026/02', values:{預金:1011660,NASDAQ:435617,インド:418854,Bitcoin:64783,Doge:56357,確定拠出年金:2845990,持株会:2372231,カード未払:0,住宅ローン:0}},
+  {month:'2026/03', values:{預金:816387,NASDAQ:487749,インド:425933,Bitcoin:82096,Doge:58770,確定拠出年金:2650389,持株会:2151560,カード未払:0,住宅ローン:0}},
+  {month:'2026/04', values:{預金:644667,NASDAQ:605254,インド:510791,Bitcoin:102871,Doge:60549,確定拠出年金:2941357,持株会:2291265,カード未払:0,住宅ローン:0}}
 ];
 
 let categories = [];
@@ -844,7 +844,7 @@ function clone(obj){
 
 function normalizeCategory(c){
   const side = c.side || (
-    c.name && (c.name.includes('ã­ã¼ã³') || c.name.includes('æªæ') || c.name.includes('åå¥'))
+    c.name && (c.name.includes('ローン') || c.name.includes('未払') || c.name.includes('借入'))
       ? 'liability'
       : 'asset'
   );
@@ -890,7 +890,7 @@ function sortRecords(){
   records.sort((a,b)=>a.month.localeCompare(b.month));
 }
 
-function showToast(msg='ä¿å­ãã¾ãã'){
+function showToast(msg='保存しました'){
   const toast = document.getElementById('toast');
   toast.textContent = msg;
   toast.classList.add('show');
@@ -949,7 +949,7 @@ function formatChange(amount, rate){
 
   const cls = amount >= 0 ? 'pos' : 'neg';
   const sign = amount >= 0 ? '+' : '';
-  const rateText = rate === null || rate === undefined ? '' : `ï¼${rate >= 0 ? '+' : ''}${rate.toFixed(1)}%ï¼`;
+  const rateText = rate === null || rate === undefined ? '' : `（${rate >= 0 ? '+' : ''}${rate.toFixed(1)}%）`;
 
   return `<span class="${cls}">${sign}${yen(amount)}${rateText}</span>`;
 }
@@ -972,7 +972,7 @@ function render(){
   const yoy = yearAgo ? netAssets - netAssetOf(yearAgo) : null;
   const yoyRate = yearAgo && netAssetOf(yearAgo) ? yoy / netAssetOf(yearAgo) * 100 : null;
 
-  document.getElementById('latestMonthPill').textContent = latest.month + ' æ±ºç®';
+  document.getElementById('latestMonthPill').textContent = latest.month + ' 決算';
   document.getElementById('netAssetDisplay').textContent = yen(netAssets);
   document.getElementById('assetTotalDisplay').textContent = yen(totalAssets);
   document.getElementById('liabilityTotalDisplay').textContent = yen(totalLiabilities);
@@ -1025,11 +1025,11 @@ function renderCategoryInputs(){
           <small>${sideNames[c.side]} / ${typeNames[c.type]}</small>
         </div>
 
-        <div class="readonly-money" title="åãæ ${prev2Month}">
+        <div class="readonly-money" title="前々月 ${prev2Month}">
           ${prev2 === null ? '-' : yen(prev2)}
         </div>
 
-        <div class="readonly-money" title="åæ ${prevMonth}">
+        <div class="readonly-money" title="前月 ${prevMonth}">
           ${prev === null ? '-' : yen(prev)}
         </div>
 
@@ -1037,7 +1037,7 @@ function renderCategoryInputs(){
           class="input month-input amount-input"
           data-category="${c.name}"
           value="${currentValue === '' ? '' : formatNumber(currentValue)}"
-          placeholder="${c.name}ã®æ±ºç®æ®é«"
+          placeholder="${c.name}の決算残高"
           oninput="formatAmountInput(this)">
       </div>
     `;
@@ -1058,10 +1058,10 @@ function renderCategoryList(){
       </div>
 
       <div class="actions">
-        <button class="move" onclick="moveCategory(${i},-1)">â</button>
-        <button class="move" onclick="moveCategory(${i},1)">â</button>
-        <button class="edit" onclick="renameCategory('${escapeAttr(c.name)}')">ç·¨é</button>
-        <button class="delete" onclick="deleteCategory('${escapeAttr(c.name)}')">åé¤</button>
+        <button class="move" onclick="moveCategory(${i},-1)">↑</button>
+        <button class="move" onclick="moveCategory(${i},1)">↓</button>
+        <button class="edit" onclick="renameCategory('${escapeAttr(c.name)}')">編集</button>
+        <button class="delete" onclick="deleteCategory('${escapeAttr(c.name)}')">削除</button>
       </div>
     </div>
   `).join('');
@@ -1121,9 +1121,9 @@ function compositionData(){
     const net = netAssetOf(latest);
 
     return [
-      {name:'è³ç£åè¨', amount:assets},
-      {name:'è² åµåè¨', amount:liabilities},
-      {name:'ç´è³ç£', amount:net}
+      {name:'資産合計', amount:assets},
+      {name:'負債合計', amount:liabilities},
+      {name:'純資産', amount:net}
     ].filter(e=>e.amount>0);
   }
 
@@ -1185,21 +1185,21 @@ function renderReport(){
   let liquidityComment = '';
 
   if(cashRatio < 15){
-    liquidityComment = 'ç¾éæ¯çã¯ä½ãã§ããçæ´»é²è¡è³éãç­ææ¯åºã«åããä½å°ãããã¾ãã';
+    liquidityComment = '現金比率は低めです。生活防衛資金や短期支出に備える余地があります。';
   }else if(cashRatio > 45){
-    liquidityComment = 'ç¾éæ¯çã¯é«ãã§ããæè³ä½åãããç¶æã¨ããã¾ãã';
+    liquidityComment = '現金比率は高めです。投資余力がある状態といえます。';
   }else{
-    liquidityComment = 'ç¾éæ¯çã¯å¤§ããåã£ã¦ããããæ¯è¼çãã©ã³ã¹ãåãã¦ãã¾ãã';
+    liquidityComment = '現金比率は大きく偏っておらず、比較的バランスが取れています。';
   }
 
   document.getElementById('monthlyReport').innerHTML = `
     <ul>
-      <li><b>${latest.month} ææ¬¡æ±ºç®</b>ã§ã¯ãç´è³ç£ã¯ <b>${yen(net)}</b>ãè³ç£åè¨ã¯ <b>${yen(assets)}</b>ãè² åµåè¨ã¯ <b>${yen(liabilities)}</b> ã§ãã</li>
-      <li>åæå¢æ¸ã¯ <b class="${mom>=0?'pos':'neg'}">${mom>=0?'+':''}${yen(mom)}ï¼${momRate>=0?'+':''}${momRate.toFixed(1)}%ï¼</b> ã§ãã</li>
-      <li>åå¹´å¢æ¸ã¯ ${yoy===null ? '<b>-</b>' : `<b class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':''}${yen(yoy)}ï¼${yoyRate>=0?'+':''}${yoyRate.toFixed(1)}%ï¼</b>`} ã§ãã</li>
-      <li>æè³ç³»è³ç£ã¯ <b>${yen(invest)}</b>ãè³ç£åè¨ã«å¯¾ããæè³æ¯çã¯ <b>${investRatio.toFixed(1)}%</b> ã§ãã</li>
-      <li>ç¾éã»é éç³»ã¯ <b>${yen(cash)}</b>ãè³ç£åè¨ã«å¯¾ããæ¯çã¯ <b>${cashRatio.toFixed(1)}%</b> ã§ãã${liquidityComment}</li>
-      <li>è² åµæ¯çã¯ <b>${debtRatio.toFixed(1)}%</b> ã§ããåäººã®BSã¨ãã¦ãè² åµãç´è³ç£æé·ãå§è¿«ãã¦ããªããå®æçã«ç¢ºèªãã¾ãããã</li>
+      <li><b>${latest.month} 月次決算</b>では、純資産は <b>${yen(net)}</b>、資産合計は <b>${yen(assets)}</b>、負債合計は <b>${yen(liabilities)}</b> です。</li>
+      <li>前月増減は <b class="${mom>=0?'pos':'neg'}">${mom>=0?'+':''}${yen(mom)}（${momRate>=0?'+':''}${momRate.toFixed(1)}%）</b> です。</li>
+      <li>前年増減は ${yoy===null ? '<b>-</b>' : `<b class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':''}${yen(yoy)}（${yoyRate>=0?'+':''}${yoyRate.toFixed(1)}%）</b>`} です。</li>
+      <li>投資系資産は <b>${yen(invest)}</b>、資産合計に対する投資比率は <b>${investRatio.toFixed(1)}%</b> です。</li>
+      <li>現金・預金系は <b>${yen(cash)}</b>、資産合計に対する比率は <b>${cashRatio.toFixed(1)}%</b> です。${liquidityComment}</li>
+      <li>負債比率は <b>${debtRatio.toFixed(1)}%</b> です。個人のBSとして、負債が純資産成長を圧迫していないか定期的に確認しましょう。</li>
     </ul>
   `;
 }
@@ -1230,11 +1230,11 @@ function renderStatement(){
 
     body.innerHTML = `
       <div class="statement-card">
-        <div class="statement-row"><span>æ±ºç®æ</span><b>${latest.month}</b></div>
-        <div class="statement-row"><span>ç´è³ç£</span><b>${yen(latestNet)}</b></div>
-        <div class="statement-row"><span>åæå¢æ¸</span><b class="${change>=0?'pos':'neg'}">${change>=0?'+':''}${yen(change)}ï¼${rate>=0?'+':''}${rate.toFixed(1)}%ï¼</b></div>
-        <div class="statement-row"><span>ææ¬¡å¹³åå¢å é¡</span><b>${yen(monthlyAverage)}</b></div>
-        <div class="statement-total">ææ¬¡æ±ºç®ã³ã¡ã³ãï¼ç´è³ç£ã®å¢æ¸è¦å ããå¥éã»æè³è©ä¾¡ã»æ¯åºã«åãã¦ç¢ºèªããã¨ç²¾åº¦ãä¸ããã¾ãã</div>
+        <div class="statement-row"><span>決算月</span><b>${latest.month}</b></div>
+        <div class="statement-row"><span>純資産</span><b>${yen(latestNet)}</b></div>
+        <div class="statement-row"><span>前月増減</span><b class="${change>=0?'pos':'neg'}">${change>=0?'+':''}${yen(change)}（${rate>=0?'+':''}${rate.toFixed(1)}%）</b></div>
+        <div class="statement-row"><span>月次平均増加額</span><b>${yen(monthlyAverage)}</b></div>
+        <div class="statement-total">月次決算コメント：純資産の増減要因を、入金・投資評価・支出に分けて確認すると精度が上がります。</div>
       </div>
     `;
     return;
@@ -1252,12 +1252,12 @@ function renderStatement(){
 
     body.innerHTML = `
       <div class="statement-card">
-        <div class="statement-row"><span>ä¸­è¨ç®æ¨ç´è³ç£</span><b>${yen(target)}</b></div>
-        <div class="statement-row"><span>ç¾å¨ã®ç´è³ç£</span><b>${yen(latestNet)}</b></div>
-        <div class="statement-row"><span>é²æç</span><b>${progress.toFixed(1)}%</b></div>
-        <div class="statement-row"><span>ç®æ¨ã¾ã§ã®æ®é¡</span><b>${yen(remaining)}</b></div>
-        <div class="statement-row"><span>å®ç¸¾CAGR</span><b>${cagr.toFixed(1)}%</b></div>
-        <div class="statement-net"><span>ä¸­è¨ã¡ãã»ã¼ã¸</span><br><b>äººçã¨ããè³ç£ããè¨ç»çã«æé·ãããã</b></div>
+        <div class="statement-row"><span>中計目標純資産</span><b>${yen(target)}</b></div>
+        <div class="statement-row"><span>現在の純資産</span><b>${yen(latestNet)}</b></div>
+        <div class="statement-row"><span>進捗率</span><b>${progress.toFixed(1)}%</b></div>
+        <div class="statement-row"><span>目標までの残額</span><b>${yen(remaining)}</b></div>
+        <div class="statement-row"><span>実績CAGR</span><b>${cagr.toFixed(1)}%</b></div>
+        <div class="statement-net"><span>中計メッセージ</span><br><b>人生という資産を、計画的に成長させる。</b></div>
       </div>
     `;
     return;
@@ -1279,15 +1279,15 @@ function renderStatement(){
 
   body.innerHTML = `
     <div class="statement-card">
-      <h3>è³ç£</h3>
+      <h3>資産</h3>
       ${assetItems.map(e=>`<div class="statement-row"><span>${e.name}</span><b>${yen(e.amount)}</b></div>`).join('')}
-      <div class="statement-total">è³ç£åè¨ã${yen(assets)}</div>
+      <div class="statement-total">資産合計　${yen(assets)}</div>
 
-      <h3>è² åµ</h3>
-      ${liabilityItems.length ? liabilityItems.map(e=>`<div class="statement-row"><span>${e.name}</span><b>${yen(e.amount)}</b></div>`).join('') : '<div class="statement-row"><span>è² åµãªã</span><b>Â¥0</b></div>'}
-      <div class="statement-total">è² åµåè¨ã${yen(liabilities)}</div>
+      <h3>負債</h3>
+      ${liabilityItems.length ? liabilityItems.map(e=>`<div class="statement-row"><span>${e.name}</span><b>${yen(e.amount)}</b></div>`).join('') : '<div class="statement-row"><span>負債なし</span><b>¥0</b></div>'}
+      <div class="statement-total">負債合計　${yen(liabilities)}</div>
 
-      <div class="statement-net"><span>ç´è³ç£</span><br><b>${yen(net)}</b></div>
+      <div class="statement-net"><span>純資産</span><br><b>${yen(net)}</b></div>
     </div>
   `;
 }
@@ -1304,7 +1304,7 @@ function renderCharts(){
     data:{
       labels:filtered.map(r=>r.month),
       datasets:[{
-        label:'ç´è³ç£',
+        label:'純資産',
         data:filtered.map(r=>netAssetOf(r)),
         borderColor:'#b9935a',
         backgroundColor:'rgba(185,147,90,.16)',
@@ -1320,7 +1320,7 @@ function renderCharts(){
       },
       scales:{
         x:{grid:{display:false}},
-        y:{ticks:{callback:v=>Math.round(v/10000)+'ä¸'}}
+        y:{ticks:{callback:v=>Math.round(v/10000)+'万'}}
       }
     }
   });
@@ -1347,7 +1347,7 @@ function renderCharts(){
               const total = ctx.dataset.data.reduce((s,v)=>s+Number(v),0);
               const value = Number(ctx.raw);
               const ratio = total ? value/total*100 : 0;
-              return `${ctx.label}: ${yen(value)}ï¼${ratio.toFixed(1)}%ï¼`;
+              return `${ctx.label}: ${yen(value)}（${ratio.toFixed(1)}%）`;
             }
           }
         }
@@ -1364,7 +1364,7 @@ function prepareNextMonth(){
 
   renderCategoryInputs();
   clearCurrentInputs();
-  showToast('æ¬¡ææ±ºç®ãç©ºæ¬ã§ä½æãã¾ãã');
+  showToast('次月決算を空欄で作成しました');
 }
 
 function clearCurrentInputs(){
@@ -1376,7 +1376,7 @@ function copyPreviousToCurrent(){
   const prev = recordByMonth(addMonths(month,-1));
 
   if(!prev){
-    showToast('åææ±ºç®ãããã¾ãã');
+    showToast('前月決算がありません');
     return;
   }
 
@@ -1385,7 +1385,7 @@ function copyPreviousToCurrent(){
     input.value = formatNumber(prev.values[name] || 0);
   });
 
-  showToast('åææ±ºç®ã®æ°å­ãã³ãã¼ãã¾ãã');
+  showToast('前月決算の数字をコピーしました');
 }
 
 function loadSelectedRecord(){
@@ -1398,7 +1398,7 @@ function saveMonth(){
   const month = selectedInputMonth();
 
   if(!/^\d{4}\/\d{2}$/.test(month)){
-    alert('å¯¾è±¡æã¯ 2026/05 ã®å½¢å¼ã§å¥åãã¦ãã ãã');
+    alert('対象月は 2026/05 の形式で入力してください');
     return;
   }
 
@@ -1423,7 +1423,7 @@ function saveMonth(){
   });
 
   saveState();
-  showToast('ææ¬¡æ±ºç®ãç¢ºå®ãã¾ãã');
+  showToast('月次決算を確定しました');
   render();
 }
 
@@ -1433,12 +1433,12 @@ function addCategory(){
   const type = document.getElementById('newCategoryType').value;
 
   if(!name){
-    alert('åå®ç§ç®åãå¥åãã¦ãã ãã');
+    alert('勘定科目名を入力してください');
     return;
   }
 
   if(categories.some(c=>c.name === name)){
-    alert('åãåå®ç§ç®ãããã¾ã');
+    alert('同じ勘定科目があります');
     return;
   }
 
@@ -1451,7 +1451,7 @@ function addCategory(){
   document.getElementById('newCategoryName').value = '';
 
   saveState();
-  showToast('åå®ç§ç®ãè¿½å ãã¾ãã');
+  showToast('勘定科目を追加しました');
   render();
 }
 
@@ -1459,12 +1459,12 @@ function renameCategory(oldName){
   const current = categories.find(c=>c.name===oldName);
   if(!current) return;
 
-  const newName = prompt('æ°ããåå®ç§ç®åãå¥åãã¦ãã ãã', oldName);
+  const newName = prompt('新しい勘定科目名を入力してください', oldName);
 
   if(!newName || newName === oldName) return;
 
   if(categories.some(c=>c.name === newName)){
-    alert('åãåå®ç§ç®ãããã¾ã');
+    alert('同じ勘定科目があります');
     return;
   }
 
@@ -1476,19 +1476,19 @@ function renameCategory(oldName){
   });
 
   saveState();
-  showToast('åå®ç§ç®åãå¤æ´ãã¾ãã');
+  showToast('勘定科目名を変更しました');
   render();
 }
 
 function deleteCategory(name){
-  if(!confirm(name + ' ãåé¤ãã¾ããï¼')) return;
+  if(!confirm(name + ' を削除しますか？')) return;
 
   categories = categories.filter(c=>c.name !== name);
 
   records.forEach(r=>delete r.values[name]);
 
   saveState();
-  showToast('åå®ç§ç®ãåé¤ãã¾ãã');
+  showToast('勘定科目を削除しました');
   render();
 }
 
@@ -1536,10 +1536,10 @@ function importJSON(event){
       records = data.records;
 
       saveState();
-      showToast('ãã¼ã¿ãå¾©åãã¾ãã');
+      showToast('データを復元しました');
       render();
     }catch(err){
-      alert('èª­ã¿è¾¼ããªããã¡ã¤ã«ã§ã');
+      alert('読み込めないファイルです');
     }
   };
 
@@ -1547,13 +1547,13 @@ function importJSON(event){
 }
 
 function resetAll(){
-  if(!confirm('åæãã¼ã¿ã«æ»ãã¾ããï¼')) return;
+  if(!confirm('初期データに戻しますか？')) return;
 
   categories = clone(defaultCategories);
   records = clone(defaultRecords);
 
   saveState();
-  showToast('åæãã¼ã¿ã«æ»ãã¾ãã');
+  showToast('初期データに戻しました');
   render();
 }
 
