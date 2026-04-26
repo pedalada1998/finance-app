@@ -471,6 +471,103 @@ canvas{width:100%!important;max-height:350px}
 body.input-mode .hero{display:none}
 body.input-mode .header{margin-bottom:10px}
 
+
+/* v7 BS and plan refinements */
+.bs-sheet{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.bs-column{
+  background:white;
+  border:1px solid var(--line);
+  border-radius:20px;
+  overflow:hidden;
+}
+.bs-column-header{
+  padding:13px 14px;
+  font-weight:950;
+  color:white;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.bs-column-header.asset{background:linear-gradient(135deg,#b9935a,#d7bd8e);color:#20170b}
+.bs-column-header.liability{background:linear-gradient(135deg,#c45050,#de8a8a)}
+.bs-column-header.equity{background:linear-gradient(135deg,#24885f,#5fb58d)}
+.bs-row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:12px;
+  padding:11px 14px;
+  border-bottom:1px solid var(--line);
+  align-items:center;
+  font-size:13px;
+}
+.bs-row:last-child{border-bottom:0}
+.bs-row small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.bs-total{background:#fbf7ef;font-weight:950}
+.bs-net{margin-top:14px}
+.bs-balance-status{
+  margin-top:12px;
+  padding:12px 14px;
+  border-radius:16px;
+  background:#f5f3ee;
+  border:1px solid var(--line);
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.7;
+}
+.deposit-table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+  border-radius:18px;
+  border:1px solid var(--line);
+  background:white;
+  margin:12px 0;
+}
+.deposit-table th,.deposit-table td{
+  padding:10px;
+  border-bottom:1px solid var(--line);
+  font-size:12px;
+  text-align:left;
+}
+.deposit-table th{
+  background:#f5f3ee;
+  color:var(--muted);
+  font-weight:950;
+}
+.deposit-table td:last-child,.deposit-table th:last-child{text-align:right}
+.deposit-table tr:last-child td{border-bottom:0}
+.deposit-input{max-width:150px;text-align:right}
+.plan-summary-strip{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin:12px 0;
+}
+.plan-summary-item{
+  padding:12px;
+  border-radius:16px;
+  background:white;
+  border:1px solid var(--line);
+}
+.plan-summary-item small{
+  display:block;
+  color:var(--muted);
+  font-weight:900;
+  margin-bottom:5px;
+}
+.plan-summary-item b{
+  font-size:18px;
+  font-variant-numeric:tabular-nums;
+}
+@media(max-width:900px){
+  .bs-sheet,.plan-summary-strip{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -768,6 +865,9 @@ let records = [];
 let statementView = 'bs';
 let benchmarkSettings = {age:27, household:'couple', basis:'median', target:'assets'};
 let planSettings = {target:30000000, years:5, annualReturn:3, annualBonus:0};
+  planDeposits = {};
+  planDeposits = {};
+let planDeposits = {};
 let trendChart = null;
 let allocationChart = null;
 
@@ -840,6 +940,7 @@ function loadState(){
       records = saved.records;
       if(saved.benchmarkSettings) benchmarkSettings = {...benchmarkSettings, ...saved.benchmarkSettings};
       if(saved.planSettings) planSettings = {...planSettings, ...saved.planSettings};
+      if(saved.planDeposits) planDeposits = {...planDeposits, ...saved.planDeposits};
     }else{
       categories = clone(defaultCategories);
       records = clone(defaultRecords);
@@ -854,7 +955,7 @@ function loadState(){
 
 function saveState(){
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({categories,records,benchmarkSettings,planSettings}));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({categories,records,benchmarkSettings,planSettings,planDeposits}));
   }catch(e){
     console.error('saveState', e);
   }
@@ -1463,43 +1564,71 @@ function renderStatement(){
   const latest = latestRecord();
   const body = document.getElementById('statementBody');
 
-  const assetItems = categories.filter(c=>c.side !== 'liability')
-    .map(c=>({name:c.name, amount:Number(latest.values[c.name]||0)})).filter(e=>e.amount>0);
-
-  const liabilityItems = categories.filter(c=>c.side === 'liability')
-    .map(c=>({name:c.name, amount:Number(latest.values[c.name]||0)})).filter(e=>e.amount>0);
-
   const assets = assetTotalOf(latest);
   const liabilities = liabilityTotalOf(latest);
   const net = netAssetOf(latest);
 
+  const assetItems = categories.filter(c=>c.side !== 'liability')
+    .map(c=>({name:c.name, type:typeNames[c.type] || 'その他', amount:Number(latest.values[c.name]||0)}))
+    .filter(e=>e.amount>0)
+    .sort((a,b)=>b.amount-a.amount);
+
+  const liabilityItems = categories.filter(c=>c.side === 'liability')
+    .map(c=>({name:c.name, type:typeNames[c.type] || 'その他', amount:Number(latest.values[c.name]||0)}))
+    .filter(e=>e.amount>0)
+    .sort((a,b)=>b.amount-a.amount);
+
   const assetRows = assetItems.map(e=>`
-    <tr>
-      <td><span class="account-color-cell"><span class="account-color-chip" style="background:#b9935a"></span>${e.name}</span></td>
-      <td>${assets ? (e.amount/assets*100).toFixed(1) : '0.0'}%</td>
-      <td>${yen(e.amount)}</td>
-    </tr>
+    <div class="bs-row">
+      <div><b>${e.name}</b><small>${e.type} / 構成比 ${assets ? (e.amount/assets*100).toFixed(1) : '0.0'}%</small></div>
+      <b>${yen(e.amount)}</b>
+    </div>
   `).join('');
 
   const liabilityRows = liabilityItems.length ? liabilityItems.map(e=>`
-    <tr>
-      <td><span class="account-color-cell"><span class="account-color-chip" style="background:#c45050"></span>${e.name}</span></td>
-      <td>${liabilities ? (e.amount/liabilities*100).toFixed(1) : '0.0'}%</td>
-      <td>${yen(e.amount)}</td>
-    </tr>
-  `).join('') : `<tr><td><span class="account-color-cell"><span class="account-color-chip" style="background:#c45050"></span>負債なし</span></td><td>-</td><td>¥0</td></tr>`;
+    <div class="bs-row">
+      <div><b>${e.name}</b><small>${e.type} / 負債内構成比 ${liabilities ? (e.amount/liabilities*100).toFixed(1) : '0.0'}%</small></div>
+      <b>${yen(e.amount)}</b>
+    </div>
+  `).join('') : `
+    <div class="bs-row">
+      <div><b>負債なし</b><small>借入・未払等なし</small></div>
+      <b>¥0</b>
+    </div>
+  `;
+
+  const rightTotal = liabilities + net;
+  const diff = assets - rightTotal;
 
   body.innerHTML = `
-    <table class="statement-table">
-      <thead><tr><th>勘定科目</th><th>構成比</th><th>金額</th></tr></thead>
-      <tbody>
+    <div class="bs-sheet">
+      <div class="bs-column">
+        <div class="bs-column-header asset"><span>資産</span><span>${yen(assets)}</span></div>
         ${assetRows}
-        <tr class="subtotal"><td><span class="account-color-cell"><span class="account-color-chip" style="background:#b9935a"></span>資産合計</span></td><td>100.0%</td><td>${yen(assets)}</td></tr>
-        ${liabilityRows}
-        <tr class="subtotal"><td><span class="account-color-cell"><span class="account-color-chip" style="background:#c45050"></span>負債合計</span></td><td>${assets ? (liabilities/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(liabilities)}</td></tr>
-        <tr class="net-row"><td><span class="account-color-cell"><span class="account-color-chip" style="background:#24885f"></span>純資産</span></td><td>${assets ? (net/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(net)}</td></tr>
-      </tbody>
-    </table>
+        <div class="bs-row bs-total"><div>資産合計</div><b>${yen(assets)}</b></div>
+      </div>
+
+      <div>
+        <div class="bs-column">
+          <div class="bs-column-header liability"><span>負債</span><span>${yen(liabilities)}</span></div>
+          ${liabilityRows}
+          <div class="bs-row bs-total"><div>負債合計</div><b>${yen(liabilities)}</b></div>
+        </div>
+
+        <div class="bs-column bs-net">
+          <div class="bs-column-header equity"><span>純資産</span><span>${yen(net)}</span></div>
+          <div class="bs-row">
+            <div><b>自己資本</b><small>資産 − 負債</small></div>
+            <b>${yen(net)}</b>
+          </div>
+          <div class="bs-row bs-total"><div>負債・純資産合計</div><b>${yen(rightTotal)}</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="bs-balance-status">
+      BSチェック：資産合計 ${yen(assets)} ＝ 負債 ${yen(liabilities)} ＋ 純資産 ${yen(net)}
+      ${Math.abs(diff) < 1 ? '。左右は一致しています。' : `。差額は ${yen(diff)} です。`}
+    </div>
   `;
 }
 
@@ -1508,19 +1637,17 @@ function renderPlanStatement(){
   const latestNet = netAssetOf(latest);
   const target = Number(planSettings.target || 0);
   const years = Number(planSettings.years || 1);
-  const progress = target ? latestNet / target * 100 : 0;
-  const remaining = Math.max(target - latestNet, 0);
-  const requiredCagr = latestNet > 0 && target > 0 ? (Math.pow(target / latestNet, 1 / years) - 1) * 100 : 0;
-  const requiredMonthlyIncrease = remaining / Math.max(years * 12,1);
   const annualReturn = Number(planSettings.annualReturn ?? 3);
   const annualBonus = Number(planSettings.annualBonus || 0);
-  const monthlyRate = Math.pow(1 + annualReturn/100, 1/12) - 1;
   const months = Math.max(years * 12, 1);
-  const fvCurrent = latestNet * Math.pow(1 + monthlyRate, months);
-  const fvBonus = annualBonus * (((Math.pow(1 + annualReturn/100, years) - 1) / (annualReturn/100 || 1)) || years);
-  const gapAfterReturn = Math.max(target - fvCurrent - fvBonus, 0);
-  const annuityFactor = monthlyRate ? ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) : months;
-  const requiredMonthlySaving = gapAfterReturn / Math.max(annuityFactor,1);
+  const monthlyRate = Math.pow(1 + annualReturn/100, 1/12) - 1;
+  const totalMonthlyDeposit = getTotalMonthlyDeposit();
+  const forecastNet = forecastNetAssets(latestNet, months, monthlyRate, totalMonthlyDeposit, annualBonus);
+  const remaining = Math.max(target - latestNet, 0);
+  const progress = target ? latestNet / target * 100 : 0;
+  const forecastGap = forecastNet - target;
+  const requiredCagr = latestNet > 0 && target > 0 ? (Math.pow(target / latestNet, 1 / years) - 1) * 100 : 0;
+
   const body = document.getElementById('planBody');
 
   body.innerHTML = `
@@ -1538,30 +1665,53 @@ function renderPlanStatement(){
       <div class="plan-assumption-grid">
         <div>
           <label class="small-label">想定年率リターン</label>
-          <input class="input" id="planReturn" type="number" min="-20" max="30" step="0.1" value="${Number(planSettings.annualReturn ?? 3)}">
+          <input class="input" id="planReturn" type="number" min="-20" max="30" step="0.1" value="${annualReturn}">
         </div>
         <div>
           <label class="small-label">年間ボーナス入金</label>
-          <input class="input" id="planBonus" value="${formatNumber(Number(planSettings.annualBonus || 0))}" oninput="formatAmountInput(this)">
+          <input class="input" id="planBonus" value="${formatNumber(annualBonus)}" oninput="formatAmountInput(this)">
         </div>
       </div>
+
+      <h3>資産別の毎月積立</h3>
+      <table class="deposit-table">
+        <thead><tr><th>資産項目</th><th>分類</th><th>現在残高</th><th>毎月積立</th></tr></thead>
+        <tbody>
+          ${categories.filter(c=>c.side !== 'liability').map(c=>`
+            <tr>
+              <td>${c.name}</td>
+              <td>${typeNames[c.type] || 'その他'}</td>
+              <td>${yen(Number(latest.values[c.name]||0))}</td>
+              <td><input class="input deposit-input" data-deposit-category="${c.name}" value="${formatNumber(planDeposits[c.name] || 0)}" oninput="formatAmountInput(this)"></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
       <div class="actions" style="justify-content:flex-start;margin-bottom:12px">
         <button class="btn btn-gold" onclick="savePlanSettings()">中期資産計画を更新</button>
       </div>
+
+      <div class="plan-summary-strip">
+        <div class="plan-summary-item"><small>毎月積立合計</small><b>${yen(totalMonthlyDeposit)}</b></div>
+        <div class="plan-summary-item"><small>計画最終着地</small><b class="${forecastGap>=0?'pos':'neg'}">${yen(forecastNet)}</b></div>
+        <div class="plan-summary-item"><small>目標との差額</small><b class="${forecastGap>=0?'pos':'neg'}">${forecastGap>=0?'+↑':'−↓'}${yen(Math.abs(forecastGap))}</b></div>
+      </div>
+
       <div class="plan-chart-wrap"><canvas id="planChart"></canvas></div>
+
       <div class="plan-result">
         <div class="plan-card"><small>現在の純資産</small><b>${yen(latestNet)}</b></div>
         <div class="plan-card"><small>目標までの残額</small><b>${yen(remaining)}</b></div>
         <div class="plan-card"><small>必要年率成長率</small><b>${requiredCagr.toFixed(1)}%</b></div>
-        <div class="plan-card"><small>単純必要月次増加額</small><b>${yen(requiredMonthlyIncrease)}</b></div>
-        <div class="plan-card"><small>想定リターン後の必要月次積立</small><b>${yen(requiredMonthlySaving)}</b></div>
         <div class="plan-card"><small>進捗率</small><b>${progress.toFixed(1)}%</b></div>
       </div>
-      <div class="statement-net"><span>中期資産計画メッセージ</span><br><b>人生という資産を、計画的に成長させる。</b></div>
+      <div class="statement-net"><span>中期資産計画メッセージ</span><br><b>${forecastGap>=0?'現状の計画では目標達成圏内です。':'現状の計画では目標に未達です。積立額・年数・想定利回りを調整しましょう。'}</b></div>
     </div>
   `;
   setTimeout(renderPlanChart,30);
 }
+
 function renderPlanChart(){
   const canvas = document.getElementById('planChart');
   if(!canvas || typeof Chart === 'undefined') return;
@@ -1570,25 +1720,38 @@ function renderPlanChart(){
   const latest = latestRecord();
   const years = Number(planSettings.years || 1);
   const target = Number(planSettings.target || 0);
+  const annualReturn = Number(planSettings.annualReturn ?? 3);
+  const annualBonus = Number(planSettings.annualBonus || 0);
+  const monthlyRate = Math.pow(1 + annualReturn/100, 1/12) - 1;
+  const monthlyDeposit = getTotalMonthlyDeposit();
 
   const actualLabels = records.map(r=>r.month);
   const actualData = records.map(r=>netAssetOf(r));
+  const latestNet = netAssetOf(latest);
 
-  const futureLabels = [];
-  const futureData = [];
-  const startNet = netAssetOf(latest);
   const months = Math.max(years * 12, 1);
+  const futureLabels = [];
+  const planData = [];
+  const targetData = [];
 
+  let value = latestNet;
   for(let i=0;i<=months;i++){
     const m = addMonths(latest.month,i);
     futureLabels.push(m);
-    const v = startNet + (target - startNet) * (i/months);
-    futureData.push(v);
+    if(i === 0){
+      planData.push(value);
+    }else{
+      value = value * (1 + monthlyRate) + monthlyDeposit;
+      if(i % 12 === 0) value += annualBonus;
+      planData.push(value);
+    }
+    targetData.push(target);
   }
 
   const labels = [...actualLabels, ...futureLabels.slice(1)];
   const actualSeries = labels.map(l=>actualLabels.includes(l) ? actualData[actualLabels.indexOf(l)] : null);
-  const forecastSeries = labels.map(l=>futureLabels.includes(l) ? futureData[futureLabels.indexOf(l)] : null);
+  const forecastSeries = labels.map(l=>futureLabels.includes(l) ? planData[futureLabels.indexOf(l)] : null);
+  const targetSeries = labels.map(l=>futureLabels.includes(l) ? target : null);
 
   planChart = new Chart(canvas,{
     type:'line',
@@ -1609,16 +1772,27 @@ function renderPlanChart(){
           spanGaps:false
         },
         {
-          label:'中期資産計画',
+          label:'計画予想（積立反映）',
           data:forecastSeries,
           borderColor:'#477cff',
-          backgroundColor:'rgba(71,124,255,.06)',
+          backgroundColor:'rgba(71,124,255,.07)',
           pointBackgroundColor:'#477cff',
           pointRadius:0,
           pointHoverRadius:4,
           borderWidth:3,
           borderDash:[8,6],
           tension:.36,
+          fill:false,
+          spanGaps:false
+        },
+        {
+          label:'目標ライン',
+          data:targetSeries,
+          borderColor:'#24885f',
+          pointRadius:0,
+          borderWidth:2,
+          borderDash:[3,4],
+          tension:0,
           fill:false,
           spanGaps:false
         }
@@ -1628,29 +1802,17 @@ function renderPlanChart(){
       responsive:true,
       maintainAspectRatio:true,
       plugins:{
-        legend:{
-          position:'bottom',
-          labels:{usePointStyle:true, boxWidth:8, padding:18}
-        },
-        tooltip:{
-          callbacks:{
-            label:ctx=>`${ctx.dataset.label}: ${yen(ctx.raw)}`
-          }
-        }
+        legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:18}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${yen(ctx.raw)}`}}
       },
       scales:{
-        x:{
-          grid:{display:false},
-          ticks:{maxTicksLimit:6}
-        },
-        y:{
-          grid:{color:'rgba(23,32,43,.08)'},
-          ticks:{callback:v=>axisTickFormatter(v)}
-        }
+        x:{grid:{display:false},ticks:{maxTicksLimit:6}},
+        y:{grid:{color:'rgba(23,32,43,.08)'},ticks:{callback:v=>axisTickFormatter(v)}}
       }
     }
   });
 }
+
 function savePlanSettings(){
   planSettings = {
     target:rawNumber(document.getElementById('planTarget')?.value || planSettings.target),
@@ -1658,13 +1820,20 @@ function savePlanSettings(){
     annualReturn:Number(document.getElementById('planReturn')?.value ?? planSettings.annualReturn ?? 3),
     annualBonus:rawNumber(document.getElementById('planBonus')?.value || planSettings.annualBonus || 0)
   };
+
+  const nextDeposits = {};
+  document.querySelectorAll('[data-deposit-category]').forEach(input=>{
+    nextDeposits[input.dataset.depositCategory] = rawNumber(input.value);
+  });
+  planDeposits = nextDeposits;
+
   if(!planSettings.target || planSettings.target < 0) planSettings.target = 0;
   if(!planSettings.years || planSettings.years <= 0) planSettings.years = 1;
+
   saveState();
   showToast('中期資産計画を更新しました');
   renderPlanStatement();
 }
-
 
 function exportMonthlyPdf(){
   showPage('dashboard');
@@ -1764,7 +1933,7 @@ function moveCategory(index,delta){
   render();
 }
 function exportJSON(){
-  const data = JSON.stringify({categories,records,benchmarkSettings,planSettings},null,2);
+  const data = JSON.stringify({categories,records,benchmarkSettings,planSettings,planDeposits},null,2);
   const blob = new Blob([data],{type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1780,65 +1949,4 @@ function importJSON(event){
   reader.onload = e=>{
     try{
       const data = JSON.parse(e.target.result);
-      if(!Array.isArray(data.categories) || !Array.isArray(data.records)) throw new Error('invalid');
-      categories = data.categories.map(normalizeCategory);
-      records = data.records;
-      if(data.benchmarkSettings) benchmarkSettings = {...benchmarkSettings, ...data.benchmarkSettings};
-      if(data.planSettings) planSettings = {...planSettings, ...data.planSettings};
-      normalizeRecords();
-      saveState();
-      showToast('データを復元しました');
-      render();
-    }catch(err){
-      alert('読み込めないファイルです');
-    }
-  };
-  reader.readAsText(file);
-}
-function resetAll(){
-  if(!confirm('初期データに戻しますか？')) return;
-  categories = clone(defaultCategories);
-  records = clone(defaultRecords);
-  benchmarkSettings = {age:27, household:'couple', basis:'median', target:'assets'};
-  planSettings = {target:30000000, years:5, annualReturn:3, annualBonus:0};
-  normalizeRecords();
-  saveState();
-  showToast('初期データに戻しました');
-  render();
-}
-function startLatestMonthInput(){
-  const latest = latestRecord();
-  document.getElementById('monthInput').value = latest.month;
-  loadSelectedRecord();
-  showPage('input');
-}
-function showPage(page){
-  const dashboard = document.getElementById('dashboardPage');
-  const input = document.getElementById('inputPage');
-  const dashBtn = document.getElementById('showDashboardBtn');
-  const inputBtn = document.getElementById('showInputBtn');
-
-  if(page === 'input'){
-    document.body.classList.add('input-mode');
-    dashboard.classList.add('hidden');
-    input.classList.remove('hidden');
-    dashBtn.classList.remove('active');
-    inputBtn.classList.add('active');
-  }else{
-    document.body.classList.remove('input-mode');
-    dashboard.classList.remove('hidden');
-    input.classList.add('hidden');
-    dashBtn.classList.add('active');
-    inputBtn.classList.remove('active');
-    setTimeout(safeRenderCharts,50);
-  }
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-document.getElementById('monthInput').addEventListener('change', renderCategoryInputs);
-
-loadState();
-document.getElementById('monthInput').value = latestRecord().month;
-render();
-</script>
-</body>
-</html>
+      if(!Array.isArray(data.c
