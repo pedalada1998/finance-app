@@ -467,6 +467,10 @@ canvas{width:100%!important;max-height:350px}
   .page.hidden{display:block!important}
 }
 
+
+body.input-mode .hero{display:none}
+body.input-mode .header{margin-bottom:10px}
+
 </style>
 </head>
 <body>
@@ -566,15 +570,17 @@ canvas{width:100%!important;max-height:350px}
   <div class="panel panel-clean">
     <p class="label">FINANCIAL STATEMENT</p>
     <h2>個人財務諸表</h2>
-    <div class="statement-tabs">
-      <button id="tabBS" class="active" onclick="setStatementView('bs')">BS</button>
-      <button id="tabMonthly" onclick="setStatementView('monthly')">前月比較</button>
-      <button id="tabPlan" onclick="setStatementView('plan')">中期資産計画</button>
-    </div>
     <div id="statementBody"></div>
     <button class="ai-toggle-btn" onclick="toggleAiComment('statementAiComment')">AIコメントを見る</button>
     <div class="ai-section-comment" id="statementAiComment"></div>
     <div class="pdf-action"><button class="btn btn-light" onclick="exportMonthlyPdf()">個人決算レポートをPDF出力</button></div>
+  </div>
+
+  
+  <div class="panel panel-clean" id="planSection">
+    <p class="label">MEDIUM-TERM ASSET PLAN</p>
+    <h2>中期資産計画</h2>
+    <div id="planBody"></div>
   </div>
 
   <div class="panel panel-clean report" id="report">
@@ -889,9 +895,10 @@ function netAssetOf(record){ return assetTotalOf(record) - liabilityTotalOf(reco
 function formatChange(amount, rate){
   if(amount === null || amount === undefined) return '-';
   const cls = amount >= 0 ? 'pos' : 'neg';
-  const sign = amount >= 0 ? '+' : '';
-  const rateText = rate === null || rate === undefined ? '' : `（${rate >= 0 ? '+' : ''}${rate.toFixed(1)}%）`;
-  return `<span class="${cls}">${sign}${yen(amount)}${rateText}</span>`;
+  const sign = amount >= 0 ? '+↑' : '−↓';
+  const absAmount = yen(Math.abs(amount));
+  const rateText = rate === null || rate === undefined ? '' : `（${amount >= 0 ? '+↑' : '−↓'}${Math.abs(rate).toFixed(1)}%）`;
+  return `<span class="${cls}">${sign}${absAmount}${rateText}</span>`;
 }
 
 function axisTickFormatter(value){
@@ -1058,6 +1065,7 @@ function render(){
     renderBenchmark();
     renderStatement();
     renderStatementAiComment();
+    renderPlanStatement();
     setStatus('Ready');
   });
 }
@@ -1455,76 +1463,46 @@ function renderStatement(){
   const latest = latestRecord();
   const body = document.getElementById('statementBody');
 
-  if(statementView === 'monthly'){
-    const prev = records[records.length-2];
-    const latestNet = netAssetOf(latest);
-    const prevNet = prev ? netAssetOf(prev) : 0;
-    const latestAssets = assetTotalOf(latest);
-    const prevAssets = prev ? assetTotalOf(prev) : 0;
-    const latestLiabilities = liabilityTotalOf(latest);
-    const prevLiabilities = prev ? liabilityTotalOf(prev) : 0;
-    const rows = [
-      ['資産合計', prevAssets, latestAssets],
-      ['負債合計', prevLiabilities, latestLiabilities],
-      ['純資産', prevNet, latestNet]
-    ];
-    body.innerHTML = `
-      <div class="compare-dashboard">
-        <div class="compare-hero-card">
-          <small>NET ASSETS / 前月比較</small>
-          <b class="${(latestNet-prevNet)>=0?'pos':'neg'}">${(latestNet-prevNet)>=0?'+':''}${yen(latestNet-prevNet)}</b>
-          <div style="margin-top:6px;color:rgba(255,255,255,.72)">前月 ${yen(prevNet)} → 当月 ${yen(latestNet)}</div>
-        </div>
-        <div class="compare-grid">
-          ${rows.map(([name,previous,current])=>{
-            const diff = current - previous;
-            const rate = previous ? diff / previous * 100 : 0;
-            const positive = diff >= 0;
-            const barWidth = Math.min(Math.abs(rate),100);
-            return `<div class="compare-card">
-              <small>${name}</small>
-              <b>${yen(current)}</b>
-              <div class="${positive?'pos':'neg'}" style="font-weight:900;margin-top:4px">${positive?'+':''}${yen(diff)} / ${positive?'+':''}${rate.toFixed(1)}%</div>
-              <div class="compare-bar"><span style="width:${barWidth}%;background:${positive?'#24885f':'#c45050'}"></span></div>
-            </div>`;
-          }).join('')}
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  if(statementView === 'plan'){
-    renderPlanStatement();
-    return;
-  }
-
   const assetItems = categories.filter(c=>c.side !== 'liability')
-    .map(c=>({name:c.name, side:'資産', amount:Number(latest.values[c.name]||0)})).filter(e=>e.amount>0);
+    .map(c=>({name:c.name, amount:Number(latest.values[c.name]||0)})).filter(e=>e.amount>0);
+
   const liabilityItems = categories.filter(c=>c.side === 'liability')
-    .map(c=>({name:c.name, side:'負債', amount:Number(latest.values[c.name]||0)})).filter(e=>e.amount>0);
+    .map(c=>({name:c.name, amount:Number(latest.values[c.name]||0)})).filter(e=>e.amount>0);
+
   const assets = assetTotalOf(latest);
   const liabilities = liabilityTotalOf(latest);
   const net = netAssetOf(latest);
+
   const assetRows = assetItems.map(e=>`
-    <tr><td><span class="account-color-cell"><span class="account-color-chip" style="background:#b9935a"></span>${e.name}</span></td><td>${assets ? (e.amount/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(e.amount)}</td></tr>
+    <tr>
+      <td><span class="account-color-cell"><span class="account-color-chip" style="background:#b9935a"></span>${e.name}</span></td>
+      <td>${assets ? (e.amount/assets*100).toFixed(1) : '0.0'}%</td>
+      <td>${yen(e.amount)}</td>
+    </tr>
   `).join('');
+
   const liabilityRows = liabilityItems.length ? liabilityItems.map(e=>`
-    <tr><td><span class="account-color-cell"><span class="account-color-chip" style="background:#c25b5b"></span>${e.name}</span></td><td>${liabilities ? (e.amount/liabilities*100).toFixed(1) : '0.0'}%</td><td>${yen(e.amount)}</td></tr>
-  `).join('') : `<tr><td><span class="account-color-cell"><span class="account-color-chip" style="background:#c25b5b"></span>負債なし</span></td><td>-</td><td>¥0</td></tr>`;
+    <tr>
+      <td><span class="account-color-cell"><span class="account-color-chip" style="background:#c45050"></span>${e.name}</span></td>
+      <td>${liabilities ? (e.amount/liabilities*100).toFixed(1) : '0.0'}%</td>
+      <td>${yen(e.amount)}</td>
+    </tr>
+  `).join('') : `<tr><td><span class="account-color-cell"><span class="account-color-chip" style="background:#c45050"></span>負債なし</span></td><td>-</td><td>¥0</td></tr>`;
+
   body.innerHTML = `
     <table class="statement-table">
       <thead><tr><th>勘定科目</th><th>構成比</th><th>金額</th></tr></thead>
       <tbody>
         ${assetRows}
-        <tr class="subtotal"><td><span class="account-color-cell"><span class="account-color-chip" style="background:#b9935a"></span>資産合計</span></td><td>資産</td><td>100.0%</td><td>${yen(assets)}</td></tr>
+        <tr class="subtotal"><td><span class="account-color-cell"><span class="account-color-chip" style="background:#b9935a"></span>資産合計</span></td><td>100.0%</td><td>${yen(assets)}</td></tr>
         ${liabilityRows}
-        <tr class="subtotal"><td><span class="account-color-cell"><span class="account-color-chip" style="background:#c25b5b"></span>負債合計</span></td><td>負債</td><td>${assets ? (liabilities/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(liabilities)}</td></tr>
-        <tr class="net-row"><td><span class="account-color-cell"><span class="account-color-chip" style="background:#2f8f66"></span>純資産</span></td><td>純資産</td><td>${assets ? (net/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(net)}</td></tr>
+        <tr class="subtotal"><td><span class="account-color-cell"><span class="account-color-chip" style="background:#c45050"></span>負債合計</span></td><td>${assets ? (liabilities/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(liabilities)}</td></tr>
+        <tr class="net-row"><td><span class="account-color-cell"><span class="account-color-chip" style="background:#24885f"></span>純資産</span></td><td>${assets ? (net/assets*100).toFixed(1) : '0.0'}%</td><td>${yen(net)}</td></tr>
       </tbody>
     </table>
   `;
 }
+
 function renderPlanStatement(){
   const latest = latestRecord();
   const latestNet = netAssetOf(latest);
@@ -1543,7 +1521,7 @@ function renderPlanStatement(){
   const gapAfterReturn = Math.max(target - fvCurrent - fvBonus, 0);
   const annuityFactor = monthlyRate ? ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate) : months;
   const requiredMonthlySaving = gapAfterReturn / Math.max(annuityFactor,1);
-  const body = document.getElementById('statementBody');
+  const body = document.getElementById('planBody');
 
   body.innerHTML = `
     <div class="statement-card">
@@ -1684,7 +1662,7 @@ function savePlanSettings(){
   if(!planSettings.years || planSettings.years <= 0) planSettings.years = 1;
   saveState();
   showToast('中期資産計画を更新しました');
-  renderStatement();
+  renderPlanStatement();
 }
 
 
@@ -1839,12 +1817,15 @@ function showPage(page){
   const input = document.getElementById('inputPage');
   const dashBtn = document.getElementById('showDashboardBtn');
   const inputBtn = document.getElementById('showInputBtn');
+
   if(page === 'input'){
+    document.body.classList.add('input-mode');
     dashboard.classList.add('hidden');
     input.classList.remove('hidden');
     dashBtn.classList.remove('active');
     inputBtn.classList.add('active');
   }else{
+    document.body.classList.remove('input-mode');
     dashboard.classList.remove('hidden');
     input.classList.add('hidden');
     dashBtn.classList.add('active');
