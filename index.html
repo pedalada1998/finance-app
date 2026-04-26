@@ -5,219 +5,1563 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Personal Financial Statement</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
-body{
-  font-family:-apple-system,system-ui;
-  background:#f5f3ee;
-  margin:0;
-  padding:20px;
-  color:#18202a;
+:root{
+  --bg:#f5f3ee;
+  --paper:#fffaf1;
+  --ink:#18202a;
+  --muted:#7c8594;
+  --line:rgba(24,32,42,.10);
+  --navy:#18202a;
+  --gold:#b9935a;
+  --green:#2f8f66;
+  --red:#c25b5b;
+  --blue:#477cff;
+  --shadow:0 24px 80px rgba(24,32,42,.10);
 }
 
-h1{margin-bottom:10px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
 
-.panel{
-  background:white;
-  padding:20px;
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 8% 0%,rgba(185,147,90,.18),transparent 28%),
+    radial-gradient(circle at 92% 12%,rgba(71,124,255,.10),transparent 24%),
+    var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+}
+
+.app{
+  max-width:1160px;
+  margin:auto;
+  padding:20px 14px 92px;
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:10px 0 18px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.logo{
+  width:46px;
+  height:46px;
   border-radius:16px;
-  margin-bottom:16px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,var(--navy),#3b4658);
+  color:white;
+  font-weight:900;
+  letter-spacing:-.04em;
+}
+
+.brand h1{
+  margin:0;
+  font-size:20px;
+  letter-spacing:-.03em;
+}
+
+.brand small{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  margin-top:2px;
+}
+
+.panel,.hero{
+  background:rgba(255,250,241,.9);
+  border:1px solid rgba(255,255,255,.78);
+  border-radius:26px;
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(14px);
 }
 
 .hero{
-  background:#18202a;
+  padding:28px;
+  background:
+    radial-gradient(circle at 90% 10%,rgba(185,147,90,.25),transparent 22%),
+    linear-gradient(135deg,rgba(24,32,42,.99),rgba(42,52,67,.94));
   color:white;
-  padding:24px;
-  border-radius:16px;
+  position:relative;
+  overflow:hidden;
 }
 
-.hero h2{
+.hero:after{
+  content:"";
+  position:absolute;
+  right:-76px;
+  top:-96px;
+  width:250px;
+  height:250px;
+  border-radius:50%;
+  background:rgba(185,147,90,.18);
+}
+
+.hero-top{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  color:rgba(255,255,255,.62);
+  position:relative;
+  z-index:1;
+  align-items:center;
+}
+
+.pill{
+  padding:7px 11px;
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.12);
+  color:white;
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.hero-copy{
+  position:relative;
+  z-index:1;
+  margin:20px 0 8px;
+}
+
+.hero-copy h2{
   margin:0;
-  font-size:32px;
+  font-size:clamp(26px,5vw,52px);
+  letter-spacing:-.06em;
+  line-height:1.05;
+}
+
+.hero-copy p{
+  margin:10px 0 0;
+  color:rgba(255,255,255,.72);
+  font-size:14px;
+  line-height:1.8;
+}
+
+.total-label{
+  display:block;
+  color:rgba(255,255,255,.56);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.18em;
+  margin-top:18px;
+  position:relative;
+  z-index:1;
 }
 
 .total{
-  font-size:48px;
-  margin:10px 0;
+  display:block;
+  font-size:clamp(42px,8vw,76px);
+  letter-spacing:-.065em;
+  margin:4px 0 18px;
+  position:relative;
+  z-index:1;
+  font-variant-numeric:tabular-nums;
 }
 
-.kpis{
+.hero-metrics{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:10px;
+  position:relative;
+  z-index:1;
 }
 
-.kpi{
-  background:#18202a;
+.hero-metrics div{
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  padding:14px;
+}
+
+.hero-metrics small{
+  color:rgba(255,255,255,.58);
+  font-size:12px;
+}
+
+.hero-metrics b{
+  display:block;
+  margin-top:6px;
+  font-size:17px;
+  font-variant-numeric:tabular-nums;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1.08fr .92fr;
+  gap:14px;
+  margin-top:14px;
+}
+
+.grid.single{
+  grid-template-columns:1fr;
+}
+
+.panel{
+  padding:20px;
+}
+
+.label{
+  color:var(--gold);
+  font-size:11px;
+  letter-spacing:.22em;
+  font-weight:900;
+  margin:0;
+}
+
+h2{
+  font-size:22px;
+  margin:6px 0 16px;
+  letter-spacing:-.03em;
+}
+
+h3{
+  font-size:15px;
+  margin:18px 0 8px;
+}
+
+.input,select,button{
+  font:inherit;
+}
+
+.input,select{
+  width:100%;
+  border:1px solid var(--line);
+  background:white;
+  border-radius:16px;
+  padding:13px 14px;
+}
+
+.btn{
+  border:0;
+  border-radius:16px;
+  padding:13px 16px;
+  background:var(--navy);
   color:white;
-  padding:12px;
-  border-radius:10px;
+  font-weight:900;
+  cursor:pointer;
 }
 
-.kpi small{opacity:.7}
-.kpi b{display:block;margin-top:6px}
+.btn-gold{
+  background:linear-gradient(135deg,var(--gold),#d9bd8e);
+  color:#20170b;
+}
 
-canvas{max-width:100%}
+.btn-light{
+  background:white;
+  color:var(--ink);
+  border:1px solid var(--line);
+}
+
+.btn-danger{
+  background:#fff0ee;
+  color:var(--red);
+  border:1px solid rgba(194,91,91,.18);
+}
+
+.form{
+  display:grid;
+  gap:10px;
+}
+
+.two{
+  grid-template-columns:1fr 1fr;
+  display:grid;
+  gap:10px;
+}
+
+.three{
+  grid-template-columns:1fr 1fr 1fr;
+  display:grid;
+  gap:10px;
+}
+
+.note{
+  color:var(--muted);
+  line-height:1.7;
+  font-size:13px;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+}
+
+.delete,.edit,.move{
+  border:1px solid rgba(24,32,42,.10);
+  padding:8px 10px;
+  border-radius:12px;
+  font-size:12px;
+  cursor:pointer;
+  background:white;
+}
+
+.delete{
+  background:#fff0ee;
+  color:var(--red);
+  border:1px solid rgba(194,91,91,.18);
+}
+
+canvas{
+  width:100%!important;
+  max-height:340px;
+}
+
+.report{
+  line-height:1.85;
+  color:#475160;
+}
+
+.report b{
+  color:var(--ink);
+}
+
+.pos{color:var(--green)!important}
+.neg{color:var(--red)!important}
+.muted{color:var(--muted)}
+
+.toolbar{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+
+.toolbar .select-wrap{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.small-label{
+  font-size:12px;
+  color:var(--muted);
+  font-weight:800;
+}
+
+.composition-list{
+  display:grid;
+  gap:8px;
+  margin-top:14px;
+}
+
+.comp-row{
+  display:grid;
+  grid-template-columns:12px 1fr auto;
+  gap:10px;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.comp-row small{
+  color:var(--muted);
+}
+
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+}
+
+.input-table{
+  display:grid;
+  gap:8px;
+}
+
+.input-head,.input-line{
+  display:grid;
+  grid-template-columns:1.15fr .8fr .8fr 1fr;
+  gap:8px;
+  align-items:center;
+}
+
+.input-head{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:900;
+  padding:0 2px;
+}
+
+.input-line{
+  background:rgba(255,255,255,.62);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:10px;
+}
+
+.cat-title b{
+  display:block;
+  font-size:15px;
+}
+
+.cat-title small{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+  margin-top:3px;
+}
+
+.readonly-money{
+  border-radius:14px;
+  padding:12px;
+  background:#f5f3ee;
+  color:#596271;
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.month-input{
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+
+.category-card{
+  display:grid;
+  grid-template-columns:12px 1fr auto;
+  gap:10px;
+  align-items:center;
+  padding:12px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.category-card small{
+  color:var(--muted);
+}
+
+.side-chip{
+  display:inline-flex;
+  padding:3px 8px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:900;
+  margin-right:4px;
+  background:#f1eadc;
+  color:#6a522a;
+}
+
+.side-chip.liability{
+  background:#fff0ee;
+  color:var(--red);
+}
+
+.statement-tabs{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-bottom:12px;
+}
+
+.statement-tabs button{
+  border:1px solid var(--line);
+  background:white;
+  border-radius:999px;
+  padding:10px;
+  cursor:pointer;
+  color:var(--muted);
+  font-weight:900;
+}
+
+.statement-tabs button.active{
+  background:var(--navy);
+  color:white;
+}
+
+.statement-card{
+  padding:16px;
+  border-radius:22px;
+  background:rgba(255,255,255,.66);
+  border:1px solid var(--line);
+}
+
+.statement-row{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:11px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.statement-row:last-child{
+  border-bottom:0;
+}
+
+.statement-row span{
+  color:#475160;
+}
+
+.statement-row b{
+  font-variant-numeric:tabular-nums;
+}
+
+.statement-total{
+  margin-top:10px;
+  padding:14px;
+  border-radius:16px;
+  background:#f5f3ee;
+  font-weight:900;
+}
+
+.statement-net{
+  margin-top:12px;
+  padding:16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,var(--navy),#3b4658);
+  color:white;
+}
+
+.statement-net b{
+  color:white;
+  font-size:22px;
+}
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:84px;
+  transform:translateX(-50%) translateY(20px);
+  background:rgba(24,32,42,.92);
+  color:white;
+  border-radius:999px;
+  padding:12px 18px;
+  opacity:0;
+  pointer-events:none;
+  transition:.25s;
+  z-index:10;
+  font-weight:800;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+.footer-nav{
+  position:fixed;
+  left:50%;
+  bottom:14px;
+  transform:translateX(-50%);
+  width:min(620px,92vw);
+  background:rgba(24,32,42,.88);
+  border-radius:999px;
+  padding:8px;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:4px;
+  box-shadow:0 20px 70px rgba(0,0,0,.24);
+  backdrop-filter:blur(18px);
+}
+
+.footer-nav a{
+  color:rgba(255,255,255,.68);
+  text-decoration:none;
+  text-align:center;
+  font-size:12px;
+  padding:9px 4px;
+  border-radius:999px;
+}
+
+.footer-nav a.active{
+  background:white;
+  color:var(--ink);
+  font-weight:900;
+}
+
+@media(max-width:900px){
+  .app{padding:16px 12px 90px}
+  .header{align-items:flex-start}
+  .grid,.hero-metrics,.two,.three{grid-template-columns:1fr}
+  .panel,.hero{border-radius:22px}
+  .input-head{display:none}
+  .input-line{grid-template-columns:1fr}
+  .readonly-money{text-align:left}
+  .actions{justify-content:flex-start}
+  .statement-tabs{grid-template-columns:1fr}
+}
 </style>
 </head>
-
 <body>
 
-<div class="hero">
-<h2>Personal Financial Statement</h2>
-<p>個人資産も、決算するべきだ。</p>
+<div class="app">
 
-<div class="total" id="net">¥0</div>
+<header class="header">
+  <div class="brand">
+    <div class="logo">PFS</div>
+    <div>
+      <h1>Personal Financial Statement</h1>
+      <small>åäººè³ç£ããæ±ºç®ããã¹ãã ã</small>
+    </div>
+  </div>
+  <span class="pill" id="latestMonthPill">-</span>
+</header>
 
-<div class="kpis">
-<div class="kpi"><small>資産合計</small><b id="asset"></b></div>
-<div class="kpi"><small>負債合計</small><b id="debt"></b></div>
-<div class="kpi"><small>前月増減</small><b id="mom"></b></div>
-<div class="kpi"><small>前年増減</small><b id="yoy"></b></div>
-</div>
+<section class="hero" id="home">
+  <div class="hero-top">
+    <span>PERSONAL MONTHLY CLOSING</span>
+    <span class="pill">åäººæ±ºç®ããã·ã¥ãã¼ã</span>
+  </div>
+
+  <div class="hero-copy">
+    <h2>ä¼ç¤¾ã ããããªãã<br>åäººè³ç£ããæ±ºç®ããã¹ãã ã</h2>
+    <p>ããªãèªèº«ãã²ã¨ã¤ã®ä¼ç¤¾ã¨ãã¦æããè³ç£ã»è² åµã»ç´è³ç£ãææ¬¡ã§éç¤ºããã</p>
+  </div>
+
+  <span class="total-label">NET ASSETS</span>
+  <strong class="total" id="netAssetDisplay">Â¥0</strong>
+
+  <div class="hero-metrics">
+    <div>
+      <small>è³ç£åè¨</small>
+      <b id="assetTotalDisplay">-</b>
+    </div>
+    <div>
+      <small>è² åµåè¨</small>
+      <b id="liabilityTotalDisplay">-</b>
+    </div>
+    <div>
+      <small>åæå¢æ¸</small>
+      <b id="momDisplay">-</b>
+    </div>
+    <div>
+      <small>åå¹´å¢æ¸</small>
+      <b id="yoyDisplay">-</b>
+    </div>
+  </div>
+</section>
+
+<section class="grid" id="charts">
+  <div class="panel">
+    <div class="toolbar">
+      <div>
+        <p class="label">NET ASSET GROWTH</p>
+        <h2>ç´è³ç£æ¨ç§»</h2>
+      </div>
+      <div class="select-wrap">
+        <span class="small-label">è¡¨ç¤ºæé</span>
+        <select id="trendPeriod" onchange="renderCharts()">
+          <option value="3">3ã¶æ</option>
+          <option value="6" selected>6ã¶æ</option>
+          <option value="12">1å¹´</option>
+          <option value="36">3å¹´</option>
+          <option value="60">5å¹´</option>
+          <option value="120">10å¹´</option>
+        </select>
+      </div>
+    </div>
+    <canvas id="trendChart"></canvas>
+  </div>
+
+  <div class="panel">
+    <div class="toolbar">
+      <div>
+        <p class="label">PORTFOLIO</p>
+        <h2>ææ°æã®è³ç£æ§æ</h2>
+      </div>
+      <div class="select-wrap">
+        <span class="small-label">è¡¨ç¤º</span>
+        <select id="compositionMode" onchange="renderCharts(); renderCompositionList();">
+          <option value="assetCategory">è³ç£å¥</option>
+          <option value="assetType">åé¡å¥</option>
+          <option value="bs">BSè¡¨ç¤º</option>
+        </select>
+      </div>
+    </div>
+    <canvas id="allocationChart"></canvas>
+    <div id="compositionList" class="composition-list"></div>
+  </div>
+</section>
+
+<section class="grid" id="statement">
+  <div class="panel">
+    <p class="label">FINANCIAL STATEMENT</p>
+    <h2>åäººè²¡åè«¸è¡¨</h2>
+    <div class="statement-tabs">
+      <button id="tabBS" class="active" onclick="setStatementView('bs')">BS</button>
+      <button id="tabMonthly" onclick="setStatementView('monthly')">ææ¬¡æ±ºç®</button>
+      <button id="tabPlan" onclick="setStatementView('plan')">ä¸­è¨</button>
+    </div>
+    <div id="statementBody"></div>
+  </div>
+
+  <div class="panel report" id="report">
+    <p class="label">MANAGEMENT COMMENTARY</p>
+    <h2>AIæ±ºç®ã³ã¡ã³ã</h2>
+    <div id="monthlyReport"></div>
+  </div>
+</section>
+
+<section class="grid" id="input">
+  <div class="panel">
+    <p class="label">MONTHLY CLOSING</p>
+    <h2>ææ¬¡æ±ºç®ãå¥å</h2>
+
+    <div class="form">
+      <div class="three">
+        <div>
+          <label class="small-label">æ±ºç®å¯¾è±¡æ</label>
+          <input class="input" id="monthInput" placeholder="ä¾ï¼2026/05">
+        </div>
+        <div>
+          <label class="small-label">éå»æ±ºç®ãä¿®æ­£</label>
+          <select id="recordSelector" onchange="loadSelectedRecord()"></select>
+        </div>
+        <div style="display:flex;align-items:end">
+          <button class="btn btn-light" style="width:100%" onclick="prepareNextMonth()">æ¬¡æãç©ºæ¬ã§ä½æ</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-light" onclick="clearCurrentInputs()">å¥åæã ãç©ºæ¬ã«ãã</button>
+        <button class="btn btn-light" onclick="copyPreviousToCurrent()">åæã®æ°å­ãã³ãã¼</button>
+        <button class="btn btn-gold" onclick="saveMonth()">ææ¬¡æ±ºç®ãç¢ºå®</button>
+      </div>
+
+      <div class="input-table">
+        <div class="input-head">
+          <div>åå®ç§ç®</div>
+          <div>åãæ</div>
+          <div>åæ</div>
+          <div>æ±ºç®æ</div>
+        </div>
+        <div id="categoryInputs"></div>
+      </div>
+    </div>
+
+    <p class="note">
+      åæã»åãæã®æ®é«ãè¦ãªãããæ±ºç®æã®æ®é«ã ãå¥åãã¾ããéå»æãé¸ã¹ã°ãéå»æ±ºç®ãä¿®æ­£ã§ãã¾ãã
+    </p>
+  </div>
+
+  <div class="panel">
+    <p class="label">ACCOUNT SETTING</p>
+    <h2>åå®ç§ç®ãè¨­å®</h2>
+
+    <div class="three">
+      <input class="input" id="newCategoryName" placeholder="ä¾ï¼æ¥½å¤©è¨¼å¸ãä½å®ã­ã¼ã³">
+      <select id="newCategorySide">
+        <option value="asset">è³ç£</option>
+        <option value="liability">è² åµ</option>
+      </select>
+      <select id="newCategoryType">
+        <option value="cash">ç¾éã»é éç³»</option>
+        <option value="invest">æè³ç³»</option>
+        <option value="retire">éè·è³ç£ç³»</option>
+        <option value="other">ãã®ä»</option>
+      </select>
+    </div>
+
+    <button class="btn" style="margin-top:10px;width:100%" onclick="addCategory()">åå®ç§ç®ãè¿½å </button>
+    <div id="categoryList" style="margin-top:12px"></div>
+
+    <div class="actions" style="margin-top:16px">
+      <button class="btn btn-light" onclick="exportJSON()">ãã¼ã¿ãæ¸ãåºã</button>
+      <label class="btn btn-light" style="cursor:pointer">
+        ãã¼ã¿ãå¾©å
+        <input type="file" accept="application/json" onchange="importJSON(event)" style="display:none">
+      </label>
+      <button class="btn btn-danger" onclick="resetAll()">åæãã¼ã¿ã«æ»ã</button>
+    </div>
+  </div>
+</section>
+
 </div>
 
-<div class="panel">
-<h3>純資産推移</h3>
-<select id="period" onchange="render()">
-<option value="3">3ヶ月</option>
-<option value="6">6ヶ月</option>
-<option value="12">1年</option>
-<option value="36">3年</option>
-<option value="60">5年</option>
-<option value="120">10年</option>
-</select>
-<canvas id="trend"></canvas>
-</div>
+<nav class="footer-nav">
+  <a href="#home" class="active">ããã</a>
+  <a href="#charts">æé·</a>
+  <a href="#statement">æ±ºç®</a>
+  <a href="#report">ã³ã¡ã³ã</a>
+  <a href="#input">å¥å</a>
+</nav>
 
-<div class="panel">
-<h3>資産構成</h3>
-<select id="mode" onchange="render()">
-<option value="cat">資産別</option>
-<option value="type">分類別</option>
-<option value="bs">BS</option>
-</select>
-<canvas id="pie"></canvas>
-</div>
-
-<div class="panel">
-<h3>AI決算コメント</h3>
-<div id="comment"></div>
-</div>
-
-<div class="panel">
-<h3>月次決算入力</h3>
-<input id="month" placeholder="2026/05">
-<button onclick="save()">決算確定</button>
-<div id="inputs"></div>
-</div>
+<div id="toast" class="toast">ä¿å­ãã¾ãã</div>
 
 <script>
+const STORAGE_KEY = 'personal-financial-statement-v2';
 
-const cat=[
-{name:"預金",side:"asset",type:"cash"},
-{name:"NASDAQ",side:"asset",type:"invest"},
-{name:"住宅ローン",side:"liability",type:"other"}
+const yen = n => new Intl.NumberFormat('ja-JP',{
+  style:'currency',
+  currency:'JPY',
+  maximumFractionDigits:0
+}).format(Number(n)||0);
+
+const colors = [
+  '#b9935a','#477cff','#2f8f66','#8b6cf6','#22b8cf',
+  '#f59f00','#c25b5b','#7c8594','#12b886','#e64980',
+  '#845ef7','#15aabf'
 ];
 
-let data=[
-{m:"2026/03",v:{預金:500000,NASDAQ:300000,住宅ローン:0}},
-{m:"2026/04",v:{預金:600000,NASDAQ:600000,住宅ローン:0}}
+const sideNames = {asset:'è³ç£', liability:'è² åµ'};
+const typeNames = {cash:'ç¾éã»é éç³»', invest:'æè³ç³»', retire:'éè·è³ç£ç³»', other:'ãã®ä»'};
+
+const defaultCategories = [
+  {name:'é é', side:'asset', type:'cash'},
+  {name:'NASDAQ', side:'asset', type:'invest'},
+  {name:'ã¤ã³ã', side:'asset', type:'invest'},
+  {name:'Bitcoin', side:'asset', type:'invest'},
+  {name:'Doge', side:'asset', type:'invest'},
+  {name:'ç¢ºå®æ åºå¹´é', side:'asset', type:'retire'},
+  {name:'ææ ªä¼', side:'asset', type:'invest'},
+  {name:'ã«ã¼ãæªæ', side:'liability', type:'other'},
+  {name:'ä½å®ã­ã¼ã³', side:'liability', type:'other'}
 ];
 
-const yen=n=>"¥"+n.toLocaleString();
+const defaultRecords = [
+  {month:'2025/04', values:{é é:520000,NASDAQ:260000,ã¤ã³ã:210000,Bitcoin:78000,Doge:45000,ç¢ºå®æ åºå¹´é:2100000,ææ ªä¼:1450000,ã«ã¼ãæªæ:0,ä½å®ã­ã¼ã³:0}},
+  {month:'2026/01', values:{é é:1117299,NASDAQ:403268,ã¤ã³ã:372283,Bitcoin:79540,Doge:76878,ç¢ºå®æ åºå¹´é:2878084,ææ ªä¼:2154255,ã«ã¼ãæªæ:0,ä½å®ã­ã¼ã³:0}},
+  {month:'2026/02', values:{é é:1011660,NASDAQ:435617,ã¤ã³ã:418854,Bitcoin:64783,Doge:56357,ç¢ºå®æ åºå¹´é:2845990,ææ ªä¼:2372231,ã«ã¼ãæªæ:0,ä½å®ã­ã¼ã³:0}},
+  {month:'2026/03', values:{é é:816387,NASDAQ:487749,ã¤ã³ã:425933,Bitcoin:82096,Doge:58770,ç¢ºå®æ åºå¹´é:2650389,ææ ªä¼:2151560,ã«ã¼ãæªæ:0,ä½å®ã­ã¼ã³:0}},
+  {month:'2026/04', values:{é é:644667,NASDAQ:605254,ã¤ã³ã:510791,Bitcoin:102871,Doge:60549,ç¢ºå®æ åºå¹´é:2941357,ææ ªä¼:2291265,ã«ã¼ãæªæ:0,ä½å®ã­ã¼ã³:0}}
+];
 
-function total(r){
-return cat.reduce((s,c)=>s+(r.v[c.name]||0),0);
+let categories = [];
+let records = [];
+let trendChart;
+let allocationChart;
+let statementView = 'bs';
+
+function clone(obj){
+  return JSON.parse(JSON.stringify(obj));
 }
 
-function asset(r){
-return cat.filter(c=>c.side==="asset").reduce((s,c)=>s+(r.v[c.name]||0),0);
+function normalizeCategory(c){
+  const side = c.side || (
+    c.name && (c.name.includes('ã­ã¼ã³') || c.name.includes('æªæ') || c.name.includes('åå¥'))
+      ? 'liability'
+      : 'asset'
+  );
+
+  return {
+    name:c.name,
+    side:side === 'liability' ? 'liability' : 'asset',
+    type:c.type || 'other'
+  };
 }
 
-function debt(r){
-return cat.filter(c=>c.side==="liability").reduce((s,c)=>s+(r.v[c.name]||0),0);
+function loadState(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+
+    if(saved && Array.isArray(saved.categories) && Array.isArray(saved.records)){
+      categories = saved.categories.map(normalizeCategory);
+      records = saved.records;
+    }else{
+      categories = clone(defaultCategories);
+      records = clone(defaultRecords);
+    }
+  }catch(e){
+    categories = clone(defaultCategories);
+    records = clone(defaultRecords);
+  }
+
+  records.forEach(r=>{
+    if(!r.values) r.values = {};
+    categories.forEach(c=>{
+      if(r.values[c.name] === undefined) r.values[c.name] = 0;
+    });
+  });
+
+  sortRecords();
 }
 
-let tChart,pChart;
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({categories,records}));
+}
+
+function sortRecords(){
+  records.sort((a,b)=>a.month.localeCompare(b.month));
+}
+
+function showToast(msg='ä¿å­ãã¾ãã'){
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'),1600);
+}
+
+function latestRecord(){
+  sortRecords();
+  return records[records.length - 1];
+}
+
+function parseMonth(month){
+  const m = String(month).match(/^(\d{4})\/(\d{1,2})$/);
+  if(!m) return null;
+  return {year:Number(m[1]), month:Number(m[2])};
+}
+
+function formatMonth(year,month){
+  return `${year}/${String(month).padStart(2,'0')}`;
+}
+
+function addMonths(monthStr, diff){
+  const p = parseMonth(monthStr);
+  if(!p) return monthStr;
+
+  const date = new Date(p.year, p.month - 1 + diff, 1);
+  return formatMonth(date.getFullYear(), date.getMonth()+1);
+}
+
+function recordByMonth(month){
+  return records.find(r=>r.month === month);
+}
+
+function assetTotalOf(record){
+  if(!record) return 0;
+
+  return categories
+    .filter(c=>c.side !== 'liability')
+    .reduce((s,c)=>s + Number(record.values[c.name] || 0),0);
+}
+
+function liabilityTotalOf(record){
+  if(!record) return 0;
+
+  return categories
+    .filter(c=>c.side === 'liability')
+    .reduce((s,c)=>s + Number(record.values[c.name] || 0),0);
+}
+
+function netAssetOf(record){
+  return assetTotalOf(record) - liabilityTotalOf(record);
+}
+
+function formatChange(amount, rate){
+  if(amount === null || amount === undefined) return '-';
+
+  const cls = amount >= 0 ? 'pos' : 'neg';
+  const sign = amount >= 0 ? '+' : '';
+  const rateText = rate === null || rate === undefined ? '' : `ï¼${rate >= 0 ? '+' : ''}${rate.toFixed(1)}%ï¼`;
+
+  return `<span class="${cls}">${sign}${yen(amount)}${rateText}</span>`;
+}
 
 function render(){
-const last=data[data.length-1];
-const prev=data[data.length-2]||last;
+  sortRecords();
 
-const net=asset(last)-debt(last);
-const prevNet=asset(prev)-debt(prev);
+  const latest = latestRecord();
+  const latestIdx = records.length - 1;
+  const prev = records[latestIdx - 1];
+  const yearAgo = recordByMonth(addMonths(latest.month,-12));
 
-document.getElementById("net").innerText=yen(net);
-document.getElementById("asset").innerText=yen(asset(last));
-document.getElementById("debt").innerText=yen(debt(last));
-document.getElementById("mom").innerText=yen(net-prevNet);
+  const totalAssets = assetTotalOf(latest);
+  const totalLiabilities = liabilityTotalOf(latest);
+  const netAssets = netAssetOf(latest);
 
-const year=data.find(r=>r.m==="2025/04");
-document.getElementById("yoy").innerText=year?yen(net-(asset(year)-debt(year))):"-";
+  const mom = prev ? netAssets - netAssetOf(prev) : null;
+  const momRate = prev && netAssetOf(prev) ? mom / netAssetOf(prev) * 100 : null;
 
-if(tChart) tChart.destroy();
+  const yoy = yearAgo ? netAssets - netAssetOf(yearAgo) : null;
+  const yoyRate = yearAgo && netAssetOf(yearAgo) ? yoy / netAssetOf(yearAgo) * 100 : null;
 
-const p=Number(document.getElementById("period").value);
-const slice=data.slice(-p);
+  document.getElementById('latestMonthPill').textContent = latest.month + ' æ±ºç®';
+  document.getElementById('netAssetDisplay').textContent = yen(netAssets);
+  document.getElementById('assetTotalDisplay').textContent = yen(totalAssets);
+  document.getElementById('liabilityTotalDisplay').textContent = yen(totalLiabilities);
+  document.getElementById('momDisplay').innerHTML = formatChange(mom,momRate);
+  document.getElementById('yoyDisplay').innerHTML = formatChange(yoy,yoyRate);
 
-tChart=new Chart(document.getElementById("trend"),{
-type:"line",
-data:{
-labels:slice.map(r=>r.m),
-datasets:[{data:slice.map(r=>asset(r)-debt(r)),borderColor:"#b9935a"}]
-}
-});
-
-if(pChart) pChart.destroy();
-
-const mode=document.getElementById("mode").value;
-
-let labels=[],values=[];
-
-if(mode==="cat"){
-labels=cat.filter(c=>c.side==="asset").map(c=>c.name);
-values=labels.map(n=>last.v[n]||0);
-}
-else if(mode==="type"){
-let sum={cash:0,invest:0,other:0};
-cat.forEach(c=>{
-if(c.side==="asset") sum[c.type]+=last.v[c.name]||0;
-});
-labels=Object.keys(sum);
-values=Object.values(sum);
-}
-else{
-labels=["資産","負債","純資産"];
-values=[asset(last),debt(last),net];
+  renderRecordSelector();
+  renderCategoryInputs();
+  renderCategoryList();
+  renderCharts();
+  renderCompositionList();
+  renderReport();
+  renderStatement();
 }
 
-pChart=new Chart(document.getElementById("pie"),{
-type:"pie",
-data:{labels,datasets:[{data:values}]}
-});
+function renderRecordSelector(){
+  const selector = document.getElementById('recordSelector');
+  const current = document.getElementById('monthInput').value || latestRecord().month;
 
-document.getElementById("comment").innerText=
-"純資産は"+yen(net)+"。前月比"+yen(net-prevNet)+"。投資比率は"+Math.round(values[0]/net*100)+"%。";
+  selector.innerHTML = records
+    .map(r=>`<option value="${r.month}">${r.month}</option>`)
+    .join('');
+
+  selector.value = records.some(r=>r.month===current) ? current : latestRecord().month;
 }
 
-function save(){
-const m=document.getElementById("month").value;
-if(!m) return alert("月を入力");
+function selectedInputMonth(){
+  return document.getElementById('monthInput').value.trim() || latestRecord().month;
+}
 
-const obj={m,v:{}};
+function renderCategoryInputs(){
+  const month = selectedInputMonth();
+  const currentRecord = recordByMonth(month);
 
-cat.forEach(c=>{
-obj.v[c.name]=Number(prompt(c.name)||0);
-});
+  const prevMonth = addMonths(month,-1);
+  const prev2Month = addMonths(month,-2);
 
-data.push(obj);
+  const prevRecord = recordByMonth(prevMonth);
+  const prev2Record = recordByMonth(prev2Month);
+
+  document.getElementById('categoryInputs').innerHTML = categories.map(c=>{
+    const currentValue = currentRecord ? Number(currentRecord.values[c.name] || 0) : '';
+    const prev = prevRecord ? Number(prevRecord.values[c.name] || 0) : null;
+    const prev2 = prev2Record ? Number(prev2Record.values[c.name] || 0) : null;
+
+    return `
+      <div class="input-line">
+        <div class="cat-title">
+          <b>${c.name}</b>
+          <small>${sideNames[c.side]} / ${typeNames[c.type]}</small>
+        </div>
+
+        <div class="readonly-money" title="åãæ ${prev2Month}">
+          ${prev2 === null ? '-' : yen(prev2)}
+        </div>
+
+        <div class="readonly-money" title="åæ ${prevMonth}">
+          ${prev === null ? '-' : yen(prev)}
+        </div>
+
+        <input
+          class="input month-input amount-input"
+          data-category="${c.name}"
+          value="${currentValue === '' ? '' : formatNumber(currentValue)}"
+          placeholder="${c.name}ã®æ±ºç®æ®é«"
+          oninput="formatAmountInput(this)">
+      </div>
+    `;
+  }).join('');
+}
+
+function renderCategoryList(){
+  document.getElementById('categoryList').innerHTML = categories.map((c,i)=>`
+    <div class="category-card">
+      <span class="dot" style="background:${colors[i%colors.length]}"></span>
+
+      <div>
+        <b>${c.name}</b><br>
+        <small>
+          <span class="side-chip ${c.side==='liability'?'liability':''}">${sideNames[c.side]}</span>
+          ${typeNames[c.type]}
+        </small>
+      </div>
+
+      <div class="actions">
+        <button class="move" onclick="moveCategory(${i},-1)">â</button>
+        <button class="move" onclick="moveCategory(${i},1)">â</button>
+        <button class="edit" onclick="renameCategory('${escapeAttr(c.name)}')">ç·¨é</button>
+        <button class="delete" onclick="deleteCategory('${escapeAttr(c.name)}')">åé¤</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escapeAttr(str){
+  return String(str).replace(/'/g,"\\'");
+}
+
+function formatNumber(n){
+  if(n === '' || n === null || n === undefined) return '';
+  return Number(n).toLocaleString('ja-JP');
+}
+
+function rawNumber(str){
+  return Number(String(str).replace(/,/g,'').trim()) || 0;
+}
+
+function formatAmountInput(input){
+  const caretEnd = input.selectionEnd === input.value.length;
+  const raw = String(input.value).replace(/[^\d.-]/g,'');
+
+  if(raw === '' || raw === '-' || raw === '.') {
+    input.value = raw;
+    return;
+  }
+
+  const num = Number(raw);
+
+  if(!Number.isNaN(num)){
+    input.value = num.toLocaleString('ja-JP');
+    if(caretEnd) input.setSelectionRange(input.value.length,input.value.length);
+  }
+}
+
+function compositionData(){
+  const latest = latestRecord();
+  const mode = document.getElementById('compositionMode').value;
+
+  if(mode === 'assetType'){
+    const sums = {cash:0, invest:0, retire:0, other:0};
+
+    categories
+      .filter(c=>c.side !== 'liability')
+      .forEach(c=>{
+        sums[c.type] += Number(latest.values[c.name] || 0);
+      });
+
+    return Object.entries(sums)
+      .map(([type,amount])=>({name:typeNames[type], amount}))
+      .filter(e=>e.amount>0);
+  }
+
+  if(mode === 'bs'){
+    const assets = assetTotalOf(latest);
+    const liabilities = liabilityTotalOf(latest);
+    const net = netAssetOf(latest);
+
+    return [
+      {name:'è³ç£åè¨', amount:assets},
+      {name:'è² åµåè¨', amount:liabilities},
+      {name:'ç´è³ç£', amount:net}
+    ].filter(e=>e.amount>0);
+  }
+
+  return categories
+    .filter(c=>c.side !== 'liability')
+    .map(c=>({name:c.name, amount:Number(latest.values[c.name] || 0)}))
+    .filter(e=>e.amount>0)
+    .sort((a,b)=>b.amount-a.amount);
+}
+
+function renderCompositionList(){
+  const data = compositionData();
+  const total = data.reduce((s,e)=>s+e.amount,0);
+
+  document.getElementById('compositionList').innerHTML = data.map((e,i)=>{
+    const ratio = total ? e.amount / total * 100 : 0;
+
+    return `
+      <div class="comp-row">
+        <span class="dot" style="background:${colors[i%colors.length]}"></span>
+        <div>
+          <b>${e.name}</b><br>
+          <small>${ratio.toFixed(1)}%</small>
+        </div>
+        <div style="text-align:right"><b>${yen(e.amount)}</b></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderReport(){
+  const latest = latestRecord();
+  const prev = records[records.length - 2];
+  const yearAgo = recordByMonth(addMonths(latest.month,-12));
+
+  const net = netAssetOf(latest);
+  const assets = assetTotalOf(latest);
+  const liabilities = liabilityTotalOf(latest);
+
+  const prevNet = prev ? netAssetOf(prev) : 0;
+  const mom = prev ? net - prevNet : 0;
+  const momRate = prevNet ? mom / prevNet * 100 : 0;
+
+  const yoy = yearAgo ? net - netAssetOf(yearAgo) : null;
+  const yoyRate = yearAgo && netAssetOf(yearAgo) ? yoy / netAssetOf(yearAgo) * 100 : null;
+
+  const cash = categories
+    .filter(c=>c.side !== 'liability' && c.type==='cash')
+    .reduce((s,c)=>s+Number(latest.values[c.name]||0),0);
+
+  const invest = categories
+    .filter(c=>c.side !== 'liability' && c.type==='invest')
+    .reduce((s,c)=>s+Number(latest.values[c.name]||0),0);
+
+  const cashRatio = assets ? cash / assets * 100 : 0;
+  const investRatio = assets ? invest / assets * 100 : 0;
+  const debtRatio = assets ? liabilities / assets * 100 : 0;
+
+  let liquidityComment = '';
+
+  if(cashRatio < 15){
+    liquidityComment = 'ç¾éæ¯çã¯ä½ãã§ããçæ´»é²è¡è³éãç­ææ¯åºã«åããä½å°ãããã¾ãã';
+  }else if(cashRatio > 45){
+    liquidityComment = 'ç¾éæ¯çã¯é«ãã§ããæè³ä½åãããç¶æã¨ããã¾ãã';
+  }else{
+    liquidityComment = 'ç¾éæ¯çã¯å¤§ããåã£ã¦ããããæ¯è¼çãã©ã³ã¹ãåãã¦ãã¾ãã';
+  }
+
+  document.getElementById('monthlyReport').innerHTML = `
+    <ul>
+      <li><b>${latest.month} ææ¬¡æ±ºç®</b>ã§ã¯ãç´è³ç£ã¯ <b>${yen(net)}</b>ãè³ç£åè¨ã¯ <b>${yen(assets)}</b>ãè² åµåè¨ã¯ <b>${yen(liabilities)}</b> ã§ãã</li>
+      <li>åæå¢æ¸ã¯ <b class="${mom>=0?'pos':'neg'}">${mom>=0?'+':''}${yen(mom)}ï¼${momRate>=0?'+':''}${momRate.toFixed(1)}%ï¼</b> ã§ãã</li>
+      <li>åå¹´å¢æ¸ã¯ ${yoy===null ? '<b>-</b>' : `<b class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':''}${yen(yoy)}ï¼${yoyRate>=0?'+':''}${yoyRate.toFixed(1)}%ï¼</b>`} ã§ãã</li>
+      <li>æè³ç³»è³ç£ã¯ <b>${yen(invest)}</b>ãè³ç£åè¨ã«å¯¾ããæè³æ¯çã¯ <b>${investRatio.toFixed(1)}%</b> ã§ãã</li>
+      <li>ç¾éã»é éç³»ã¯ <b>${yen(cash)}</b>ãè³ç£åè¨ã«å¯¾ããæ¯çã¯ <b>${cashRatio.toFixed(1)}%</b> ã§ãã${liquidityComment}</li>
+      <li>è² åµæ¯çã¯ <b>${debtRatio.toFixed(1)}%</b> ã§ããåäººã®BSã¨ãã¦ãè² åµãç´è³ç£æé·ãå§è¿«ãã¦ããªããå®æçã«ç¢ºèªãã¾ãããã</li>
+    </ul>
+  `;
+}
+
+function setStatementView(view){
+  statementView = view;
+
+  document.getElementById('tabBS').classList.toggle('active', view==='bs');
+  document.getElementById('tabMonthly').classList.toggle('active', view==='monthly');
+  document.getElementById('tabPlan').classList.toggle('active', view==='plan');
+
+  renderStatement();
+}
+
+function renderStatement(){
+  const latest = latestRecord();
+  const body = document.getElementById('statementBody');
+
+  if(statementView === 'monthly'){
+    const prev = records[records.length-2];
+    const latestNet = netAssetOf(latest);
+    const prevNet = prev ? netAssetOf(prev) : 0;
+    const change = prev ? latestNet - prevNet : 0;
+    const rate = prevNet ? change / prevNet * 100 : 0;
+    const monthlyAverage = records.length > 1
+      ? (netAssetOf(latest) - netAssetOf(records[0])) / (records.length - 1)
+      : 0;
+
+    body.innerHTML = `
+      <div class="statement-card">
+        <div class="statement-row"><span>æ±ºç®æ</span><b>${latest.month}</b></div>
+        <div class="statement-row"><span>ç´è³ç£</span><b>${yen(latestNet)}</b></div>
+        <div class="statement-row"><span>åæå¢æ¸</span><b class="${change>=0?'pos':'neg'}">${change>=0?'+':''}${yen(change)}ï¼${rate>=0?'+':''}${rate.toFixed(1)}%ï¼</b></div>
+        <div class="statement-row"><span>ææ¬¡å¹³åå¢å é¡</span><b>${yen(monthlyAverage)}</b></div>
+        <div class="statement-total">ææ¬¡æ±ºç®ã³ã¡ã³ãï¼ç´è³ç£ã®å¢æ¸è¦å ããå¥éã»æè³è©ä¾¡ã»æ¯åºã«åãã¦ç¢ºèªããã¨ç²¾åº¦ãä¸ããã¾ãã</div>
+      </div>
+    `;
+    return;
+  }
+
+  if(statementView === 'plan'){
+    const latestNet = netAssetOf(latest);
+    const target = 30000000;
+    const progress = target ? latestNet / target * 100 : 0;
+    const first = records[0];
+    const years = Math.max((records.length-1)/12, 1/12);
+    const firstNet = netAssetOf(first);
+    const cagr = firstNet > 0 ? (Math.pow(latestNet / firstNet, 1/years) - 1) * 100 : 0;
+    const remaining = Math.max(target - latestNet, 0);
+
+    body.innerHTML = `
+      <div class="statement-card">
+        <div class="statement-row"><span>ä¸­è¨ç®æ¨ç´è³ç£</span><b>${yen(target)}</b></div>
+        <div class="statement-row"><span>ç¾å¨ã®ç´è³ç£</span><b>${yen(latestNet)}</b></div>
+        <div class="statement-row"><span>é²æç</span><b>${progress.toFixed(1)}%</b></div>
+        <div class="statement-row"><span>ç®æ¨ã¾ã§ã®æ®é¡</span><b>${yen(remaining)}</b></div>
+        <div class="statement-row"><span>å®ç¸¾CAGR</span><b>${cagr.toFixed(1)}%</b></div>
+        <div class="statement-net"><span>ä¸­è¨ã¡ãã»ã¼ã¸</span><br><b>äººçã¨ããè³ç£ããè¨ç»çã«æé·ãããã</b></div>
+      </div>
+    `;
+    return;
+  }
+
+  const assetItems = categories
+    .filter(c=>c.side !== 'liability')
+    .map(c=>({name:c.name, amount:Number(latest.values[c.name]||0)}))
+    .filter(e=>e.amount>0);
+
+  const liabilityItems = categories
+    .filter(c=>c.side === 'liability')
+    .map(c=>({name:c.name, amount:Number(latest.values[c.name]||0)}))
+    .filter(e=>e.amount>0);
+
+  const assets = assetTotalOf(latest);
+  const liabilities = liabilityTotalOf(latest);
+  const net = netAssetOf(latest);
+
+  body.innerHTML = `
+    <div class="statement-card">
+      <h3>è³ç£</h3>
+      ${assetItems.map(e=>`<div class="statement-row"><span>${e.name}</span><b>${yen(e.amount)}</b></div>`).join('')}
+      <div class="statement-total">è³ç£åè¨ã${yen(assets)}</div>
+
+      <h3>è² åµ</h3>
+      ${liabilityItems.length ? liabilityItems.map(e=>`<div class="statement-row"><span>${e.name}</span><b>${yen(e.amount)}</b></div>`).join('') : '<div class="statement-row"><span>è² åµãªã</span><b>Â¥0</b></div>'}
+      <div class="statement-total">è² åµåè¨ã${yen(liabilities)}</div>
+
+      <div class="statement-net"><span>ç´è³ç£</span><br><b>${yen(net)}</b></div>
+    </div>
+  `;
+}
+
+function renderCharts(){
+  const period = Number(document.getElementById('trendPeriod').value || 6);
+  const filtered = records.slice(-period);
+
+  if(trendChart) trendChart.destroy();
+  if(allocationChart) allocationChart.destroy();
+
+  trendChart = new Chart(document.getElementById('trendChart'), {
+    type:'line',
+    data:{
+      labels:filtered.map(r=>r.month),
+      datasets:[{
+        label:'ç´è³ç£',
+        data:filtered.map(r=>netAssetOf(r)),
+        borderColor:'#b9935a',
+        backgroundColor:'rgba(185,147,90,.16)',
+        fill:true,
+        tension:.35,
+        pointRadius:3
+      }]
+    },
+    options:{
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>yen(ctx.raw)}}
+      },
+      scales:{
+        x:{grid:{display:false}},
+        y:{ticks:{callback:v=>Math.round(v/10000)+'ä¸'}}
+      }
+    }
+  });
+
+  const comp = compositionData();
+
+  allocationChart = new Chart(document.getElementById('allocationChart'), {
+    type:'pie',
+    data:{
+      labels:comp.map(e=>e.name),
+      datasets:[{
+        data:comp.map(e=>e.amount),
+        backgroundColor:comp.map((_,i)=>colors[i%colors.length]),
+        borderWidth:2,
+        borderColor:'#fffaf1'
+      }]
+    },
+    options:{
+      plugins:{
+        legend:{position:'bottom'},
+        tooltip:{
+          callbacks:{
+            label:ctx=>{
+              const total = ctx.dataset.data.reduce((s,v)=>s+Number(v),0);
+              const value = Number(ctx.raw);
+              const ratio = total ? value/total*100 : 0;
+              return `${ctx.label}: ${yen(value)}ï¼${ratio.toFixed(1)}%ï¼`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function prepareNextMonth(){
+  const next = addMonths(latestRecord().month,1);
+
+  document.getElementById('monthInput').value = next;
+  document.getElementById('recordSelector').value = latestRecord().month;
+
+  renderCategoryInputs();
+  clearCurrentInputs();
+  showToast('æ¬¡ææ±ºç®ãç©ºæ¬ã§ä½æãã¾ãã');
+}
+
+function clearCurrentInputs(){
+  document.querySelectorAll('.amount-input').forEach(input=>input.value='');
+}
+
+function copyPreviousToCurrent(){
+  const month = selectedInputMonth();
+  const prev = recordByMonth(addMonths(month,-1));
+
+  if(!prev){
+    showToast('åææ±ºç®ãããã¾ãã');
+    return;
+  }
+
+  document.querySelectorAll('.amount-input').forEach(input=>{
+    const name = input.dataset.category;
+    input.value = formatNumber(prev.values[name] || 0);
+  });
+
+  showToast('åææ±ºç®ã®æ°å­ãã³ãã¼ãã¾ãã');
+}
+
+function loadSelectedRecord(){
+  const month = document.getElementById('recordSelector').value;
+  document.getElementById('monthInput').value = month;
+  renderCategoryInputs();
+}
+
+function saveMonth(){
+  const month = selectedInputMonth();
+
+  if(!/^\d{4}\/\d{2}$/.test(month)){
+    alert('å¯¾è±¡æã¯ 2026/05 ã®å½¢å¼ã§å¥åãã¦ãã ãã');
+    return;
+  }
+
+  const values = {};
+
+  document.querySelectorAll('.amount-input').forEach(input=>{
+    values[input.dataset.category] = rawNumber(input.value);
+  });
+
+  const existing = recordByMonth(month);
+
+  if(existing){
+    existing.values = values;
+  }else{
+    records.push({month,values});
+  }
+
+  categories.forEach(c=>{
+    records.forEach(r=>{
+      if(r.values[c.name] === undefined) r.values[c.name] = 0;
+    });
+  });
+
+  saveState();
+  showToast('ææ¬¡æ±ºç®ãç¢ºå®ãã¾ãã');
+  render();
+}
+
+function addCategory(){
+  const name = document.getElementById('newCategoryName').value.trim();
+  const side = document.getElementById('newCategorySide').value;
+  const type = document.getElementById('newCategoryType').value;
+
+  if(!name){
+    alert('åå®ç§ç®åãå¥åãã¦ãã ãã');
+    return;
+  }
+
+  if(categories.some(c=>c.name === name)){
+    alert('åãåå®ç§ç®ãããã¾ã');
+    return;
+  }
+
+  categories.push({name,side,type});
+
+  records.forEach(r=>{
+    if(r.values[name] === undefined) r.values[name] = 0;
+  });
+
+  document.getElementById('newCategoryName').value = '';
+
+  saveState();
+  showToast('åå®ç§ç®ãè¿½å ãã¾ãã');
+  render();
+}
+
+function renameCategory(oldName){
+  const current = categories.find(c=>c.name===oldName);
+  if(!current) return;
+
+  const newName = prompt('æ°ããåå®ç§ç®åãå¥åãã¦ãã ãã', oldName);
+
+  if(!newName || newName === oldName) return;
+
+  if(categories.some(c=>c.name === newName)){
+    alert('åãåå®ç§ç®ãããã¾ã');
+    return;
+  }
+
+  current.name = newName;
+
+  records.forEach(r=>{
+    r.values[newName] = r.values[oldName] || 0;
+    delete r.values[oldName];
+  });
+
+  saveState();
+  showToast('åå®ç§ç®åãå¤æ´ãã¾ãã');
+  render();
+}
+
+function deleteCategory(name){
+  if(!confirm(name + ' ãåé¤ãã¾ããï¼')) return;
+
+  categories = categories.filter(c=>c.name !== name);
+
+  records.forEach(r=>delete r.values[name]);
+
+  saveState();
+  showToast('åå®ç§ç®ãåé¤ãã¾ãã');
+  render();
+}
+
+function moveCategory(index,delta){
+  const next = index + delta;
+
+  if(next < 0 || next >= categories.length) return;
+
+  const temp = categories[index];
+  categories[index] = categories[next];
+  categories[next] = temp;
+
+  saveState();
+  render();
+}
+
+function exportJSON(){
+  const data = JSON.stringify({categories,records},null,2);
+  const blob = new Blob([data],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+
+  a.href = url;
+  a.download = 'personal-financial-statement-backup.json';
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(event){
+  const file = event.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = e=>{
+    try{
+      const data = JSON.parse(e.target.result);
+
+      if(!Array.isArray(data.categories) || !Array.isArray(data.records)){
+        throw new Error('invalid');
+      }
+
+      categories = data.categories.map(normalizeCategory);
+      records = data.records;
+
+      saveState();
+      showToast('ãã¼ã¿ãå¾©åãã¾ãã');
+      render();
+    }catch(err){
+      alert('èª­ã¿è¾¼ããªããã¡ã¤ã«ã§ã');
+    }
+  };
+
+  reader.readAsText(file);
+}
+
+function resetAll(){
+  if(!confirm('åæãã¼ã¿ã«æ»ãã¾ããï¼')) return;
+
+  categories = clone(defaultCategories);
+  records = clone(defaultRecords);
+
+  saveState();
+  showToast('åæãã¼ã¿ã«æ»ãã¾ãã');
+  render();
+}
+
+document.getElementById('monthInput').addEventListener('change', renderCategoryInputs);
+
+loadState();
+document.getElementById('monthInput').value = latestRecord().month;
 render();
-}
-
-render();
-
 </script>
-
 </body>
 </html>
