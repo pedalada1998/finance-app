@@ -1202,125 +1202,71 @@ body.input-mode #inputPage{
   box-shadow:inset 0 0 0 1px rgba(139,92,246,.06);
 }
 
-
-/* v26 management dashboard redesign */
-:root{
-  --bg:#f6f8fb;
-  --surface:#ffffff;
-  --ink:#0b1b34;
-  --muted:#64748b;
-  --line:rgba(15,23,42,.10);
-  --navy:#06224a;
-  --navy2:#0a376f;
-  --blue:#0f5bd5;
-  --green:#059669;
-  --red:#dc2626;
-  --purple:#7c3aed;
-  --shadow:0 18px 44px rgba(15,23,42,.07);
-  --soft-shadow:0 8px 22px rgba(15,23,42,.05);
-}
-body{background:#f6f8fb!important;color:var(--ink)!important}
-.app{max-width:none!important;padding:0!important;display:grid;grid-template-columns:260px minmax(0,1fr);min-height:100vh}
-.sidebar{position:sticky;top:0;height:100vh;background:linear-gradient(180deg,#061b38,#082d5d);color:white;padding:24px 18px;display:flex;flex-direction:column;gap:24px}
-.sidebar-brand{display:flex;align-items:center;gap:12px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.12)}
-.sidebar-logo{width:44px;height:44px;border-radius:12px;background:white;color:#06224a;display:grid;place-items:center;font-weight:950}
-.sidebar-brand strong{display:block;font-size:19px}.sidebar-brand small{display:block;color:rgba(255,255,255,.65);font-size:10px;text-transform:uppercase;letter-spacing:.08em}
-.side-nav{display:grid;gap:6px}.side-nav a{color:rgba(255,255,255,.80);text-decoration:none;padding:12px;border-radius:12px;font-size:14px;font-weight:850}.side-nav a:first-child,.side-nav a:hover{background:rgba(255,255,255,.12);color:white}
-.sidebar-footer{margin-top:auto;display:grid;gap:3px;color:white;font-weight:900}.sidebar-footer small{color:rgba(255,255,255,.65);font-weight:700}
-.main-shell{padding:26px 30px 44px;max-width:1280px;width:100%}
-.report-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px}
-.report-header h1{margin:0;font-size:28px;letter-spacing:-.04em}.report-header p{margin:6px 0 0;color:var(--muted)}
-.hero.executive-hero{background:white!important;color:var(--ink)!important;border:1px solid var(--line)!important;box-shadow:var(--shadow)!important;display:grid;grid-template-columns:1.15fr .85fr;gap:26px;padding:34px 38px!important;border-radius:18px!important;position:relative}
-.executive-hero:after{display:none!important}.hero-left{border-right:1px solid var(--line);padding-right:28px}.hero-left h2{margin:8px 0 12px;font-size:24px}.hero-left h2 span{font-size:20px;color:var(--ink)}
-.executive-hero .total{color:#081b39!important;font-size:clamp(56px,7vw,92px)!important;line-height:1!important;margin:0 0 12px!important}.executive-change{font-size:22px;font-weight:950}
-.executive-kpis{display:grid;gap:0}.executive-kpis div{display:grid;grid-template-columns:140px 1fr;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}.executive-kpis small{color:var(--muted);font-weight:900}.executive-kpis b{font-size:18px;color:#0b1b34}
-.closing-badge{position:absolute!important;right:22px!important;top:18px!important;background:#eff6ff!important;border:1px solid #bfdbfe!important;color:#1d4ed8!important}.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
-.grid{margin-top:18px!important;gap:16px!important}.executive-grid{grid-template-columns:1.1fr .9fr!important}.panel{background:#fff!important;border:1px solid var(--line)!important;box-shadow:var(--soft-shadow)!important;border-radius:14px!important}.label{color:#1d4ed8!important;letter-spacing:.08em!important}
-.summary-lines{display:grid;gap:0}.summary-lines div{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding:13px 0}.summary-lines span{color:var(--muted);font-weight:850}.summary-lines b{font-size:19px}.summary-lines div:nth-child(3) b{font-size:24px;color:#081b39}
-.analysis-group.profitability{background:#fff!important;border-top:5px solid #2563eb!important}.analysis-group.safety{background:#fff!important;border-top:5px solid #10b981!important}.analysis-group.growth{background:#fff!important;border-top:5px solid #7c3aed!important}.analysis-group::before{display:none!important}
-.bs-column{border-radius:10px!important}.bs-column-header.asset{background:#eff6ff!important;color:#1d4ed8!important}.bs-column-header.liability{background:#fff1f2!important;color:#dc2626!important}.bs-column-header.equity{background:#ecfdf5!important;color:#059669!important}
-.ai-toggle-btn{background:#f8fafc!important;color:#1d4ed8!important;border:1px solid #dbeafe!important}.input-compact-grid{grid-template-columns:1fr!important}.hero-dashboard-charts{display:none!important}.footer-nav{display:none!important}
-#heroTrendChart{max-height:310px!important}
-@media(max-width:920px){.app{display:block}.sidebar{display:none}.main-shell{padding:16px 12px 32px}.report-header{flex-direction:column}.hero.executive-hero{grid-template-columns:1fr;padding:24px 18px!important}.hero-left{border-right:0;border-bottom:1px solid var(--line);padding-right:0;padding-bottom:18px}.executive-kpis div{grid-template-columns:110px 1fr}.executive-grid{grid-template-columns:1fr!important}}
-
 </style>
 </head>
 <body>
 <div class="app">
 
-
-<aside class="sidebar">
-  <div class="sidebar-brand">
-    <div class="sidebar-logo">PFS</div>
+<header class="header">
+  <div class="brand">
+    <div class="logo">PFS</div>
     <div>
-      <strong>個人決算</strong>
-      <small>Personal Financial Statement</small>
+      <h1>Personal Financial Statement</h1>
+      <small>あなたという会社の、月次決算。</small>
     </div>
   </div>
-  <nav class="side-nav">
-    <a href="#home">ダッシュボード</a>
-    <a href="#input" onclick="showPage('input')">月次決算入力</a>
-    <a href="#statement">BS（貸借対照表）</a>
-    <a href="#analysis">分析</a>
-    <a href="#charts">推移</a>
-    <a href="#compositionTitle">資産構成</a>
-    <a href="#planSection">中期計画</a>
-    <a href="#report">世代比較</a>
-  </nav>
-  <div class="sidebar-footer">
-    <span>あなた株式会社</span>
-    <small>代表取締役 CFO</small>
-  </div>
-</aside>
-
-<main class="main-shell">
-<header class="report-header" id="home">
-  <div>
-    <h1>2026年4月 月次決算レポート</h1>
-    <p>決算日：2026年04月24日</p>
-  </div>
-  <button class="btn btn-light" onclick="showPage('input')">月次決算入力へ</button>
 </header>
 
-<section class="hero executive-hero">
-  <div class="hero-left">
-    <p class="label">NET ASSETS</p>
-    <h2>純資産 <span>（Net Assets）</span></h2>
-    <strong class="total" id="netAssetDisplay">¥0</strong>
-    <div class="executive-change" id="momKpiDisplay">-</div>
+<section class="hero" id="home">
+  <div class="hero-top">
+    <span>PERSONAL MONTHLY CLOSING</span>
+    <span class="hero-badge">MONTHLY PERSONAL BS</span>
   </div>
-  <div class="executive-kpis">
+
+  <div class="closing-badge" id="closingMonthBadge">-</div>
+
+  <div class="hero-copy">
+    <h2>あなたという会社の、<br>月次決算。</h2>
+    <p>資産・負債・純資産を毎月3分で見える化する、個人のためのBS管理ツール。</p>
+  </div>
+
+  <span class="total-label" id="netAssetLabel">NET ASSETS</span>
+  <div class="total-line">
+    <strong class="total" id="netAssetDisplay">¥0</strong>
+  </div>
+
+  <div class="hero-metrics">
+    <div><small>前月比</small><b id="momKpiDisplay">-</b></div>
     <div><small>前年比</small><b id="yoyDisplay">-</b></div>
+    
+    
     <div><small>過去最高資産</small><b id="highWatermarkDisplay">-</b></div>
     <div><small>同世代推定順位</small><b id="topPercentDisplay">-</b></div>
   </div>
-  <span class="closing-badge" id="closingMonthBadge">-</span>
-  <span id="netAssetLabel" class="visually-hidden">NET ASSETS</span>
-</section>
 
 
-<div id="dashboardPage" class="page">
-
-<section class="grid executive-grid" id="summary">
-  <div class="panel panel-clean">
-    <p class="label">NET ASSET GROWTH</p>
-    <h2>純資産の推移</h2>
-    <canvas id="heroTrendChart"></canvas>
-    <canvas id="heroBsChart" style="display:none"></canvas>
-  </div>
-  <div class="panel panel-clean summary-card">
-    <p class="label">SUMMARY</p>
-    <h2>サマリー</h2>
-    <div class="summary-lines">
-      <div><span>資産合計</span><b id="assetTotalDisplay">-</b></div>
-      <div><span>負債合計</span><b id="liabilityTotalDisplay" class="neg">-</b></div>
-      <div><span>純資産</span><b id="summaryNetAssetDisplay">-</b></div>
-      <div><span>前月比</span><b id="summaryMomDisplay">-</b></div>
-      <div><span>前月比%</span><b id="summaryMomRateDisplay">-</b></div>
+  <div class="hero-dashboard-charts">
+    <div class="hero-chart-card">
+      <h3>NET ASSET TREND / 詳細推移</h3>
+      <canvas id="heroTrendChart"></canvas>
+    </div>
+    <div class="hero-chart-card bs-detail">
+      <h3>BS SNAPSHOT / 詳細BS</h3>
+      <canvas id="heroBsChart"></canvas>
     </div>
   </div>
+
+  <div class="dashboard-note">
+    月次決算は3分で完了します。変わった残高だけ更新すれば、個人BSと成長率が自動で見える化されます。
+  </div>
+
+  <div class="page-switch">
+    <button id="showDashboardBtn" class="active" onclick="showPage('dashboard')">ダッシュボード</button>
+    <button id="showInputBtn" onclick="showPage('input')">今月の月次決算入力</button>
+  </div>
 </section>
 
+<div id="dashboardPage" class="page">
 
 
 <section class="grid single section-spacer" id="statement">
@@ -1890,9 +1836,6 @@ function render(){
     document.getElementById('momKpiDisplay').innerHTML = formatChangeOneLine(mom,momRate);
     const assetTotalEl = document.getElementById('assetTotalDisplay'); if(assetTotalEl) assetTotalEl.textContent = yen(totalAssets);
     const liabilityTotalEl = document.getElementById('liabilityTotalDisplay'); if(liabilityTotalEl) liabilityTotalEl.textContent = yen(totalLiabilities);
-    const summaryNetEl = document.getElementById('summaryNetAssetDisplay'); if(summaryNetEl) summaryNetEl.textContent = yen(netAssets);
-    const summaryMomEl = document.getElementById('summaryMomDisplay'); if(summaryMomEl) summaryMomEl.innerHTML = formatChangeOneLine(mom,momRate);
-    const summaryMomRateEl = document.getElementById('summaryMomRateDisplay'); if(summaryMomRateEl) summaryMomRateEl.innerHTML = momRate === null ? '-' : `<span class="${momRate>=0?'pos':'neg'}">${momRate>=0?'+':'−'}${Math.abs(momRate).toFixed(2)}%</span>`;
     document.getElementById('yoyDisplay').innerHTML = formatChangeOneLine(yoy,yoyRate);
 
     const highestRecord = records.reduce((best,r)=>assetTotalOf(r) > assetTotalOf(best) ? r : best, records[0]);
@@ -2056,7 +1999,7 @@ function safeRenderCharts(){
 function renderHeroCharts(){
   const trendCanvas = document.getElementById('heroTrendChart');
   const bsCanvas = document.getElementById('heroBsChart');
-  if(typeof Chart === 'undefined' || !trendCanvas || !records.length) return;
+  if(typeof Chart === 'undefined' || !trendCanvas || !bsCanvas || !records.length) return;
 
   const latest = latestRecord();
   const filtered = records.slice(-12);
@@ -2102,7 +2045,7 @@ function renderHeroCharts(){
   const net = netAssetOf(latest);
   const maxSide = Math.max(assets, liabilities + Math.max(net,0), 1);
 
-  if(bsCanvas) heroBsChart = new Chart(bsCanvas,{
+  heroBsChart = new Chart(bsCanvas,{
     type:'bar',
     data:{
       labels:['資産', '負債＋純資産'],
@@ -2857,3 +2800,25 @@ function renderPlanChart(){
               return label && label.endsWith('/01') ? label.slice(0,4) : label;
             }
           }
+        },
+        y:{
+          suggestedMin:range.min,
+          suggestedMax:range.max,
+          grid:{color:'rgba(23,32,43,.08)'},
+          ticks:{callback:v=>axisTickFormatter(v)}
+        }
+      }
+    }
+  });
+}
+
+function savePlanSettings(){
+  planSettings = {
+    target:rawNumber(document.getElementById('planTarget')?.value || planSettings.target),
+    years:Number(document.getElementById('planYears')?.value || planSettings.years),
+    annualReturn:Number(document.getElementById('planReturn')?.value ?? planSettings.annualReturn ?? 3),
+    annualBonus:rawNumber(document.getElementById('planBonus')?.value || planSettings.annualBonus || 0)
+  };
+
+  const nextDeposits = {};
+  document.querySelectorAll('[d
