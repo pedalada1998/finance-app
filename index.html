@@ -568,6 +568,125 @@ body.input-mode .header{margin-bottom:10px}
   .bs-sheet,.plan-summary-strip{grid-template-columns:1fr}
 }
 
+
+/* v14 financial SaaS redesign */
+:root{
+  --bg:#f6f8fb;
+  --surface:#ffffff;
+  --surface2:#f8fafc;
+  --ink:#0f172a;
+  --muted:#64748b;
+  --line:rgba(15,23,42,.10);
+  --navy:#0f172a;
+  --navy2:#1e293b;
+  --gold:#2563eb;
+  --gold2:#38bdf8;
+  --green:#10b981;
+  --red:#ef4444;
+  --blue:#2563eb;
+  --shadow:0 24px 80px rgba(15,23,42,.08);
+  --soft-shadow:0 12px 36px rgba(15,23,42,.06);
+}
+body{
+  background:
+    radial-gradient(circle at 12% 0%,rgba(37,99,235,.10),transparent 28%),
+    radial-gradient(circle at 92% 8%,rgba(16,185,129,.10),transparent 24%),
+    var(--bg)!important;
+}
+.logo{
+  background:linear-gradient(135deg,#0f172a,#1e293b)!important;
+}
+.hero{
+  background:
+    radial-gradient(circle at 88% 10%,rgba(16,185,129,.16),transparent 24%),
+    linear-gradient(135deg,#0f172a,#1e293b)!important;
+  padding:34px 30px!important;
+}
+.hero-copy h2{
+  font-size:clamp(34px,6vw,68px)!important;
+  letter-spacing:-.075em!important;
+}
+.hero-copy p{
+  font-size:15px!important;
+  max-width:660px;
+}
+.total{
+  font-size:clamp(56px,10vw,104px)!important;
+  margin:2px 0 20px!important;
+}
+.total-label{
+  color:rgba(255,255,255,.62)!important;
+}
+.hero-metrics{
+  max-width:900px!important;
+  gap:12px!important;
+}
+.hero-metrics div{
+  background:rgba(255,255,255,.075)!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  padding:15px!important;
+}
+.hero-metrics small{
+  color:rgba(255,255,255,.60)!important;
+}
+.hero-metrics b{
+  font-size:18px!important;
+}
+.panel,.hero{
+  border-radius:24px!important;
+}
+.panel{
+  background:#fff!important;
+  border:1px solid rgba(15,23,42,.08)!important;
+  box-shadow:var(--soft-shadow)!important;
+}
+.label{
+  color:#2563eb!important;
+}
+.btn{
+  background:#0f172a!important;
+}
+.btn-gold{
+  background:linear-gradient(135deg,#2563eb,#38bdf8)!important;
+  color:white!important;
+}
+.pos{color:#10b981!important}
+.neg{color:#ef4444!important}
+.statement-net,.compare-hero-card{
+  background:linear-gradient(135deg,#0f172a,#1e293b)!important;
+}
+.bs-column-header.asset{background:linear-gradient(135deg,#2563eb,#38bdf8)!important;color:white!important}
+.bs-column-header.liability{background:linear-gradient(135deg,#ef4444,#fb7185)!important}
+.bs-column-header.equity{background:linear-gradient(135deg,#10b981,#34d399)!important}
+.ai-badge{
+  background:rgba(37,99,235,.10)!important;
+  color:#1d4ed8!important;
+}
+.ai-section-comment{
+  background:linear-gradient(135deg,rgba(37,99,235,.08),rgba(255,255,255,.78))!important;
+  border:1px solid rgba(37,99,235,.16)!important;
+}
+.ai-toggle-btn{
+  border-color:rgba(37,99,235,.20)!important;
+  background:#eff6ff!important;
+  color:#1d4ed8!important;
+}
+.pyramid-fill{
+  background:linear-gradient(90deg,#93c5fd,#2563eb)!important;
+}
+.footer-nav{
+  grid-template-columns:repeat(6,1fr)!important;
+}
+.monthly-input-inline{
+  margin-top:14px;
+}
+.section-spacer{
+  margin-top:14px;
+}
+@media(max-width:520px){
+  .total{font-size:clamp(48px,15vw,76px)!important}
+}
+
 </style>
 </head>
 <body>
@@ -578,7 +697,7 @@ body.input-mode .header{margin-bottom:10px}
     <div class="logo">PFS</div>
     <div>
       <h1>Personal Financial Statement</h1>
-      <small>あなたの資産にも、決算が必要だ。</small>
+      <small>あなたという会社の、月次決算。</small>
     </div>
   </div>
   <div class="top-actions">
@@ -589,14 +708,14 @@ body.input-mode .header{margin-bottom:10px}
 <section class="hero" id="home">
   <div class="hero-top">
     <span>PERSONAL MONTHLY CLOSING</span>
-    <span class="hero-badge">個人決算ダッシュボード</span>
+    <span class="hero-badge">MONTHLY PERSONAL BS</span>
   </div>
 
   <div class="closing-badge" id="closingMonthBadge">-</div>
 
   <div class="hero-copy">
-    <h2>会社だけじゃない。<br>あなたの資産にも、決算が必要だ。</h2>
-    <p>あなた自身をひとつの会社として捉え、資産・負債・純資産を月次で分析する。</p>
+    <h2>あなたという会社の、<br>月次決算。</h2>
+    <p>資産・負債・純資産を毎月3分で見える化する、個人のためのBS管理ツール。</p>
   </div>
 
   <span class="total-label" id="netAssetLabel">NET ASSETS</span>
@@ -619,113 +738,13 @@ body.input-mode .header{margin-bottom:10px}
 
   <div class="page-switch">
     <button id="showDashboardBtn" class="active" onclick="showPage('dashboard')">ダッシュボード</button>
-    <button id="showInputBtn" onclick="showPage('input')">月次決算入力</button>
+    <button id="showInputBtn" onclick="showPage('dashboard'); location.hash='input'">今月の月次決算入力</button>
   </div>
 </section>
 
 <div id="dashboardPage" class="page">
-<section class="grid" id="charts">
-  <div class="panel panel-clean">
-    <div class="toolbar">
-      <div><p class="label">NET ASSET GROWTH</p><h2>純資産推移</h2></div>
-      <div class="select-wrap">
-        <span class="small-label">表示期間</span>
-        <select id="trendPeriod" onchange="safeRenderCharts()">
-          <option value="3">3ヶ月</option><option value="6" selected>6ヶ月</option><option value="12">1年</option>
-          <option value="36">3年</option><option value="60">5年</option><option value="120">10年</option>
-        </select>
-      </div>
-    </div>
-    <canvas id="trendChart"></canvas>
-    <div id="trendEmpty" class="empty-state" style="display:none">月次データがないため、グラフを表示できません。</div>
-    <button class="ai-toggle-btn" onclick="toggleAiComment('trendAiComment')">AIコメントを見る</button>
-    <div class="ai-section-comment" id="trendAiComment"></div>
-  </div>
-
-  <div class="panel panel-clean">
-    <div class="toolbar">
-      <div><p class="label">PORTFOLIO</p><h2 id="compositionTitle">最新月の資産構成</h2></div>
-      <div class="select-wrap">
-        <span class="small-label">表示</span>
-        <select id="compositionMode" onchange="safeRenderCharts(); renderCompositionList();">
-          <option value="assetCategory">資産別</option>
-          <option value="assetType">分類別</option>
-          <option value="bs">BS表示</option>
-        </select>
-      </div>
-    </div>
-    <canvas id="allocationChart"></canvas>
-    <div id="allocationEmpty" class="empty-state" style="display:none">資産データがないため、チャートを表示できません。</div>
-    <div id="compositionList" class="composition-list"></div>
-    <div class="composition-action"><button class="btn btn-gold" onclick="startLatestMonthInput()">最新月の月次決算を入力</button></div>
-    <button class="ai-toggle-btn" onclick="toggleAiComment('compositionAiComment')">AIコメントを見る</button>
-    <div class="ai-section-comment" id="compositionAiComment"></div>
-  </div>
-</section>
-
-<section class="grid" id="statement">
-  <div class="panel panel-clean">
-    <p class="label">FINANCIAL STATEMENT</p>
-    <h2>個人財務諸表</h2>
-    <div id="statementBody"></div>
-    <button class="ai-toggle-btn" onclick="toggleAiComment('statementAiComment')">AIコメントを見る</button>
-    <div class="ai-section-comment" id="statementAiComment"></div>
-    <div class="pdf-action"><button class="btn btn-light" onclick="exportMonthlyPdf()">個人決算レポートをPDF出力</button></div>
-  </div>
-
-  
-  <div class="panel panel-clean" id="planSection">
-    <p class="label">MEDIUM-TERM ASSET PLAN</p>
-    <h2>中期資産計画</h2>
-    <div id="planBody"></div>
-  </div>
-
-  <div class="panel panel-clean report" id="report">
-    <p class="label">AGE BENCHMARK</p>
-    <h2>同世代ベンチマーク</h2>
-    <div class="benchmark-box">
-      <div class="benchmark-grid">
-        <div>
-          <label class="small-label">年齢</label>
-          <input class="input" id="benchmarkAge" type="number" min="20" max="79" value="27" onchange="saveBenchmarkSettings(); renderBenchmark();">
-        </div>
-        <div>
-          <label class="small-label">世帯区分</label>
-          <select id="benchmarkHousehold" onchange="saveBenchmarkSettings(); renderBenchmark();">
-            <option value="couple">二人以上世帯</option>
-            <option value="single">単身世帯</option>
-          </select>
-        </div>
-        <div>
-          <label class="small-label">比較基準</label>
-          <select id="benchmarkBasis" onchange="saveBenchmarkSettings(); renderBenchmark();">
-            <option value="median">中央値</option>
-            <option value="average">平均値</option>
-          </select>
-        </div>
-        <div>
-          <label class="small-label">比較対象</label>
-          <select id="benchmarkTarget" onchange="saveBenchmarkSettings(); renderBenchmark();">
-            <option value="assets">金融資産ベース（資産合計）</option>
-            <option value="net">純資産ベース</option>
-          </select>
-        </div>
-      </div>
-      <div id="benchmarkPyramid"></div>
-      <div id="benchmarkResult"></div>
-      <button class="ai-toggle-btn" onclick="toggleAiComment('benchmarkAiComment')">AIコメントを見る</button>
-    <div class="ai-section-comment" id="benchmarkAiComment"></div>
-      <div class="footnote">
-        注：比較データはJ-FLEC「家計の金融行動に関する世論調査2025年」の年代別「金融資産保有額（金融資産を保有していない世帯を含む）」の平均値・中央値をアプリ内に固定値として持たせています。<br>
-        同調査の「金融資産」は、預貯金、株式、投資信託、保険などを含む一方、日常的な出し入れ・引落しに備える普通預金残高は含まれない旨の注記があります。本アプリの「資産合計」は入力カテゴリの合計であり、統計上の金融資産定義と完全には一致しません。比較は目安として利用してください。推定上位割合は、平均値・中央値から対数正規分布を近似して算出した参考値であり、厳密な順位ではありません。
-      </div>
-    </div>
-  </div>
-</section>
-</div>
-
-<div id="inputPage" class="page hidden">
 <section class="grid" id="input">
+
   <div class="panel panel-clean">
     <p class="label">MONTHLY CLOSING</p>
     <h2>月次決算を入力</h2>
@@ -800,6 +819,114 @@ body.input-mode .header{margin-bottom:10px}
     </div>
     <div class="status-bar" id="appStatus">Ready</div>
   </div>
+
+</section>
+
+<section class="grid single section-spacer" id="statement">
+<div class="panel panel-clean">
+    <p class="label">FINANCIAL STATEMENT</p>
+    <h2>個人財務諸表</h2>
+    <div id="statementBody"></div>
+    <button class="ai-toggle-btn" onclick="toggleAiComment('statementAiComment')">AIコメントを見る</button>
+    <div class="ai-section-comment" id="statementAiComment"></div>
+    <div class="pdf-action"><button class="btn btn-light" onclick="exportMonthlyPdf()">個人決算レポートをPDF出力</button></div>
+  </div>
+
+  
+  
+</section>
+
+<section class="grid section-spacer" id="charts">
+<div class="panel panel-clean">
+    <div class="toolbar">
+      <div><p class="label">NET ASSET GROWTH</p><h2>純資産推移</h2></div>
+      <div class="select-wrap">
+        <span class="small-label">表示期間</span>
+        <select id="trendPeriod" onchange="safeRenderCharts()">
+          <option value="3">3ヶ月</option><option value="6" selected>6ヶ月</option><option value="12">1年</option>
+          <option value="36">3年</option><option value="60">5年</option><option value="120">10年</option>
+        </select>
+      </div>
+    </div>
+    <canvas id="trendChart"></canvas>
+    <div id="trendEmpty" class="empty-state" style="display:none">月次データがないため、グラフを表示できません。</div>
+    <button class="ai-toggle-btn" onclick="toggleAiComment('trendAiComment')">AIコメントを見る</button>
+    <div class="ai-section-comment" id="trendAiComment"></div>
+  </div>
+
+  
+<div class="panel panel-clean">
+    <div class="toolbar">
+      <div><p class="label">PORTFOLIO</p><h2 id="compositionTitle">最新月の資産構成</h2></div>
+      <div class="select-wrap">
+        <span class="small-label">表示</span>
+        <select id="compositionMode" onchange="safeRenderCharts(); renderCompositionList();">
+          <option value="assetCategory">資産別</option>
+          <option value="assetType">分類別</option>
+          <option value="bs">BS表示</option>
+        </select>
+      </div>
+    </div>
+    <canvas id="allocationChart"></canvas>
+    <div id="allocationEmpty" class="empty-state" style="display:none">資産データがないため、チャートを表示できません。</div>
+    <div id="compositionList" class="composition-list"></div>
+    <div class="composition-action"><button class="btn btn-gold" onclick="startLatestMonthInput()">最新月の月次決算を入力</button></div>
+    <button class="ai-toggle-btn" onclick="toggleAiComment('compositionAiComment')">AIコメントを見る</button>
+    <div class="ai-section-comment" id="compositionAiComment"></div>
+  </div>
+
+</section>
+
+<section class="grid section-spacer" id="planAndBenchmark">
+<div class="panel panel-clean" id="planSection">
+    <p class="label">MEDIUM-TERM ASSET PLAN</p>
+    <h2>中期資産計画</h2>
+    <div id="planBody"></div>
+  </div>
+
+  
+<div class="panel panel-clean report" id="report">
+    <p class="label">AGE BENCHMARK</p>
+    <h2>同世代ベンチマーク</h2>
+    <div class="benchmark-box">
+      <div class="benchmark-grid">
+        <div>
+          <label class="small-label">年齢</label>
+          <input class="input" id="benchmarkAge" type="number" min="20" max="79" value="27" onchange="saveBenchmarkSettings(); renderBenchmark();">
+        </div>
+        <div>
+          <label class="small-label">世帯区分</label>
+          <select id="benchmarkHousehold" onchange="saveBenchmarkSettings(); renderBenchmark();">
+            <option value="couple">二人以上世帯</option>
+            <option value="single">単身世帯</option>
+          </select>
+        </div>
+        <div>
+          <label class="small-label">比較基準</label>
+          <select id="benchmarkBasis" onchange="saveBenchmarkSettings(); renderBenchmark();">
+            <option value="median">中央値</option>
+            <option value="average">平均値</option>
+          </select>
+        </div>
+        <div>
+          <label class="small-label">比較対象</label>
+          <select id="benchmarkTarget" onchange="saveBenchmarkSettings(); renderBenchmark();">
+            <option value="assets">金融資産ベース（資産合計）</option>
+            <option value="net">純資産ベース</option>
+          </select>
+        </div>
+      </div>
+      <div id="benchmarkPyramid"></div>
+      <div id="benchmarkResult"></div>
+      <button class="ai-toggle-btn" onclick="toggleAiComment('benchmarkAiComment')">AIコメントを見る</button>
+    <div class="ai-section-comment" id="benchmarkAiComment"></div>
+      <div class="footnote">
+        注：比較データはJ-FLEC「家計の金融行動に関する世論調査2025年」の年代別「金融資産保有額（金融資産を保有していない世帯を含む）」の平均値・中央値をアプリ内に固定値として持たせています。<br>
+        同調査の「金融資産」は、預貯金、株式、投資信託、保険などを含む一方、日常的な出し入れ・引落しに備える普通預金残高は含まれない旨の注記があります。本アプリの「資産合計」は入力カテゴリの合計であり、統計上の金融資産定義と完全には一致しません。比較は目安として利用してください。推定上位割合は、平均値・中央値から対数正規分布を近似して算出した参考値であり、厳密な順位ではありません。
+      </div>
+    </div>
+  </div>
+
 </section>
 </div>
 
@@ -2034,4 +2161,49 @@ function resetAll(){
   categories = clone(defaultCategories);
   records = clone(defaultRecords);
   benchmarkSettings = {age:27, household:'couple', basis:'median', target:'assets'};
-  planSettings 
+  planSettings = {target:30000000, years:5, annualReturn:3, annualBonus:0};
+  planDeposits = {NASDAQ:52500,インド:52500,Bitcoin:10000,確定拠出年金:54200,持株会:55000};
+  normalizeRecords();
+  saveState();
+  showToast('初期データに戻しました');
+  render();
+}
+
+function startLatestMonthInput(){
+  const latest = latestRecord();
+  document.getElementById('monthInput').value = latest.month;
+  loadSelectedRecord();
+  showPage('dashboard');
+  location.hash='input';
+}
+function showPage(page){
+  const dashboard = document.getElementById('dashboardPage');
+  const dashBtn = document.getElementById('showDashboardBtn');
+  const inputBtn = document.getElementById('showInputBtn');
+
+  document.body.classList.remove('input-mode');
+  if(dashboard) dashboard.classList.remove('hidden');
+  if(dashBtn) dashBtn.classList.add('active');
+  if(inputBtn) inputBtn.classList.remove('active');
+
+  setTimeout(safeRenderCharts,50);
+}
+
+document.getElementById('monthInput').addEventListener('change', renderCategoryInputs);
+
+loadState();
+
+// 初回表示で数字が出ない場合の自動復旧
+if(!records.length || assetTotalOf(latestRecord()) === 0 || latestRecord().month !== '2026/04'){
+  categories = clone(defaultCategories);
+  records = clone(defaultRecords);
+  planDeposits = {NASDAQ:52500,インド:52500,Bitcoin:10000,確定拠出年金:54200,持株会:55000};
+  normalizeRecords();
+  saveState();
+}
+
+document.getElementById('monthInput').value = latestRecord().month;
+render();
+</script>
+</body>
+</html>
