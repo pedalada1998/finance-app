@@ -837,6 +837,63 @@ body.input-mode #inputPage{
   .hero-chart-card canvas{height:270px!important;max-height:270px!important}
 }
 
+
+/* v18 analysis and KPI fixes */
+.kpi-change-main{
+  display:block;
+  white-space:nowrap;
+  font-size:18px;
+  line-height:1.25;
+}
+.kpi-change-rate{
+  display:block;
+  white-space:nowrap;
+  font-size:15px;
+  line-height:1.25;
+  margin-top:3px;
+}
+.hero-metrics b{
+  overflow:hidden!important;
+}
+.analysis-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.analysis-card{
+  padding:15px;
+  border-radius:18px;
+  background:#fff;
+  border:1px solid var(--line);
+}
+.analysis-card small{
+  display:block;
+  color:var(--muted);
+  font-weight:900;
+  margin-bottom:6px;
+  font-size:12px;
+}
+.analysis-card b{
+  display:block;
+  font-size:21px;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.03em;
+}
+.analysis-note{
+  margin-top:12px;
+  font-size:11px;
+  color:var(--muted);
+  line-height:1.7;
+}
+@media(max-width:900px){
+  .analysis-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){
+  .analysis-grid{grid-template-columns:1fr}
+  .kpi-change-main{font-size:16px}
+  .kpi-change-rate{font-size:14px}
+}
+
 </style>
 </head>
 <body>
@@ -916,6 +973,18 @@ body.input-mode #inputPage{
 
   
   
+</section>
+
+<section class="grid single section-spacer" id="analysisSection">
+
+  <div class="panel panel-clean" id="analysis">
+    <p class="label">FINANCIAL ANALYSIS</p>
+    <h2>分析</h2>
+    <div id="analysisBody"></div>
+    <button class="ai-toggle-btn" onclick="toggleAiComment('analysisAiComment')">AIコメントを見る</button>
+    <div class="ai-section-comment" id="analysisAiComment"></div>
+  </div>
+
 </section>
 
 <section class="grid section-spacer" id="charts">
@@ -1072,6 +1141,7 @@ body.input-mode #inputPage{
         <option value="cash">現金・預金系</option>
         <option value="invest">投資系</option>
         <option value="retire">退職資産系</option>
+        <option value="realestate">不動産系</option>
         <option value="other">その他</option>
       </select>
     </div>
@@ -1110,9 +1180,9 @@ body.input-mode #inputPage{
 <script>
 const STORAGE_KEY = 'pfs-full-user-data-v16-fixed';
 
-const defaultCategories = [{"name":"預金","side":"asset","type":"cash"},{"name":"SP500","side":"asset","type":"invest"},{"name":"ロイヤルマイル","side":"asset","type":"invest"},{"name":"NASDAQ","side":"asset","type":"invest"},{"name":"インド","side":"asset","type":"invest"},{"name":"Fantom","side":"asset","type":"invest"},{"name":"Doge","side":"asset","type":"invest"},{"name":"Bitcoin","side":"asset","type":"invest"},{"name":"確定拠出年金","side":"asset","type":"retire"},{"name":"持株会","side":"asset","type":"invest"},{"name":"カード未払","side":"liability","type":"other"},{"name":"住宅ローン","side":"liability","type":"other"}];
+const defaultCategories = [{"name":"預金","side":"asset","type":"cash"},{"name":"SP500","side":"asset","type":"invest"},{"name":"ロイヤルマイル","side":"asset","type":"invest"},{"name":"NASDAQ","side":"asset","type":"invest"},{"name":"インド","side":"asset","type":"invest"},{"name":"Fantom","side":"asset","type":"invest"},{"name":"Doge","side":"asset","type":"invest"},{"name":"Bitcoin","side":"asset","type":"invest"},{"name":"確定拠出年金","side":"asset","type":"retire"},{"name":"持株会","side":"asset","type":"invest"},{"name":"不動産","side":"asset","type":"realestate"},{"name":"カード未払","side":"liability","type":"other"},{"name":"住宅ローン","side":"liability","type":"other"},{"name":"不動産ローン","side":"liability","type":"realestate"}];
 
-const defaultRecords = [{"month":"2025/02","values":{"預金":1031772,"SP500":539740,"ロイヤルマイル":0,"NASDAQ":0,"インド":0,"Fantom":0,"Doge":0,"Bitcoin":0,"確定拠出年金":2381258,"持株会":1020000,"カード未払":0,"住宅ローン":0}},{"month":"2025/03","values":{"預金":766642,"SP500":581992,"ロイヤルマイル":100000,"NASDAQ":0,"インド":0,"Fantom":0,"Doge":0,"Bitcoin":0,"確定拠出年金":2353960,"持株会":1105507,"カード未払":0,"住宅ローン":0}},{"month":"2025/04","values":{"預金":1018642,"SP500":561968,"ロイヤルマイル":378144,"NASDAQ":0,"インド":0,"Fantom":84984,"Doge":101073,"Bitcoin":0,"確定拠出年金":2151590,"持株会":917173,"カード未払":0,"住宅ローン":0}},{"month":"2025/05","values":{"預金":1138842,"SP500":667663,"ロイヤルマイル":451472,"NASDAQ":0,"インド":0,"Fantom":87825,"Doge":135245,"Bitcoin":11251,"確定拠出年金":2391475,"持株会":1013863,"カード未払":0,"住宅ローン":0}},{"month":"2025/06","values":{"預金":2294781,"SP500":758277,"ロイヤルマイル":469255,"NASDAQ":0,"インド":0,"Fantom":51494,"Doge":91174,"Bitcoin":20835,"確定拠出年金":2571980,"持株会":1133667,"カード未払":0,"住宅ローン":0}},{"month":"2025/07","values":{"預金":2099613,"SP500":801252,"ロイヤルマイル":486051,"NASDAQ":54769,"インド":53452,"Fantom":56566,"Doge":132167,"Bitcoin":33454,"確定拠出年金":2650382,"持株会":1249541,"カード未払":0,"住宅ローン":0}},{"month":"2025/08","values":{"預金":1621607,"SP500":814529,"ロイヤルマイル":485344,"NASDAQ":109193,"インド":107387,"Fantom":57761,"Doge":132430,"Bitcoin":42163,"確定拠出年金":2682218,"持株会":1367031,"カード未払":0,"住宅ローン":0}},{"month":"2025/09","values":{"預金":1297853,"SP500":848171,"ロイヤルマイル":529691,"NASDAQ":170699,"インド":157084,"Fantom":42170,"Doge":141744,"Bitcoin":52678,"確定拠出年金":2663772,"持株会":1443657,"カード未払":0,"住宅ローン":0}},{"month":"2025/10","values":{"預金":863193,"SP500":895989,"ロイヤルマイル":539224,"NASDAQ":237655,"インド":222166,"Fantom":33595,"Doge":121031,"Bitcoin":63649,"確定拠出年金":2915046,"持株会":1520610,"カード未払":0,"住宅ローン":0}},{"month":"2025/11","values":{"預金":621703,"SP500":888736,"ロイヤルマイル":520124,"NASDAQ":281719,"インド":282978,"Fantom":21710,"Doge":93180,"Bitcoin":59351,"確定拠出年金":2947246,"持株会":1650449,"カード未払":0,"住宅ローン":0}},{"month":"2025/12","values":{"預金":994119,"SP500":932443,"ロイヤルマイル":524962,"NASDAQ":349971,"インド":333954,"Fantom":0,"Doge":78032,"Bitcoin":67406,"確定拠出年金":2982991,"持株会":1975571,"カード未払":0,"住宅ローン":0}},{"month":"2026/01","values":{"預金":1117299,"SP500":0,"ロイヤルマイル":0,"NASDAQ":403268,"インド":372283,"Fantom":0,"Doge":76878,"Bitcoin":79540,"確定拠出年金":2878084,"持株会":2154255,"カード未払":0,"住宅ローン":0}},{"month":"2026/02","values":{"預金":1011660,"SP500":0,"ロイヤルマイル":0,"NASDAQ":435617,"インド":418854,"Fantom":0,"Doge":56357,"Bitcoin":64783,"確定拠出年金":2845990,"持株会":2372231,"カード未払":0,"住宅ローン":0}},{"month":"2026/03","values":{"預金":816387,"SP500":0,"ロイヤルマイル":0,"NASDAQ":487749,"インド":425933,"Fantom":0,"Doge":58770,"Bitcoin":82096,"確定拠出年金":2650389,"持株会":2151560,"カード未払":0,"住宅ローン":0}},{"month":"2026/04","values":{"預金":644667,"SP500":0,"ロイヤルマイル":0,"NASDAQ":605254,"インド":510791,"Fantom":0,"Doge":60549,"Bitcoin":102871,"確定拠出年金":2941357,"持株会":2291265,"カード未払":0,"住宅ローン":0}}];
+const defaultRecords = [{"month":"2025/02","values":{"預金":1031772,"SP500":539740,"ロイヤルマイル":0,"NASDAQ":0,"インド":0,"Fantom":0,"Doge":0,"Bitcoin":0,"確定拠出年金":2381258,"持株会":1020000,"カード未払":0,"住宅ローン":0,"不動産":0,"不動産ローン":0}},{"month":"2025/03","values":{"預金":766642,"SP500":581992,"ロイヤルマイル":100000,"NASDAQ":0,"インド":0,"Fantom":0,"Doge":0,"Bitcoin":0,"確定拠出年金":2353960,"持株会":1105507,"カード未払":0,"住宅ローン":0,"不動産":0,"不動産ローン":0}},{"month":"2025/04","values":{"預金":1018642,"SP500":561968,"ロイヤルマイル":378144,"NASDAQ":0,"インド":0,"Fantom":84984,"Doge":101073,"Bitcoin":0,"確定拠出年金":2151590,"持株会":917173,"カード未払":0,"住宅ローン":0,"不動産":0,"不動産ローン":0}},{"month":"2025/05","values":{"預金":1138842,"SP500":667663,"ロイヤルマイル":451472,"NASDAQ":0,"インド":0,"Fantom":87825,"Doge":135245,"Bitcoin":11251,"確定拠出年金":2391475,"持株会":1013863,"カード未払":0,"住宅ローン":0,"不動産":0,"不動産ローン":0}},{"month":"2025/06","values":{"預金":2294781,"SP500":758277,"ロイヤルマイル":469255,"NASDAQ":0,"インド":0,"Fantom":51494,"Doge":91174,"Bitcoin":20835,"確定拠出年金":2571980,"持株会":1133667,"カード未払":0,"住宅ローン":0,"不動産":0,"不動産ローン":0}},{"month":"2025/07","values":{"預金":2099613,"SP500":801252,"ロイヤルマイル":486051,"NASDAQ":54769,"インド":53452,"Fantom":56566,"Doge":132167,"Bitcoin":33454,"確定拠出年金":2650382,"持株会":1249541,"カード未払":0,"住宅ローン":0,"不動産":0,"不動産ローン":0}},{"month":"2025/08","values":{"預金":1621607,"SP500":814529,"ロイヤルマイル":485344,"NASDAQ":109193,"インド":107387,"Fantom":57761,"Doge":132430,"Bitcoin":42163,"確定拠出年金":2682218,"持株会":1367031,"カード未払":0,"住宅ローン":0,"不動産":0,"不動産ローン":0}},{"month":"2025/09","values":{"預金":1297853,"SP500":848171,"ロイヤルマイル":529691,"NASDAQ":170699,"インド":157084,"Fantom":42170,"Doge":141744,"Bitcoin":52678,"確定拠出年金":2663772,"持株会":1443657,"カード未払":0,"住宅ローン":0,"不動産":0,"不動産ローン":0}},{"month":"2025/10","values":{"預金":863193,"SP500":895989,"ロイヤルマイル":539224,"NASDAQ":237655,"インド":222166,"Fantom":33595,"Doge":121031,"Bitcoin":63649,"確定拠出年金":2915046,"持株会":1520610,"カード未払":0,"住宅ローン":0,"不動産":0,"不動産ローン":0}},{"month":"2025/11","values":{"預金":621703,"SP500":888736,"ロイヤルマイル":520124,"NASDAQ":281719,"インド":282978,"Fantom":21710,"Doge":93180,"Bitcoin":59351,"確定拠出年金":2947246,"持株会":1650449,"カード未払":0,"住宅ローン":0,"不動産":0,"不動産ローン":0}},{"month":"2025/12","values":{"預金":994119,"SP500":932443,"ロイヤルマイル":524962,"NASDAQ":349971,"インド":333954,"Fantom":0,"Doge":78032,"Bitcoin":67406,"確定拠出年金":2982991,"持株会":1975571,"カード未払":0,"住宅ローン":0,"不動産":0,"不動産ローン":0}},{"month":"2026/01","values":{"預金":1117299,"SP500":0,"ロイヤルマイル":0,"NASDAQ":403268,"インド":372283,"Fantom":0,"Doge":76878,"Bitcoin":79540,"確定拠出年金":2878084,"持株会":2154255,"カード未払":0,"住宅ローン":0,"不動産":0,"不動産ローン":0}},{"month":"2026/02","values":{"預金":1011660,"SP500":0,"ロイヤルマイル":0,"NASDAQ":435617,"インド":418854,"Fantom":0,"Doge":56357,"Bitcoin":64783,"確定拠出年金":2845990,"持株会":2372231,"カード未払":0,"住宅ローン":0,"不動産":0,"不動産ローン":0}},{"month":"2026/03","values":{"預金":816387,"SP500":0,"ロイヤルマイル":0,"NASDAQ":487749,"インド":425933,"Fantom":0,"Doge":58770,"Bitcoin":82096,"確定拠出年金":2650389,"持株会":2151560,"カード未払":0,"住宅ローン":0,"不動産":0,"不動産ローン":0}},{"month":"2026/04","values":{"預金":644667,"SP500":0,"ロイヤルマイル":0,"NASDAQ":605254,"インド":510791,"Fantom":0,"Doge":60549,"Bitcoin":102871,"確定拠出年金":2941357,"持株会":2291265,"カード未払":0,"住宅ローン":0,"不動産":0,"不動産ローン":0}}];
 
 const benchmarkData2025 = {
   single:{
@@ -1134,7 +1204,7 @@ const benchmarkData2025 = {
 };
 
 const sideNames = {asset:'資産', liability:'負債'};
-const typeNames = {cash:'現金・預金系', invest:'投資系', retire:'退職資産系', other:'その他'};
+const typeNames = {cash:'現金・預金系', invest:'投資系', retire:'退職資産系', realestate:'不動産系', other:'その他'};
 const colors = ['#b9935a','#477cff','#2f8f66','#8b6cf6','#22b8cf','#f59f00','#c25b5b','#7c8594','#12b886','#e64980','#845ef7','#15aabf'];
 
 let categories = [];
@@ -1351,8 +1421,8 @@ function formatChangeOneLine(amount, rate){
   const cls = amount >= 0 ? 'pos' : 'neg';
   const sign = amount >= 0 ? '+' : '−';
   const absAmount = yen(Math.abs(amount));
-  const rateText = rate === null || rate === undefined ? '' : `（${amount >= 0 ? '+' : '−'}${Math.abs(rate).toFixed(1)}%）`;
-  return `<span class="${cls} kpi-one-line">${sign}${absAmount} ${rateText}</span>`;
+  const rateText = rate === null || rate === undefined ? '' : `${amount >= 0 ? '+' : '−'}${Math.abs(rate).toFixed(1)}%`;
+  return `<span class="${cls}"><span class="kpi-change-main">${sign}${absAmount}</span>${rateText ? `<span class="kpi-change-rate">（${rateText}）</span>` : ''}</span>`;
 }
 
 function medalInfo(topPercent){
@@ -1531,6 +1601,7 @@ function render(){
     renderBenchmark();
     renderStatement();
     renderStatementAiComment();
+    renderAnalysis();
     renderPlanStatement();
     setStatus('Ready');
   });
@@ -2003,6 +2074,86 @@ function setStatementView(view){
   renderStatement();
   renderStatementAiComment();
 }
+
+function monthlyChangeFor(record, monthsBack=1){
+  if(!record) return 0;
+  const prev = recordByMonth(addMonths(record.month, -monthsBack));
+  if(!prev) return 0;
+  return netAssetOf(record) - netAssetOf(prev);
+}
+
+function totalDebtOf(record){
+  if(!record) return 0;
+  return categories.filter(c=>c.side === 'liability').reduce((s,c)=>s + Number(record.values[c.name]||0),0);
+}
+
+function interestBearingDebtOf(record){
+  if(!record) return 0;
+  return categories.filter(c=>{
+    const n = c.name || '';
+    return c.side === 'liability' && (n.includes('ローン') || n.includes('借入') || n.includes('融資'));
+  }).reduce((s,c)=>s + Number(record.values[c.name]||0),0);
+}
+
+function investedCapitalOf(record){
+  return netAssetOf(record) + interestBearingDebtOf(record);
+}
+
+function renderAnalysis(){
+  const body = document.getElementById('analysisBody');
+  if(!body) return;
+
+  const latest = latestRecord();
+  const prev = records[records.length-2];
+  const assets = assetTotalOf(latest);
+  const net = netAssetOf(latest);
+  const debt = totalDebtOf(latest);
+  const ibDebt = interestBearingDebtOf(latest);
+  const investedCapital = investedCapitalOf(latest);
+
+  const monthlyProfit = prev ? net - netAssetOf(prev) : 0;
+  const roe = net ? monthlyProfit / net * 100 : 0;
+  const roa = assets ? monthlyProfit / assets * 100 : 0;
+  const roic = investedCapital ? monthlyProfit / investedCapital * 100 : 0;
+  const equityRatio = assets ? net / assets * 100 : 0;
+
+  body.innerHTML = `
+    <div class="analysis-grid">
+      <div class="analysis-card"><small>ROE（月次）</small><b class="${roe>=0?'pos':'neg'}">${roe.toFixed(1)}%</b></div>
+      <div class="analysis-card"><small>ROIC（月次）</small><b class="${roic>=0?'pos':'neg'}">${roic.toFixed(1)}%</b></div>
+      <div class="analysis-card"><small>ROA（月次）</small><b class="${roa>=0?'pos':'neg'}">${roa.toFixed(1)}%</b></div>
+      <div class="analysis-card"><small>自己資本比率</small><b>${equityRatio.toFixed(1)}%</b></div>
+      <div class="analysis-card"><small>有利子負債残高</small><b>${yen(ibDebt)}</b></div>
+      <div class="analysis-card"><small>月次純資産増減</small><b class="${monthlyProfit>=0?'pos':'neg'}">${monthlyProfit>=0?'+':'−'}${yen(Math.abs(monthlyProfit))}</b></div>
+    </div>
+    <div class="analysis-note">
+      注：ここでのROE/ROIC/ROAは、企業会計上の利益ではなく「前月からの純資産増減」を便宜的な月次利益として算出しています。個人決算上の目安指標です。
+    </div>
+  `;
+
+  renderAnalysisAiComment({roe,roic,roa,equityRatio,ibDebt,monthlyProfit,assets,net});
+}
+
+function renderAnalysisAiComment(data){
+  const el = document.getElementById('analysisAiComment');
+  if(!el) return;
+  const good = data.monthlyProfit >= 0
+    ? `今月は純資産が <b class="pos">+${yen(data.monthlyProfit)}</b> 増加しており、月次ROEも <b>${data.roe.toFixed(1)}%</b> とプラスです。`
+    : `今月は純資産が <b class="neg">−${yen(Math.abs(data.monthlyProfit))}</b> 減少しており、要因分解が必要です。`;
+  const caution = data.equityRatio >= 90
+    ? `自己資本比率は <b>${data.equityRatio.toFixed(1)}%</b> と高く、財務安全性は非常に強い状態です。`
+    : `自己資本比率は <b>${data.equityRatio.toFixed(1)}%</b> です。負債を使う場合は返済負担と資産成長のバランスを確認しましょう。`;
+  const debtMsg = data.ibDebt === 0
+    ? `有利子負債はありません。今後、不動産やローンを入れる場合はROICと自己資本比率の変化を確認しましょう。`
+    : `有利子負債残高は <b>${yen(data.ibDebt)}</b> です。資産利回りが借入コストを上回っているかが重要です。`;
+
+  el.innerHTML = `<b>AIコメント</b><ul>
+    <li><span class="ai-badge">良い点</span>${good}</li>
+    <li><span class="ai-badge">注意点</span>${caution}</li>
+    <li><span class="ai-badge">次にやること</span>${debtMsg}</li>
+  </ul>`;
+}
+
 function renderStatement(){
   const latest = latestRecord();
   const body = document.getElementById('statementBody');
@@ -2302,213 +2453,4 @@ function savePlanSettings(){
     annualBonus:rawNumber(document.getElementById('planBonus')?.value || planSettings.annualBonus || 0)
   };
 
-  const nextDeposits = {};
-  document.querySelectorAll('[data-deposit-category]').forEach(input=>{
-    nextDeposits[input.dataset.depositCategory] = rawNumber(input.value);
-  });
-  planDeposits = nextDeposits;
-
-  if(!planSettings.target || planSettings.target < 0) planSettings.target = 0;
-  if(!planSettings.years || planSettings.years <= 0) planSettings.years = 1;
-
-  saveState();
-  showToast('中期資産計画を更新しました');
-  renderPlanStatement();
-}
-
-function exportMonthlyPdf(){
-  showPage('dashboard');
-  setTimeout(()=>window.print(),150);
-}
-
-function prepareNextMonth(){
-  const next = addMonths(latestRecord().month,1);
-  document.getElementById('monthInput').value = next;
-  document.getElementById('recordSelector').value = latestRecord().month;
-  renderCategoryInputs();
-  clearCurrentInputs();
-  showToast('次月決算を空欄で作成しました');
-}
-function clearCurrentInputs(){ document.querySelectorAll('.amount-input').forEach(input=>input.value=''); }
-function copyPreviousToCurrent(){
-  const month = selectedInputMonth();
-  const prev = recordByMonth(addMonths(month,-1));
-  if(!prev){ showToast('前月決算がありません'); return; }
-  document.querySelectorAll('.amount-input').forEach(input=>{
-    input.value = formatNumber(prev.values[input.dataset.category] || 0);
-  });
-  showToast('前月決算の数字をコピーしました');
-}
-function loadSelectedRecord(){
-  const month = document.getElementById('recordSelector').value;
-  document.getElementById('monthInput').value = month;
-  renderCategoryInputs();
-}
-function saveMonth(){
-  safeRun('saveMonth', ()=>{
-    const month = selectedInputMonth();
-    if(!/^\d{4}\/\d{2}$/.test(month)){
-      alert('対象月は 2026/05 の形式で入力してください');
-      return;
-    }
-    const values = {};
-    document.querySelectorAll('.amount-input').forEach(input=>{
-      values[input.dataset.category] = rawNumber(input.value);
-    });
-    const existing = recordByMonth(month);
-    if(existing) existing.values = values;
-    else records.push({month,values});
-    normalizeRecords();
-    saveState();
-    showToast('月次決算を確定しました');
-    render();
-    showPage('dashboard');
-  });
-}
-function addCategory(){
-  const name = document.getElementById('newCategoryName').value.trim();
-  const side = document.getElementById('newCategorySide').value;
-  const type = document.getElementById('newCategoryType').value;
-  if(!name){ alert('勘定科目名を入力してください'); return; }
-  if(categories.some(c=>c.name === name)){ alert('同じ勘定科目があります'); return; }
-  categories.push({name,side,type});
-  records.forEach(r=>{ if(r.values[name] === undefined) r.values[name] = 0; });
-  document.getElementById('newCategoryName').value = '';
-  normalizeRecords();
-  saveState();
-  showToast('勘定科目を追加しました');
-  render();
-}
-function renameCategory(oldName){
-  const current = categories.find(c=>c.name===oldName);
-  if(!current) return;
-  const newName = prompt('新しい勘定科目名を入力してください', oldName);
-  if(!newName || newName === oldName) return;
-  if(categories.some(c=>c.name === newName)){ alert('同じ勘定科目があります'); return; }
-  current.name = newName;
-  records.forEach(r=>{
-    r.values[newName] = r.values[oldName] || 0;
-    delete r.values[oldName];
-  });
-  normalizeRecords();
-  saveState();
-  showToast('勘定科目名を変更しました');
-  render();
-}
-function deleteCategory(name){
-  if(!confirm(name + ' を削除しますか？')) return;
-  categories = categories.filter(c=>c.name !== name);
-  records.forEach(r=>delete r.values[name]);
-  normalizeRecords();
-  saveState();
-  showToast('勘定科目を削除しました');
-  render();
-}
-function moveCategory(index,delta){
-  const next = index + delta;
-  if(next < 0 || next >= categories.length) return;
-  const temp = categories[index];
-  categories[index] = categories[next];
-  categories[next] = temp;
-  saveState();
-  render();
-}
-function exportJSON(){
-  const data = JSON.stringify({categories,records,benchmarkSettings,planSettings,planDeposits},null,2);
-  const blob = new Blob([data],{type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'personal-financial-statement-backup.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-function importJSON(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e=>{
-    try{
-      const data = JSON.parse(e.target.result);
-      if(!Array.isArray(data.categories) || !Array.isArray(data.records)) throw new Error('invalid');
-      categories = data.categories.map(normalizeCategory);
-      records = data.records;
-      if(data.benchmarkSettings) benchmarkSettings = {...benchmarkSettings, ...data.benchmarkSettings};
-      if(data.planSettings) planSettings = {...planSettings, ...data.planSettings};
-      if(data.planDeposits) planDeposits = {...planDeposits, ...data.planDeposits};
-      normalizeRecords();
-      saveState();
-      showToast('データを復元しました');
-      render();
-    }catch(err){
-      alert('読み込めないファイルです');
-    }
-  };
-  reader.readAsText(file);
-}
-
-function loadDemoData(){
-  categories = clone(defaultCategories);
-  records = clone(defaultRecords);
-  planDeposits = {NASDAQ:52500,インド:52500,Bitcoin:10000,確定拠出年金:54200,持株会:55000};
-  normalizeRecords();
-  saveState();
-  showToast('デモデータを読み込みました');
-  render();
-}
-
-function resetAll(){
-  if(!confirm('初期データに戻しますか？')) return;
-  categories = clone(defaultCategories);
-  records = clone(defaultRecords);
-  benchmarkSettings = {age:27, household:'couple', basis:'median', target:'assets'};
-  planSettings = {target:30000000, years:5, annualReturn:3, annualBonus:0};
-  planDeposits = {NASDAQ:52500,インド:52500,Bitcoin:10000,確定拠出年金:54200,持株会:55000};
-  normalizeRecords();
-  saveState();
-  showToast('初期データに戻しました');
-  render();
-}
-
-function startLatestMonthInput(){
-  const latest = latestRecord();
-  document.getElementById('monthInput').value = latest.month;
-  loadSelectedRecord();
-  showPage('input');
-}
-
-function showPage(page){
-  const dashboard = document.getElementById('dashboardPage');
-  const input = document.getElementById('inputPage');
-  const dashBtn = document.getElementById('showDashboardBtn');
-  const inputBtn = document.getElementById('showInputBtn');
-
-  if(page === 'input'){
-    document.body.classList.add('input-mode');
-    if(dashboard) dashboard.classList.add('hidden');
-    if(input) input.classList.remove('hidden');
-    if(dashBtn) dashBtn.classList.remove('active');
-    if(inputBtn) inputBtn.classList.add('active');
-  }else{
-    document.body.classList.remove('input-mode');
-    if(dashboard) dashboard.classList.remove('hidden');
-    if(input) input.classList.add('hidden');
-    if(dashBtn) dashBtn.classList.add('active');
-    if(inputBtn) inputBtn.classList.remove('active');
-    setTimeout(safeRenderCharts,50);
-  }
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-const monthInputListenerEl = document.getElementById('monthInput'); if(monthInputListenerEl) monthInputListenerEl.addEventListener('change', renderCategoryInputs);
-
-loadState();
-ensureDemoData();
-
-const monthInputEl = document.getElementById('monthInput');
-if(monthInputEl) monthInputEl.value = latestRecord().month;
-
-render();
-</script>
-</body>
-</html>
+  const nextDepos
