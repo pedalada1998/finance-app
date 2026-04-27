@@ -1397,6 +1397,43 @@ body.input-mode #inputPage{
   }
 }
 
+
+/* v28 statement BS chart + input persistence */
+.statement-bs-chart-card{
+  margin:0 0 14px;
+  padding:16px;
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 10% 0%,rgba(37,99,235,.10),transparent 32%),
+    linear-gradient(135deg,#f8fafc,#ffffff);
+  border:1px solid rgba(15,23,42,.08);
+  box-shadow:0 14px 38px rgba(15,23,42,.06);
+}
+.statement-bs-chart-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+}
+.statement-bs-chart-head b{
+  font-size:15px;
+  letter-spacing:-.02em;
+}
+.statement-bs-chart-head span{
+  font-size:11px;
+  color:#64748b;
+  font-weight:900;
+}
+.statement-bs-chart-card canvas{
+  height:280px!important;
+  max-height:280px!important;
+}
+.hero-dashboard-charts{
+  grid-template-columns:1fr!important;
+}
+.hero-copy{display:none!important}
+
 </style>
 </head>
 <body>
@@ -1420,11 +1457,6 @@ body.input-mode #inputPage{
 
   <div class="closing-badge" id="closingMonthBadge">-</div>
 
-  <div class="hero-copy">
-    <h2>あなたという会社の、<br>月次決算。</h2>
-    <p>資産・負債・純資産を毎月3分で見える化する、個人のためのBS管理ツール。</p>
-  </div>
-
   <span class="total-label" id="netAssetLabel">NET ASSETS</span>
   <div class="total-line">
     <strong class="total" id="netAssetDisplay">¥0</strong>
@@ -1444,10 +1476,6 @@ body.input-mode #inputPage{
     <div class="hero-chart-card">
       <h3>NET ASSET TREND / 詳細推移</h3>
       <canvas id="heroTrendChart"></canvas>
-    </div>
-    <div class="hero-chart-card bs-detail">
-      <h3>BS SNAPSHOT / 詳細BS</h3>
-      <canvas id="heroBsChart"></canvas>
     </div>
   </div>
 
@@ -1689,7 +1717,7 @@ body.input-mode #inputPage{
 <div id="toast" class="toast">保存しました</div>
 
 <script>
-const STORAGE_KEY = 'pfs-v27-force-visible-6156754';
+const STORAGE_KEY = 'pfs-v28-bs-statement-input-fixed';
 
 const defaultCategories = [{"name":"預金","side":"asset","type":"cash"},{"name":"SP500","side":"asset","type":"invest"},{"name":"ロイヤルマイル","side":"asset","type":"invest"},{"name":"NASDAQ","side":"asset","type":"invest"},{"name":"インド","side":"asset","type":"invest"},{"name":"Fantom","side":"asset","type":"invest"},{"name":"Doge","side":"asset","type":"invest"},{"name":"Bitcoin","side":"asset","type":"invest"},{"name":"確定拠出年金","side":"asset","type":"retire"},{"name":"持株会","side":"asset","type":"invest"},{"name":"不動産","side":"asset","type":"realestate"},{"name":"借入金","side":"liability","type":"other"},{"name":"カード未払","side":"liability","type":"other"},{"name":"住宅ローン","side":"liability","type":"other"},{"name":"不動産ローン","side":"liability","type":"realestate"}];
 
@@ -1728,6 +1756,7 @@ let trendChart = null;
 let allocationChart = null;
 let heroTrendChart = null;
 let heroBsChart = null;
+let statementBsChart = null;
 
 let planChart = null;
 
@@ -1791,21 +1820,44 @@ function normalizeRecords(){
 }
 
 function loadState(){
-  forceDefaultData();
-  saveState();
-}
-
-
-function forceDefaultData(){
   const demoDeposits = {NASDAQ:52500,インド:52500,Bitcoin:10000,確定拠出年金:54200,持株会:55000};
-  categories = clone(defaultCategories);
-  records = clone(defaultRecords);
-  planDeposits = {...demoDeposits};
-  normalizeRecords();
-}
 
-function ensureDemoData(){
-  forceDefaultData();
+  try{
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if(
+      saved &&
+      Array.isArray(saved.categories) &&
+      saved.categories.length > 0 &&
+      Array.isArray(saved.records) &&
+      saved.records.length > 0
+    ){
+      categories = clone(saved.categories);
+      records = clone(saved.records);
+      if(saved.benchmarkSettings) benchmarkSettings = {...benchmarkSettings, ...saved.benchmarkSettings};
+      if(saved.planSettings) planSettings = {...planSettings, ...saved.planSettings};
+      if(saved.planDeposits) planDeposits = {...planDeposits, ...saved.planDeposits};
+    }else{
+      categories = clone(defaultCategories);
+      records = clone(defaultRecords);
+      planDeposits = {...demoDeposits};
+    }
+  }catch(e){
+    categories = clone(defaultCategories);
+    records = clone(defaultRecords);
+    planDeposits = {...demoDeposits};
+  }
+
+  normalizeRecords();
+
+  // 保存データが空・0円だけの場合のみ初期データへ戻す
+  if(!records.length || !categories.length || netAssetOf(latestRecord()) === 0){
+    categories = clone(defaultCategories);
+    records = clone(defaultRecords);
+    planDeposits = {...demoDeposits};
+    normalizeRecords();
+  }
+
+  saveState();
 }
 
 function saveState(){
@@ -2014,7 +2066,7 @@ function renderBenchmarkAiComment(compareValue, stat, topPercent, basisName){
 
 function render(){
   safeRun('render', ()=>{
-    forceDefaultData();
+    ensureDemoData();
     normalizeRecords();
 
     const latest = latestRecord();
@@ -2270,8 +2322,7 @@ function safeRenderCharts(){
 
 function renderHeroCharts(){
   const trendCanvas = document.getElementById('heroTrendChart');
-  const bsCanvas = document.getElementById('heroBsChart');
-  if(typeof Chart === 'undefined' || !trendCanvas || !bsCanvas || !records.length) return;
+  if(typeof Chart === 'undefined' || !trendCanvas || !records.length) return;
 
   const latest = latestRecord();
   const filtered = records.slice(-12);
@@ -2279,7 +2330,6 @@ function renderHeroCharts(){
   const range = chartRange(values);
 
   if(heroTrendChart) heroTrendChart.destroy();
-  if(heroBsChart) heroBsChart.destroy();
 
   heroTrendChart = new Chart(trendCanvas,{
     type:'line',
@@ -2308,35 +2358,6 @@ function renderHeroCharts(){
       scales:{
         x:{grid:{display:false},ticks:{color:'rgba(255,255,255,.72)',maxTicksLimit:6}},
         y:{suggestedMin:range.min,suggestedMax:range.max,grid:{color:'rgba(255,255,255,.08)'},ticks:{color:'rgba(255,255,255,.72)',callback:v=>axisTickFormatter(v)}}
-      }
-    }
-  });
-
-  const assets = assetTotalOf(latest);
-  const liabilities = liabilityTotalOf(latest);
-  const net = netAssetOf(latest);
-  const maxSide = Math.max(assets, liabilities + Math.max(net,0), 1);
-
-  heroBsChart = new Chart(bsCanvas,{
-    type:'bar',
-    data:{
-      labels:['資産', '負債＋純資産'],
-      datasets:[
-        {label:'資産', data:[assets,0], backgroundColor:'#38bdf8', borderRadius:12},
-        {label:'負債', data:[0,liabilities], backgroundColor:'#ef4444', borderRadius:12},
-        {label:'純資産', data:[0,Math.max(net,0)], backgroundColor:'#10b981', borderRadius:12}
-      ]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{position:'bottom',labels:{color:'rgba(255,255,255,.78)',usePointStyle:true,boxWidth:8,padding:14}},
-        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${yen(ctx.raw)}`}}
-      },
-      scales:{
-        x:{stacked:true,ticks:{color:'rgba(255,255,255,.75)'},grid:{display:false}},
-        y:{stacked:true,suggestedMax:maxSide*1.15,grid:{color:'rgba(255,255,255,.08)'},ticks:{color:'rgba(255,255,255,.72)',callback:v=>axisTickFormatter(v)}}
       }
     }
   });
@@ -2798,6 +2819,45 @@ function renderAnalysisAiComment(data){
   </ul>`;
 }
 
+
+function renderStatementBsChart(){
+  const canvas = document.getElementById('statementBsChart');
+  if(!canvas || typeof Chart === 'undefined') return;
+
+  const latest = latestRecord();
+  const assets = assetTotalOf(latest);
+  const liabilities = liabilityTotalOf(latest);
+  const net = netAssetOf(latest);
+  const maxSide = Math.max(assets, liabilities + Math.max(net,0), 1);
+
+  if(statementBsChart) statementBsChart.destroy();
+
+  statementBsChart = new Chart(canvas,{
+    type:'bar',
+    data:{
+      labels:['資産', '負債＋純資産'],
+      datasets:[
+        {label:'資産', data:[assets,0], backgroundColor:'#38bdf8', borderRadius:14, barThickness:74},
+        {label:'負債', data:[0,liabilities], backgroundColor:'#ef4444', borderRadius:14, barThickness:74},
+        {label:'純資産', data:[0,Math.max(net,0)], backgroundColor:'#10b981', borderRadius:14, barThickness:74}
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:16}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${yen(ctx.raw)}`}}
+      },
+      scales:{
+        x:{stacked:true,grid:{display:false},ticks:{font:{weight:'700'}}},
+        y:{stacked:true,suggestedMax:maxSide*1.15,grid:{color:'rgba(15,23,42,.07)'},ticks:{callback:v=>axisTickFormatter(v)}}
+      }
+    }
+  });
+}
+
+
 function renderStatement(){
   const latest = latestRecord();
   const body = document.getElementById('statementBody');
@@ -2839,6 +2899,13 @@ function renderStatement(){
   const diff = assets - rightTotal;
 
   body.innerHTML = `
+    <div class="statement-bs-chart-card">
+      <div class="statement-bs-chart-head">
+        <b>BS構成チャート</b>
+        <span>資産 ＝ 負債 ＋ 純資産</span>
+      </div>
+      <canvas id="statementBsChart"></canvas>
+    </div>
     <div class="bs-sheet">
       <div class="bs-column">
         <div class="bs-column-header asset"><span>資産</span><span>${yen(assets)}</span></div>
@@ -3145,13 +3212,22 @@ function saveMonth(){
       alert('対象月は 2026/05 の形式で入力してください');
       return;
     }
-    const values = {};
+
+    const existing = recordByMonth(month);
+    const values = existing ? {...existing.values} : {};
+
+    // 全カテゴリを必ず持たせる
+    categories.forEach(c=>{
+      if(values[c.name] === undefined) values[c.name] = 0;
+    });
+
     document.querySelectorAll('.amount-input').forEach(input=>{
       values[input.dataset.category] = rawNumber(input.value);
     });
-    const existing = recordByMonth(month);
+
     if(existing) existing.values = values;
     else records.push({month,values});
+
     normalizeRecords();
     saveState();
     showToast('月次決算を確定しました');
@@ -3297,7 +3373,6 @@ function showPage(page){
 const monthInputListenerEl = document.getElementById('monthInput'); if(monthInputListenerEl) monthInputListenerEl.addEventListener('change', renderCategoryInputs);
 
 loadState();
-forceDefaultData();
 
 const monthInputEl = document.getElementById('monthInput');
 if(monthInputEl) monthInputEl.value = latestRecord().month;
