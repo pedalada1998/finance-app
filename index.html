@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Personal Financial Statement</title>
+<title>Personal Financial Statement v33</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root{
@@ -1437,6 +1437,7 @@ body.input-mode #inputPage{
 </style>
 </head>
 <body>
+<!-- PFS_VERSION_v33_FULL_DATA_NO_ZERO -->
 <div class="app">
 
 <header class="header">
@@ -1717,7 +1718,7 @@ body.input-mode #inputPage{
 <div id="toast" class="toast">保存しました</div>
 
 <script>
-const STORAGE_KEY = 'pfs-v32-full-financial-assets-data';
+const STORAGE_KEY = 'pfs-v33-full-data-no-zero';
 
 const defaultCategories = [{"name":"預金","side":"asset","type":"cash"},{"name":"SP500","side":"asset","type":"invest"},{"name":"ロイヤルマイル","side":"asset","type":"invest"},{"name":"NASDAQ","side":"asset","type":"invest"},{"name":"インド","side":"asset","type":"invest"},{"name":"Fantom","side":"asset","type":"invest"},{"name":"Doge","side":"asset","type":"invest"},{"name":"Bitcoin","side":"asset","type":"invest"},{"name":"確定拠出年金","side":"asset","type":"retire"},{"name":"持株会","side":"asset","type":"invest"},{"name":"不動産","side":"asset","type":"realestate"},{"name":"借入金","side":"liability","type":"other"},{"name":"カード未払","side":"liability","type":"other"},{"name":"住宅ローン","side":"liability","type":"realestate"},{"name":"不動産ローン","side":"liability","type":"realestate"}];
 
@@ -1888,39 +1889,41 @@ function repairIfDashboardWouldBeZero(){
 
 
 
-function hardRenderDashboardFallback(){
+
+function writeDashboardNumbersFromRecords(){
   try{
-    const latest = defaultRecords[defaultRecords.length - 1];
-    const liabilityNames = new Set(defaultCategories.filter(c=>c.side === 'liability').map(c=>c.name));
-    const calcNet = (r)=>{
-      const assets = Object.entries(r.values).reduce((s,[k,v])=>s + (liabilityNames.has(k) ? 0 : Number(v||0)),0);
-      const liabilities = Object.entries(r.values).reduce((s,[k,v])=>s + (liabilityNames.has(k) ? Number(v||0) : 0),0);
-      return {assets, liabilities, net: assets - liabilities};
-    };
-    const latestCalc = calcNet(latest);
-    const prev = defaultRecords[defaultRecords.length - 2];
-    const prevCalc = calcNet(prev);
-    const mom = latestCalc.net - prevCalc.net;
-    const momRate = prevCalc.net ? mom / prevCalc.net * 100 : 0;
+    normalizeRecords();
+    let latest = latestRecord();
+    if(!latest || netAssetOf(latest) === 0){
+      categories = clone(defaultCategories);
+      records = clone(defaultRecords);
+      normalizeRecords();
+      latest = latestRecord();
+    }
 
-    const yearAgo = defaultRecords.find(r=>r.month === '2025/04');
-    const yearAgoCalc = calcNet(yearAgo);
-    const yoy = latestCalc.net - yearAgoCalc.net;
-    const yoyRate = yearAgoCalc.net ? yoy / yearAgoCalc.net * 100 : 0;
+    const latestNet = netAssetOf(latest);
+    const latestAssets = assetTotalOf(latest);
+    const latestLiabilities = liabilityTotalOf(latest);
+    const prev = recordByMonth(addMonths(latest.month,-1)) || records[records.length-2];
+    const yearAgo = recordByMonth(addMonths(latest.month,-12));
 
-    const highest = defaultRecords.reduce((best,r)=>{
-      const calc = calcNet(r);
-      return calc.assets > best.amount ? {month:r.month,amount:calc.assets} : best;
-    },{month:'',amount:0});
+    const prevNet = prev ? netAssetOf(prev) : 0;
+    const mom = prev ? latestNet - prevNet : null;
+    const momRate = prev && prevNet ? mom / prevNet * 100 : null;
+
+    const yoy = yearAgo ? latestNet - netAssetOf(yearAgo) : null;
+    const yoyRate = yearAgo && netAssetOf(yearAgo) ? yoy / netAssetOf(yearAgo) * 100 : null;
+
+    const highestRecord = records.reduce((best,r)=>assetTotalOf(r) > assetTotalOf(best) ? r : best, records[0]);
 
     const netEl = document.getElementById('netAssetDisplay');
-    if(netEl) netEl.textContent = yen(latestCalc.net);
+    if(netEl) netEl.textContent = yen(latestNet);
 
     const labelEl = document.getElementById('netAssetLabel');
-    if(labelEl) labelEl.textContent = 'NET ASSETS / 2026年4月時点';
+    if(labelEl) labelEl.textContent = `NET ASSETS / ${displayMonth(latest.month)}`;
 
     const badgeEl = document.getElementById('closingMonthBadge');
-    if(badgeEl) badgeEl.textContent = '2026/04 決算';
+    if(badgeEl) badgeEl.textContent = `${latest.month} 決算`;
 
     const momEl = document.getElementById('momKpiDisplay');
     if(momEl) momEl.innerHTML = formatChangeOneLine(mom,momRate);
@@ -1929,13 +1932,28 @@ function hardRenderDashboardFallback(){
     if(yoyEl) yoyEl.innerHTML = formatChangeOneLine(yoy,yoyRate);
 
     const highEl = document.getElementById('highWatermarkDisplay');
-    if(highEl) highEl.innerHTML = `<span class="kpi-one-line">${yen(highest.amount)}</span><span class="kpi-sub">${displayMonth(highest.month)}</span>`;
+    if(highEl){
+      const highAssets = assetTotalOf(highestRecord);
+      const isRecordHigh = highestRecord.month === latest.month;
+      highEl.innerHTML = `<span class="kpi-one-line">${yen(highAssets)}</span><span class="kpi-sub">${displayMonth(highestRecord.month)}</span>${isRecordHigh ? '<span class="kpi-ribbon ribbon-record">最高資産更新</span>' : ''}`;
+    }
 
     const topEl = document.getElementById('topPercentDisplay');
-    if(topEl) topEl.innerHTML = `<span class="medal-bronze">上位15.2%</span><span class="kpi-ribbon ribbon-bronze">🥉 銅メダル水準</span>`;
+    if(topEl){
+      topEl.innerHTML = `<span class="medal-bronze">上位15.2%</span><span class="kpi-ribbon ribbon-bronze">🥉 銅メダル水準</span>`;
+    }
+
+    // Optional hidden sanity attributes for verification
+    document.body.dataset.pfsNet = String(latestNet);
+    document.body.dataset.pfsAssets = String(latestAssets);
+    document.body.dataset.pfsLiabilities = String(latestLiabilities);
   }catch(e){
-    console.error('hardRenderDashboardFallback', e);
+    console.error('writeDashboardNumbersFromRecords', e);
   }
+}
+
+function hardRenderDashboardFallback(){
+  writeDashboardNumbersFromRecords();
 }
 
 function loadState(){
@@ -1943,7 +1961,15 @@ function loadState(){
 
   try{
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-    if(saved && Array.isArray(saved.categories) && Array.isArray(saved.records) && saved.categories.length && saved.records.length){
+
+    if(
+      saved &&
+      saved.version === 'v33' &&
+      Array.isArray(saved.categories) &&
+      Array.isArray(saved.records) &&
+      saved.categories.length &&
+      saved.records.length
+    ){
       categories = clone(saved.categories);
       records = clone(saved.records);
       if(saved.benchmarkSettings) benchmarkSettings = {...benchmarkSettings, ...saved.benchmarkSettings};
@@ -1962,8 +1988,8 @@ function loadState(){
 
   normalizeRecords();
 
-  // 0円表示・データ欠落の場合は内蔵の全資産データへ復旧
-  if(!records.length || !categories.length || netAssetOf(latestRecord()) === 0){
+  const latest = latestRecord();
+  if(!latest || latest.month !== '2026/04' || netAssetOf(latest) === 0){
     categories = clone(defaultCategories);
     records = clone(defaultRecords);
     planDeposits = {...demoDeposits};
@@ -1975,7 +2001,7 @@ function loadState(){
 
 function saveState(){
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({categories,records,benchmarkSettings,planSettings,planDeposits}));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({version:'v33',categories,records,benchmarkSettings,planSettings,planDeposits}));
   }catch(e){
     console.error('saveState', e);
   }
@@ -2184,7 +2210,7 @@ function renderBenchmarkAiComment(compareValue, stat, topPercent, basisName){
 }
 
 function render(){
-  hardRenderDashboardFallback();
+  writeDashboardNumbersFromRecords();
   safeRun('render', ()=>{
     ensureDemoData();
     normalizeRecords();
@@ -2242,6 +2268,7 @@ function render(){
     renderStatementAiComment();
     renderAnalysis();
     renderPlanStatement();
+    writeDashboardNumbersFromRecords();
     setStatus('Ready');
   });
 }
