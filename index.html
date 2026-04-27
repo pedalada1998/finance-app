@@ -1717,7 +1717,7 @@ body.input-mode #inputPage{
 <div id="toast" class="toast">保存しました</div>
 
 <script>
-const STORAGE_KEY = 'pfs-v28-bs-statement-input-fixed';
+const STORAGE_KEY = 'pfs-v29-visible-and-persistent';
 
 const defaultCategories = [{"name":"預金","side":"asset","type":"cash"},{"name":"SP500","side":"asset","type":"invest"},{"name":"ロイヤルマイル","side":"asset","type":"invest"},{"name":"NASDAQ","side":"asset","type":"invest"},{"name":"インド","side":"asset","type":"invest"},{"name":"Fantom","side":"asset","type":"invest"},{"name":"Doge","side":"asset","type":"invest"},{"name":"Bitcoin","side":"asset","type":"invest"},{"name":"確定拠出年金","side":"asset","type":"retire"},{"name":"持株会","side":"asset","type":"invest"},{"name":"不動産","side":"asset","type":"realestate"},{"name":"借入金","side":"liability","type":"other"},{"name":"カード未払","side":"liability","type":"other"},{"name":"住宅ローン","side":"liability","type":"other"},{"name":"不動産ローン","side":"liability","type":"realestate"}];
 
@@ -1819,44 +1819,94 @@ function normalizeRecords(){
   sortRecords();
 }
 
+
+function validSavedState(saved){
+  if(!saved || !Array.isArray(saved.categories) || !Array.isArray(saved.records)) return false;
+  if(!saved.categories.length || !saved.records.length) return false;
+  return true;
+}
+
+function mergeWithDefaultState(saved){
+  const baseCategories = clone(defaultCategories);
+  const baseRecords = clone(defaultRecords);
+  const baseCategoryNames = new Set(baseCategories.map(c=>c.name));
+
+  let nextCategories = baseCategories;
+  let nextRecords = baseRecords;
+
+  if(validSavedState(saved)){
+    const savedCategories = clone(saved.categories).filter(c=>c && c.name);
+    savedCategories.forEach(c=>{
+      if(!baseCategoryNames.has(c.name)){
+        nextCategories.push(normalizeCategory(c));
+        baseCategoryNames.add(c.name);
+      }
+    });
+
+    const savedRecordMap = new Map(clone(saved.records).filter(r=>r && r.month).map(r=>[r.month,r]));
+    nextRecords = baseRecords.map(r=>{
+      const savedRecord = savedRecordMap.get(r.month);
+      const values = {...r.values};
+      if(savedRecord && savedRecord.values){
+        Object.keys(savedRecord.values).forEach(k=>{
+          values[k] = Number(savedRecord.values[k]) || 0;
+        });
+      }
+      nextCategories.forEach(c=>{
+        if(values[c.name] === undefined) values[c.name] = 0;
+      });
+      return {month:r.month, values};
+    });
+
+    // 保存側にだけある月も追加
+    savedRecordMap.forEach((r, month)=>{
+      if(!nextRecords.some(x=>x.month === month)){
+        const values = {};
+        nextCategories.forEach(c=>values[c.name] = Number(r.values?.[c.name] || 0));
+        nextRecords.push({month, values});
+      }
+    });
+  }
+
+  return {categories: nextCategories, records: nextRecords};
+}
+
+function repairIfDashboardWouldBeZero(){
+  normalizeRecords();
+  const latest = latestRecord();
+  const net = netAssetOf(latest);
+
+  // 0円・最新月欠落・保存データ破損の場合は、必ず内蔵データに戻す
+  if(!latest || latest.month !== '2026/04' || net === 0 || Number.isNaN(net)){
+    const repaired = mergeWithDefaultState(null);
+    categories = repaired.categories;
+    records = repaired.records;
+    normalizeRecords();
+  }
+}
+
+
 function loadState(){
   const demoDeposits = {NASDAQ:52500,インド:52500,Bitcoin:10000,確定拠出年金:54200,持株会:55000};
 
   try{
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-    if(
-      saved &&
-      Array.isArray(saved.categories) &&
-      saved.categories.length > 0 &&
-      Array.isArray(saved.records) &&
-      saved.records.length > 0
-    ){
-      categories = clone(saved.categories);
-      records = clone(saved.records);
-      if(saved.benchmarkSettings) benchmarkSettings = {...benchmarkSettings, ...saved.benchmarkSettings};
-      if(saved.planSettings) planSettings = {...planSettings, ...saved.planSettings};
-      if(saved.planDeposits) planDeposits = {...planDeposits, ...saved.planDeposits};
-    }else{
-      categories = clone(defaultCategories);
-      records = clone(defaultRecords);
-      planDeposits = {...demoDeposits};
-    }
+    const merged = mergeWithDefaultState(saved);
+    categories = merged.categories;
+    records = merged.records;
+
+    if(saved?.benchmarkSettings) benchmarkSettings = {...benchmarkSettings, ...saved.benchmarkSettings};
+    if(saved?.planSettings) planSettings = {...planSettings, ...saved.planSettings};
+    planDeposits = saved?.planDeposits ? {...demoDeposits, ...saved.planDeposits} : {...demoDeposits};
   }catch(e){
-    categories = clone(defaultCategories);
-    records = clone(defaultRecords);
+    const merged = mergeWithDefaultState(null);
+    categories = merged.categories;
+    records = merged.records;
     planDeposits = {...demoDeposits};
   }
 
   normalizeRecords();
-
-  // 保存データが空・0円だけの場合のみ初期データへ戻す
-  if(!records.length || !categories.length || netAssetOf(latestRecord()) === 0){
-    categories = clone(defaultCategories);
-    records = clone(defaultRecords);
-    planDeposits = {...demoDeposits};
-    normalizeRecords();
-  }
-
+  repairIfDashboardWouldBeZero();
   saveState();
 }
 
@@ -1869,7 +1919,13 @@ function saveState(){
 }
 
 function sortRecords(){ records.sort((a,b)=>String(a.month).localeCompare(String(b.month))); }
-function latestRecord(){ normalizeRecords(); return records[records.length-1]; }
+function latestRecord(){
+  if(!Array.isArray(records) || !records.length){
+    records = clone(defaultRecords);
+  }
+  normalizeRecords();
+  return records[records.length-1];
+}
 
 function parseMonth(month){
   const m = String(month).match(/^(\d{4})\/(\d{1,2})$/);
@@ -3373,6 +3429,7 @@ function showPage(page){
 const monthInputListenerEl = document.getElementById('monthInput'); if(monthInputListenerEl) monthInputListenerEl.addEventListener('change', renderCategoryInputs);
 
 loadState();
+repairIfDashboardWouldBeZero();
 
 const monthInputEl = document.getElementById('monthInput');
 if(monthInputEl) monthInputEl.value = latestRecord().month;
