@@ -1482,7 +1482,7 @@ body.input-mode #inputPage{
 <div id="toast" class="toast">保存しました</div>
 
 <script>
-const STORAGE_KEY = 'pfs-full-user-data-v22-hard-reset';
+const STORAGE_KEY = 'pfs-v25-force-visible-data';
 
 const defaultCategories = [{"name":"預金","side":"asset","type":"cash"},{"name":"SP500","side":"asset","type":"invest"},{"name":"ロイヤルマイル","side":"asset","type":"invest"},{"name":"NASDAQ","side":"asset","type":"invest"},{"name":"インド","side":"asset","type":"invest"},{"name":"Fantom","side":"asset","type":"invest"},{"name":"Doge","side":"asset","type":"invest"},{"name":"Bitcoin","side":"asset","type":"invest"},{"name":"確定拠出年金","side":"asset","type":"retire"},{"name":"持株会","side":"asset","type":"invest"},{"name":"不動産","side":"asset","type":"realestate"},{"name":"借入金","side":"liability","type":"other"},{"name":"カード未払","side":"liability","type":"other"},{"name":"住宅ローン","side":"liability","type":"other"},{"name":"不動産ローン","side":"liability","type":"realestate"}];
 
@@ -1584,49 +1584,27 @@ function normalizeRecords(){
 }
 
 function loadState(){
-  const demoDeposits = {NASDAQ:52500,インド:52500,Bitcoin:10000,確定拠出年金:54200,持株会:55000};
-
-  // 安定表示優先：ページ起動時は必ず内蔵データを読み込む
-  categories = clone(defaultCategories);
-  records = clone(defaultRecords);
-  planDeposits = {...demoDeposits};
-
-  normalizeRecords();
+  forceDefaultData();
   saveState();
 }
 
-function ensureDemoData(){
+
+function forceDefaultData(){
   const demoDeposits = {NASDAQ:52500,インド:52500,Bitcoin:10000,確定拠出年金:54200,持株会:55000};
-  const expectedLatestMonth = '2026/04';
-  const expectedLatestNetAsset = 6156754;
-
-  try{
-    if(!Array.isArray(categories) || !categories.length) categories = clone(defaultCategories);
-    if(!Array.isArray(records) || !records.length) records = clone(defaultRecords);
-
-    normalizeRecords();
-
-    const latest = latestRecord();
-    const net = netAssetOf(latest);
-
-    if(
-      latest.month !== expectedLatestMonth ||
-      net === 0 ||
-      Math.abs(net - expectedLatestNetAsset) > 1000
-    ){
-      categories = clone(defaultCategories);
-      records = clone(defaultRecords);
-      planDeposits = {...demoDeposits};
-      normalizeRecords();
-    }
-  }catch(e){
-    categories = clone(defaultCategories);
-    records = clone(defaultRecords);
-    planDeposits = {...demoDeposits};
-    normalizeRecords();
-  }
+  categories = clone(defaultCategories);
+  records = clone(defaultRecords);
+  planDeposits = {...demoDeposits};
+  normalizeRecords();
 }
 
+function ensureDemoData(){
+  forceDefaultData();
+}
+
+function debugLatestNetAsset(){
+  const latest = latestRecord();
+  return {month: latest.month, assets: assetTotalOf(latest), liabilities: liabilityTotalOf(latest), net: netAssetOf(latest)};
+}
 
 function saveState(){
   try{
@@ -1826,7 +1804,7 @@ function renderBenchmarkAiComment(compareValue, stat, topPercent, basisName){
 
 function render(){
   safeRun('render', ()=>{
-    ensureDemoData();
+    forceDefaultData();
     normalizeRecords();
 
     const latest = latestRecord();
@@ -3043,9 +3021,12 @@ function showPage(page){
 const monthInputListenerEl = document.getElementById('monthInput'); if(monthInputListenerEl) monthInputListenerEl.addEventListener('change', renderCategoryInputs);
 
 loadState();
-ensureDemoData();
+forceDefaultData();
 
 const monthInputEl = document.getElementById('monthInput');
 if(monthInputEl) monthInputEl.value = latestRecord().month;
 
 render();
+</script>
+</body>
+</html>
