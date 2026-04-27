@@ -3087,3 +3087,222 @@ function renderPlanChart(){
     }
   });
 }
+
+function savePlanSettings(){
+  planSettings = {
+    target:rawNumber(document.getElementById('planTarget')?.value || planSettings.target),
+    years:Number(document.getElementById('planYears')?.value || planSettings.years),
+    annualReturn:Number(document.getElementById('planReturn')?.value ?? planSettings.annualReturn ?? 3),
+    annualBonus:rawNumber(document.getElementById('planBonus')?.value || planSettings.annualBonus || 0)
+  };
+
+  const nextDeposits = {};
+  document.querySelectorAll('[data-deposit-category]').forEach(input=>{
+    nextDeposits[input.dataset.depositCategory] = rawNumber(input.value);
+  });
+  planDeposits = nextDeposits;
+
+  if(!planSettings.target || planSettings.target < 0) planSettings.target = 0;
+  if(!planSettings.years || planSettings.years <= 0) planSettings.years = 1;
+
+  saveState();
+  showToast('中期資産計画を更新しました');
+  renderPlanStatement();
+}
+
+function exportMonthlyPdf(){
+  showPage('dashboard');
+  setTimeout(()=>window.print(),150);
+}
+
+function prepareNextMonth(){
+  const next = addMonths(latestRecord().month,1);
+  document.getElementById('monthInput').value = next;
+  document.getElementById('recordSelector').value = latestRecord().month;
+  renderCategoryInputs();
+  clearCurrentInputs();
+  showToast('次月決算を空欄で作成しました');
+}
+function clearCurrentInputs(){ document.querySelectorAll('.amount-input').forEach(input=>input.value=''); }
+function copyPreviousToCurrent(){
+  const month = selectedInputMonth();
+  const prev = recordByMonth(addMonths(month,-1));
+  if(!prev){ showToast('前月決算がありません'); return; }
+  document.querySelectorAll('.amount-input').forEach(input=>{
+    input.value = formatNumber(prev.values[input.dataset.category] || 0);
+  });
+  showToast('前月決算の数字をコピーしました');
+}
+function loadSelectedRecord(){
+  const month = document.getElementById('recordSelector').value;
+  document.getElementById('monthInput').value = month;
+  renderCategoryInputs();
+}
+function saveMonth(){
+  safeRun('saveMonth', ()=>{
+    const month = selectedInputMonth();
+    if(!/^\d{4}\/\d{2}$/.test(month)){
+      alert('対象月は 2026/05 の形式で入力してください');
+      return;
+    }
+    const values = {};
+    document.querySelectorAll('.amount-input').forEach(input=>{
+      values[input.dataset.category] = rawNumber(input.value);
+    });
+    const existing = recordByMonth(month);
+    if(existing) existing.values = values;
+    else records.push({month,values});
+    normalizeRecords();
+    saveState();
+    showToast('月次決算を確定しました');
+    render();
+    showPage('dashboard');
+  });
+}
+function addCategory(){
+  const name = document.getElementById('newCategoryName').value.trim();
+  const side = document.getElementById('newCategorySide').value;
+  const type = document.getElementById('newCategoryType').value;
+  if(!name){ alert('勘定科目名を入力してください'); return; }
+  if(categories.some(c=>c.name === name)){ alert('同じ勘定科目があります'); return; }
+  categories.push({name,side,type});
+  records.forEach(r=>{ if(r.values[name] === undefined) r.values[name] = 0; });
+  document.getElementById('newCategoryName').value = '';
+  normalizeRecords();
+  saveState();
+  showToast('追加しました');
+  render();
+}
+function renameCategory(oldName){
+  const current = categories.find(c=>c.name===oldName);
+  if(!current) return;
+  const newName = prompt('新しい勘定科目名を入力してください', oldName);
+  if(!newName || newName === oldName) return;
+  if(categories.some(c=>c.name === newName)){ alert('同じ勘定科目があります'); return; }
+  current.name = newName;
+  records.forEach(r=>{
+    r.values[newName] = r.values[oldName] || 0;
+    delete r.values[oldName];
+  });
+  normalizeRecords();
+  saveState();
+  showToast('勘定科目名を変更しました');
+  render();
+}
+function deleteCategory(name){
+  if(!confirm(name + ' を削除しますか？')) return;
+  categories = categories.filter(c=>c.name !== name);
+  records.forEach(r=>delete r.values[name]);
+  normalizeRecords();
+  saveState();
+  showToast('勘定科目を削除しました');
+  render();
+}
+function moveCategory(index,delta){
+  const next = index + delta;
+  if(next < 0 || next >= categories.length) return;
+  const temp = categories[index];
+  categories[index] = categories[next];
+  categories[next] = temp;
+  saveState();
+  render();
+}
+function exportJSON(){
+  const data = JSON.stringify({categories,records,benchmarkSettings,planSettings,planDeposits},null,2);
+  const blob = new Blob([data],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'personal-financial-statement-backup.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importJSON(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!Array.isArray(data.categories) || !Array.isArray(data.records)) throw new Error('invalid');
+      categories = data.categories.map(normalizeCategory);
+      records = data.records;
+      if(data.benchmarkSettings) benchmarkSettings = {...benchmarkSettings, ...data.benchmarkSettings};
+      if(data.planSettings) planSettings = {...planSettings, ...data.planSettings};
+      if(data.planDeposits) planDeposits = {...planDeposits, ...data.planDeposits};
+      normalizeRecords();
+      saveState();
+      showToast('データを復元しました');
+      render();
+    }catch(err){
+      alert('読み込めないファイルです');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function loadDemoData(){
+  categories = clone(defaultCategories);
+  records = clone(defaultRecords);
+  planDeposits = {NASDAQ:52500,インド:52500,Bitcoin:10000,確定拠出年金:54200,持株会:55000};
+  normalizeRecords();
+  saveState();
+  showToast('デモデータを読み込みました');
+  render();
+}
+
+function resetAll(){
+  if(!confirm('初期データに戻しますか？')) return;
+  categories = clone(defaultCategories);
+  records = clone(defaultRecords);
+  benchmarkSettings = {age:27, household:'couple', basis:'median', target:'assets'};
+  planSettings = {target:30000000, years:5, annualReturn:3, annualBonus:0};
+  planDeposits = {NASDAQ:52500,インド:52500,Bitcoin:10000,確定拠出年金:54200,持株会:55000};
+  normalizeRecords();
+  saveState();
+  showToast('初期データに戻しました');
+  render();
+}
+
+function startLatestMonthInput(){
+  const latest = latestRecord();
+  document.getElementById('monthInput').value = latest.month;
+  loadSelectedRecord();
+  showPage('input');
+}
+
+function showPage(page){
+  const dashboard = document.getElementById('dashboardPage');
+  const input = document.getElementById('inputPage');
+  const dashBtn = document.getElementById('showDashboardBtn');
+  const inputBtn = document.getElementById('showInputBtn');
+
+  if(page === 'input'){
+    document.body.classList.add('input-mode');
+    if(dashboard) dashboard.classList.add('hidden');
+    if(input) input.classList.remove('hidden');
+    if(dashBtn) dashBtn.classList.remove('active');
+    if(inputBtn) inputBtn.classList.add('active');
+  }else{
+    document.body.classList.remove('input-mode');
+    if(dashboard) dashboard.classList.remove('hidden');
+    if(input) input.classList.add('hidden');
+    if(dashBtn) dashBtn.classList.add('active');
+    if(inputBtn) inputBtn.classList.remove('active');
+    setTimeout(safeRenderCharts,50);
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+const monthInputListenerEl = document.getElementById('monthInput'); if(monthInputListenerEl) monthInputListenerEl.addEventListener('change', renderCategoryInputs);
+
+loadState();
+forceDefaultData();
+
+const monthInputEl = document.getElementById('monthInput');
+if(monthInputEl) monthInputEl.value = latestRecord().month;
+
+render();
+</script>
+</body>
+</html>
