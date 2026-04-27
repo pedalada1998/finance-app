@@ -687,6 +687,81 @@ body{
   .total{font-size:clamp(48px,15vw,76px)!important}
 }
 
+
+/* v15 fixes */
+.hero-dashboard-charts{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:18px;
+  position:relative;
+  z-index:2;
+}
+.hero-chart-card{
+  min-height:210px;
+  padding:14px;
+  border-radius:20px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);
+}
+.hero-chart-card h3{
+  margin:0 0 8px;
+  color:rgba(255,255,255,.82);
+  font-size:13px;
+  letter-spacing:.08em;
+}
+.hero-chart-card canvas{
+  max-height:170px!important;
+}
+.hero-metrics{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+}
+.dashboard-kpi-assets-hidden{
+  display:none!important;
+}
+.btn-light{
+  background:#ffffff!important;
+  color:#0f172a!important;
+  border:1px solid rgba(15,23,42,.12)!important;
+}
+.actions .btn,
+.form .btn,
+label.btn{
+  min-height:48px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.actions{
+  align-items:center;
+}
+.inputPageStandalone{
+  margin-top:14px;
+}
+body.input-mode .hero,
+body.input-mode #dashboardPage{
+  display:none!important;
+}
+body.input-mode #inputPage{
+  display:block!important;
+}
+.plan-chart-wrap{
+  height:360px;
+  min-height:360px;
+}
+.plan-chart-wrap canvas{
+  height:310px!important;
+  max-height:310px!important;
+}
+@media(max-width:900px){
+  .hero-dashboard-charts{
+    grid-template-columns:1fr;
+  }
+  .hero-chart-card{
+    min-height:220px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -726,10 +801,22 @@ body{
   <div class="hero-metrics">
     <div><small>前月比</small><b id="momKpiDisplay">-</b></div>
     <div><small>前年比</small><b id="yoyDisplay">-</b></div>
-    <div><small>資産合計</small><b id="assetTotalDisplay">-</b></div>
-    <div><small>負債合計</small><b id="liabilityTotalDisplay">-</b></div>
+    
+    
     <div><small>過去最高資産比</small><b id="highWatermarkDisplay">-</b></div>
     <div><small>同世代推定順位</small><b id="topPercentDisplay">-</b></div>
+  </div>
+
+
+  <div class="hero-dashboard-charts">
+    <div class="hero-chart-card">
+      <h3>NET ASSET TREND</h3>
+      <canvas id="heroTrendChart"></canvas>
+    </div>
+    <div class="hero-chart-card">
+      <h3>BS SNAPSHOT</h3>
+      <canvas id="heroBsChart"></canvas>
+    </div>
   </div>
 
   <div class="dashboard-note">
@@ -738,89 +825,12 @@ body{
 
   <div class="page-switch">
     <button id="showDashboardBtn" class="active" onclick="showPage('dashboard')">ダッシュボード</button>
-    <button id="showInputBtn" onclick="showPage('dashboard'); location.hash='input'">今月の月次決算入力</button>
+    <button id="showInputBtn" onclick="showPage('input')">今月の月次決算入力</button>
   </div>
 </section>
 
 <div id="dashboardPage" class="page">
-<section class="grid" id="input">
 
-  <div class="panel panel-clean">
-    <p class="label">MONTHLY CLOSING</p>
-    <h2>月次決算を入力</h2>
-    <div class="closing-note"><b>月次決算は3分で完了します。</b><br>前月・前々月の残高を見ながら、変わった数字だけ更新してください。</div>
-
-    <div class="form">
-      <div class="three">
-        <div>
-          <label class="small-label">決算対象月</label>
-          <input class="input" id="monthInput" placeholder="例：2026/05">
-        </div>
-        <div>
-          <label class="small-label">過去決算を修正</label>
-          <select id="recordSelector" onchange="loadSelectedRecord()"></select>
-        </div>
-        <div style="display:flex;align-items:end">
-          <button class="btn btn-light" style="width:100%" onclick="prepareNextMonth()">次月を空欄で作成</button>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button class="btn btn-light" onclick="clearCurrentInputs()">入力月だけ空欄にする</button>
-        <button class="btn btn-light" onclick="copyPreviousToCurrent()">前月の数字をコピー</button>
-        <button class="btn btn-gold" onclick="saveMonth()">月次決算を確定</button>
-      </div>
-
-      <div class="input-table">
-        <div class="input-head">
-          <div>勘定科目</div>
-          <div id="prev2Header">前々月</div>
-          <div id="prevHeader">前月</div>
-          <div id="currentHeader">決算月</div>
-        </div>
-        <div id="categoryInputs"></div>
-      </div>
-    </div>
-
-    <p class="note">
-      前月・前々月の残高を見ながら、決算月の残高だけ入力します。過去月を選べば、過去決算も修正できます。
-    </p>
-  </div>
-
-  <div class="panel panel-clean">
-    <p class="label">ACCOUNT SETTING</p>
-    <h2>勘定科目を設定</h2>
-
-    <div class="three">
-      <input class="input" id="newCategoryName" placeholder="例：楽天証券、住宅ローン">
-      <select id="newCategorySide">
-        <option value="asset">資産</option>
-        <option value="liability">負債</option>
-      </select>
-      <select id="newCategoryType">
-        <option value="cash">現金・預金系</option>
-        <option value="invest">投資系</option>
-        <option value="retire">退職資産系</option>
-        <option value="other">その他</option>
-      </select>
-    </div>
-
-    <button class="btn" style="margin-top:10px;width:100%" onclick="addCategory()">勘定科目を追加</button>
-    <div id="categoryList" style="margin-top:12px"></div>
-
-    <div class="actions" style="margin-top:16px">
-      <button class="btn btn-light" onclick="exportJSON()">データを書き出し</button>
-      <label class="btn btn-light" style="cursor:pointer">
-        データを復元
-        <input type="file" accept="application/json" onchange="importJSON(event)" style="display:none">
-      </label>
-      <button class="btn btn-light" onclick="loadDemoData()">デモデータを読込</button>
-      <button class="btn btn-danger" onclick="resetAll()">初期データに戻す</button>
-    </div>
-    <div class="status-bar" id="appStatus">Ready</div>
-  </div>
-
-</section>
 
 <section class="grid single section-spacer" id="statement">
 <div class="panel panel-clean">
@@ -930,6 +940,88 @@ body{
 </section>
 </div>
 
+
+<div id="inputPage" class="page hidden inputPageStandalone">
+<section class="grid" id="input">
+
+  <div class="panel panel-clean">
+    <p class="label">MONTHLY CLOSING</p>
+    <h2>月次決算を入力</h2>
+    <div class="closing-note"><b>月次決算は3分で完了します。</b><br>前月・前々月の残高を見ながら、変わった数字だけ更新してください。</div>
+
+    <div class="form">
+      <div class="three">
+        <div>
+          <label class="small-label">決算対象月</label>
+          <input class="input" id="monthInput" placeholder="例：2026/05">
+        </div>
+        <div>
+          <label class="small-label">過去決算を修正</label>
+          <select id="recordSelector" onchange="loadSelectedRecord()"></select>
+        </div>
+        <div style="display:flex;align-items:end">
+          <button class="btn btn-light" style="width:100%" onclick="prepareNextMonth()">次月を空欄で作成</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-light" onclick="clearCurrentInputs()">入力月だけ空欄にする</button>
+        <button class="btn btn-light" onclick="copyPreviousToCurrent()">前月の数字をコピー</button>
+        <button class="btn btn-gold" onclick="saveMonth()">月次決算を確定</button>
+      </div>
+
+      <div class="input-table">
+        <div class="input-head">
+          <div>勘定科目</div>
+          <div id="prev2Header">前々月</div>
+          <div id="prevHeader">前月</div>
+          <div id="currentHeader">決算月</div>
+        </div>
+        <div id="categoryInputs"></div>
+      </div>
+    </div>
+
+    <p class="note">
+      前月・前々月の残高を見ながら、決算月の残高だけ入力します。過去月を選べば、過去決算も修正できます。
+    </p>
+  </div>
+
+  <div class="panel panel-clean">
+    <p class="label">ACCOUNT SETTING</p>
+    <h2>勘定科目を設定</h2>
+
+    <div class="three">
+      <input class="input" id="newCategoryName" placeholder="例：楽天証券、住宅ローン">
+      <select id="newCategorySide">
+        <option value="asset">資産</option>
+        <option value="liability">負債</option>
+      </select>
+      <select id="newCategoryType">
+        <option value="cash">現金・預金系</option>
+        <option value="invest">投資系</option>
+        <option value="retire">退職資産系</option>
+        <option value="other">その他</option>
+      </select>
+    </div>
+
+    <button class="btn" style="margin-top:10px;width:100%" onclick="addCategory()">勘定科目を追加</button>
+    <div id="categoryList" style="margin-top:12px"></div>
+
+    <div class="actions" style="margin-top:16px">
+      <button class="btn btn-light" onclick="exportJSON()">データを書き出し</button>
+      <label class="btn btn-light" style="cursor:pointer">
+        データを復元
+        <input type="file" accept="application/json" onchange="importJSON(event)" style="display:none">
+      </label>
+      <button class="btn btn-light" onclick="loadDemoData()">デモデータを読込</button>
+      <button class="btn btn-danger" onclick="resetAll()">初期データに戻す</button>
+    </div>
+    <div class="status-bar" id="appStatus">Ready</div>
+  </div>
+
+</section>
+</div>
+
 </div>
 
 <nav class="footer-nav">
@@ -981,6 +1073,8 @@ let planSettings = {target:30000000, years:5, annualReturn:3, annualBonus:0};
 let planDeposits = {};
 let trendChart = null;
 let allocationChart = null;
+let heroTrendChart = null;
+let heroBsChart = null;
 
 let planChart = null;
 
@@ -1287,8 +1381,8 @@ function render(){
     document.getElementById('netAssetLabel').textContent = `NET ASSETS / ${displayMonth(latest.month)}`;
     document.getElementById('netAssetDisplay').textContent = yen(netAssets);
     document.getElementById('momKpiDisplay').innerHTML = formatChange(mom,momRate);
-    document.getElementById('assetTotalDisplay').textContent = yen(totalAssets);
-    document.getElementById('liabilityTotalDisplay').textContent = yen(totalLiabilities);
+    const assetTotalEl = document.getElementById('assetTotalDisplay'); if(assetTotalEl) assetTotalEl.textContent = yen(totalAssets);
+    const liabilityTotalEl = document.getElementById('liabilityTotalDisplay'); if(liabilityTotalEl) liabilityTotalEl.textContent = yen(totalLiabilities);
     document.getElementById('yoyDisplay').innerHTML = formatChange(yoy,yoyRate);
 
     const highestAsset = Math.max(...records.map(r=>assetTotalOf(r)));
@@ -1302,6 +1396,7 @@ function render(){
     renderCategoryInputs();
     renderCategoryList();
     safeRenderCharts();
+    renderHeroCharts();
     renderCompositionList();
     renderTrendAiComment();
     renderCompositionAiComment();
@@ -1421,6 +1516,73 @@ function renderCompositionList(){
 function safeRenderCharts(){
   safeRun('renderCharts', renderCharts);
 }
+
+
+function renderHeroCharts(){
+  const trendCanvas = document.getElementById('heroTrendChart');
+  const bsCanvas = document.getElementById('heroBsChart');
+  if(typeof Chart === 'undefined' || !trendCanvas || !bsCanvas || !records.length) return;
+
+  const latest = latestRecord();
+  const filtered = records.slice(-6);
+  const values = filtered.map(r=>netAssetOf(r));
+  const range = chartRange(values);
+
+  if(heroTrendChart) heroTrendChart.destroy();
+  if(heroBsChart) heroBsChart.destroy();
+
+  heroTrendChart = new Chart(trendCanvas,{
+    type:'line',
+    data:{
+      labels:filtered.map(r=>r.month),
+      datasets:[{
+        data:values,
+        borderColor:'#38bdf8',
+        backgroundColor:'rgba(56,189,248,.14)',
+        fill:true,
+        tension:.35,
+        pointRadius:0,
+        borderWidth:3
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>yen(ctx.raw)}}},
+      scales:{
+        x:{display:false},
+        y:{display:false,suggestedMin:range.min,suggestedMax:range.max}
+      }
+    }
+  });
+
+  const assets = assetTotalOf(latest);
+  const liabilities = liabilityTotalOf(latest);
+  const net = netAssetOf(latest);
+  const maxSide = Math.max(assets, liabilities + Math.max(net,0), 1);
+
+  heroBsChart = new Chart(bsCanvas,{
+    type:'bar',
+    data:{
+      labels:['資産','負債＋純資産'],
+      datasets:[
+        {label:'資産', data:[assets,0], backgroundColor:'#38bdf8', borderRadius:10},
+        {label:'負債', data:[0,liabilities], backgroundColor:'#ef4444', borderRadius:10},
+        {label:'純資産', data:[0,Math.max(net,0)], backgroundColor:'#10b981', borderRadius:10}
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${yen(ctx.raw)}`}}},
+      scales:{
+        x:{stacked:true,ticks:{color:'rgba(255,255,255,.75)'},grid:{display:false}},
+        y:{stacked:true,display:false,suggestedMax:maxSide*1.15}
+      }
+    }
+  });
+}
+
 
 function renderCharts(){
   const trendCanvas = document.getElementById('trendChart');
@@ -1961,7 +2123,7 @@ function renderPlanChart(){
     },
     options:{
       responsive:true,
-      maintainAspectRatio:true,
+      maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:18}},
@@ -2034,176 +2196,4 @@ function copyPreviousToCurrent(){
   const prev = recordByMonth(addMonths(month,-1));
   if(!prev){ showToast('前月決算がありません'); return; }
   document.querySelectorAll('.amount-input').forEach(input=>{
-    input.value = formatNumber(prev.values[input.dataset.category] || 0);
-  });
-  showToast('前月決算の数字をコピーしました');
-}
-function loadSelectedRecord(){
-  const month = document.getElementById('recordSelector').value;
-  document.getElementById('monthInput').value = month;
-  renderCategoryInputs();
-}
-function saveMonth(){
-  safeRun('saveMonth', ()=>{
-    const month = selectedInputMonth();
-    if(!/^\d{4}\/\d{2}$/.test(month)){
-      alert('対象月は 2026/05 の形式で入力してください');
-      return;
-    }
-    const values = {};
-    document.querySelectorAll('.amount-input').forEach(input=>{
-      values[input.dataset.category] = rawNumber(input.value);
-    });
-    const existing = recordByMonth(month);
-    if(existing) existing.values = values;
-    else records.push({month,values});
-    normalizeRecords();
-    saveState();
-    showToast('月次決算を確定しました');
-    render();
-    showPage('dashboard');
-  });
-}
-function addCategory(){
-  const name = document.getElementById('newCategoryName').value.trim();
-  const side = document.getElementById('newCategorySide').value;
-  const type = document.getElementById('newCategoryType').value;
-  if(!name){ alert('勘定科目名を入力してください'); return; }
-  if(categories.some(c=>c.name === name)){ alert('同じ勘定科目があります'); return; }
-  categories.push({name,side,type});
-  records.forEach(r=>{ if(r.values[name] === undefined) r.values[name] = 0; });
-  document.getElementById('newCategoryName').value = '';
-  normalizeRecords();
-  saveState();
-  showToast('勘定科目を追加しました');
-  render();
-}
-function renameCategory(oldName){
-  const current = categories.find(c=>c.name===oldName);
-  if(!current) return;
-  const newName = prompt('新しい勘定科目名を入力してください', oldName);
-  if(!newName || newName === oldName) return;
-  if(categories.some(c=>c.name === newName)){ alert('同じ勘定科目があります'); return; }
-  current.name = newName;
-  records.forEach(r=>{
-    r.values[newName] = r.values[oldName] || 0;
-    delete r.values[oldName];
-  });
-  normalizeRecords();
-  saveState();
-  showToast('勘定科目名を変更しました');
-  render();
-}
-function deleteCategory(name){
-  if(!confirm(name + ' を削除しますか？')) return;
-  categories = categories.filter(c=>c.name !== name);
-  records.forEach(r=>delete r.values[name]);
-  normalizeRecords();
-  saveState();
-  showToast('勘定科目を削除しました');
-  render();
-}
-function moveCategory(index,delta){
-  const next = index + delta;
-  if(next < 0 || next >= categories.length) return;
-  const temp = categories[index];
-  categories[index] = categories[next];
-  categories[next] = temp;
-  saveState();
-  render();
-}
-function exportJSON(){
-  const data = JSON.stringify({categories,records,benchmarkSettings,planSettings,planDeposits},null,2);
-  const blob = new Blob([data],{type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'personal-financial-statement-backup.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-function importJSON(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e=>{
-    try{
-      const data = JSON.parse(e.target.result);
-      if(!Array.isArray(data.categories) || !Array.isArray(data.records)) throw new Error('invalid');
-      categories = data.categories.map(normalizeCategory);
-      records = data.records;
-      if(data.benchmarkSettings) benchmarkSettings = {...benchmarkSettings, ...data.benchmarkSettings};
-      if(data.planSettings) planSettings = {...planSettings, ...data.planSettings};
-      if(data.planDeposits) planDeposits = {...planDeposits, ...data.planDeposits};
-      normalizeRecords();
-      saveState();
-      showToast('データを復元しました');
-      render();
-    }catch(err){
-      alert('読み込めないファイルです');
-    }
-  };
-  reader.readAsText(file);
-}
-
-function loadDemoData(){
-  categories = clone(defaultCategories);
-  records = clone(defaultRecords);
-  planDeposits = {NASDAQ:52500,インド:52500,Bitcoin:10000,確定拠出年金:54200,持株会:55000};
-  normalizeRecords();
-  saveState();
-  showToast('デモデータを読み込みました');
-  render();
-}
-
-function resetAll(){
-  if(!confirm('初期データに戻しますか？')) return;
-  categories = clone(defaultCategories);
-  records = clone(defaultRecords);
-  benchmarkSettings = {age:27, household:'couple', basis:'median', target:'assets'};
-  planSettings = {target:30000000, years:5, annualReturn:3, annualBonus:0};
-  planDeposits = {NASDAQ:52500,インド:52500,Bitcoin:10000,確定拠出年金:54200,持株会:55000};
-  normalizeRecords();
-  saveState();
-  showToast('初期データに戻しました');
-  render();
-}
-
-function startLatestMonthInput(){
-  const latest = latestRecord();
-  document.getElementById('monthInput').value = latest.month;
-  loadSelectedRecord();
-  showPage('dashboard');
-  location.hash='input';
-}
-function showPage(page){
-  const dashboard = document.getElementById('dashboardPage');
-  const dashBtn = document.getElementById('showDashboardBtn');
-  const inputBtn = document.getElementById('showInputBtn');
-
-  document.body.classList.remove('input-mode');
-  if(dashboard) dashboard.classList.remove('hidden');
-  if(dashBtn) dashBtn.classList.add('active');
-  if(inputBtn) inputBtn.classList.remove('active');
-
-  setTimeout(safeRenderCharts,50);
-}
-
-document.getElementById('monthInput').addEventListener('change', renderCategoryInputs);
-
-loadState();
-
-// 初回表示で数字が出ない場合の自動復旧
-if(!records.length || assetTotalOf(latestRecord()) === 0 || latestRecord().month !== '2026/04'){
-  categories = clone(defaultCategories);
-  records = clone(defaultRecords);
-  planDeposits = {NASDAQ:52500,インド:52500,Bitcoin:10000,確定拠出年金:54200,持株会:55000};
-  normalizeRecords();
-  saveState();
-}
-
-document.getElementById('monthInput').value = latestRecord().month;
-render();
-</script>
-</body>
-</html>
+    input.value = formatNumber(pre
