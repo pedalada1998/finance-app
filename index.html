@@ -987,6 +987,148 @@ body.input-mode #inputPage{
   .input-compact-grid{grid-template-columns:1fr}
 }
 
+
+/* v23 beautiful input rows */
+.input-compact-grid{
+  grid-template-columns:1fr!important;
+}
+.input-table{
+  display:grid;
+  gap:10px;
+}
+.input-head{
+  display:none!important;
+}
+.input-line{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:10px!important;
+  padding:14px!important;
+  border-radius:22px!important;
+  background:#fff!important;
+  border:1px solid rgba(15,23,42,.08)!important;
+  box-shadow:0 10px 26px rgba(15,23,42,.045)!important;
+}
+.input-line-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.input-line-title{
+  min-width:0;
+}
+.input-line-title b{
+  display:block;
+  font-size:18px;
+  letter-spacing:-.03em;
+}
+.input-line-title small{
+  display:block;
+  color:var(--muted);
+  margin-top:4px;
+  line-height:1.4;
+}
+.input-row-actions{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.mini-action{
+  border:1px solid rgba(15,23,42,.10);
+  background:#f8fafc;
+  color:#0f172a;
+  border-radius:999px;
+  padding:7px 9px;
+  font-size:11px;
+  font-weight:950;
+  cursor:pointer;
+}
+.mini-action.danger{
+  background:#fff1f2;
+  color:#ef4444;
+  border-color:rgba(239,68,68,.18);
+}
+.input-line-values{
+  display:grid;
+  grid-template-columns:1fr 1fr 1.15fr;
+  gap:8px;
+}
+.readonly-money{
+  text-align:left!important;
+  border-radius:16px!important;
+  padding:11px 12px!important;
+  min-width:0;
+  white-space:normal!important;
+}
+.readonly-money .money-value{
+  display:block;
+  font-weight:950;
+  color:#0f172a;
+  font-size:15px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.month-input{
+  height:64px;
+  border-radius:18px!important;
+  font-size:20px!important;
+  font-weight:850;
+  text-align:right;
+}
+.account-tools{
+  grid-template-columns:1fr 150px 160px auto!important;
+  align-items:end;
+}
+.account-tools .btn{
+  min-height:48px;
+}
+#categoryList{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+.category-card.compact{
+  display:grid!important;
+  grid-template-columns:10px 1fr!important;
+  gap:8px!important;
+  padding:12px!important;
+  border:1px solid rgba(15,23,42,.08)!important;
+  border-radius:18px!important;
+  background:#fff!important;
+  box-shadow:0 8px 20px rgba(15,23,42,.035);
+}
+.category-card.compact .category-actions{
+  grid-column:1 / -1;
+  display:flex!important;
+  gap:6px;
+  justify-content:flex-end;
+}
+.category-card.compact .category-actions button{
+  border-radius:999px;
+  padding:7px 10px;
+}
+.deposit-input,
+.amount-input{
+  ime-mode:disabled;
+}
+@media(max-width:720px){
+  .input-line-values{
+    grid-template-columns:1fr;
+  }
+  .readonly-money .money-value{
+    white-space:normal;
+  }
+  .account-tools{
+    grid-template-columns:1fr!important;
+  }
+  #categoryList{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1240,7 +1382,7 @@ body.input-mode #inputPage{
       </select>
     </div>
 
-    <button class="btn" style="margin-top:10px;width:100%" onclick="addCategory()">勘定科目を追加</button>
+    <button class="btn" style="margin-top:10px;width:100%" onclick="addCategory()">追加</button>
     <div id="categoryList" style="margin-top:12px"></div>
 
     <div class="actions" style="margin-top:16px">
@@ -1505,15 +1647,23 @@ function formatNumber(n){
   return Number(n).toLocaleString('ja-JP');
 }
 function rawNumber(str){ return Number(String(str).replace(/,/g,'').trim()) || 0; }
+function cleanNumericInput(input){
+  input.value = String(input.value || '').replace(/[^\d.-]/g,'');
+}
+
 function formatAmountInput(input){
-  const caretEnd = input.selectionEnd === input.value.length;
-  const raw = String(input.value).replace(/[^\d.-]/g,'');
-  if(raw === '' || raw === '-' || raw === '.') { input.value = raw; return; }
-  const num = Number(raw);
-  if(!Number.isNaN(num)){
-    input.value = num.toLocaleString('ja-JP');
-    if(caretEnd) input.setSelectionRange(input.value.length,input.value.length);
-  }
+  // 入力中にカンマ整形するとスマホで数字が重複しやすいため、ここでは数字以外を除去するだけ
+  cleanNumericInput(input);
+}
+
+function formatAmountOnBlur(input){
+  const n = rawNumber(input.value);
+  input.value = n ? formatNumber(n) : (String(input.value).trim() === '0' ? '0' : '');
+}
+
+function focusRawNumber(input){
+  const n = rawNumber(input.value);
+  input.value = n ? String(n) : (String(input.value).trim() === '0' ? '0' : '');
 }
 function escapeAttr(str){ return String(str).replace(/'/g,"\\'"); }
 function safeId(str){ return String(str).replace(/[^a-zA-Z0-9_\-\u3040-\u30ff\u3400-\u9fff]/g,'_'); }
@@ -1688,28 +1838,50 @@ function renderCategoryInputs(){
   document.getElementById('prevHeader').textContent = `前月（${prevMonth}）`;
   document.getElementById('currentHeader').textContent = `決算月（${month}）`;
 
-  document.getElementById('categoryInputs').innerHTML = categories.map(c=>{
+  document.getElementById('categoryInputs').innerHTML = categories.map((c,i)=>{
     const currentValue = currentRecord ? Number(currentRecord.values[c.name] || 0) : '';
     const prev = prevRecord ? Number(prevRecord.values[c.name] || 0) : null;
     const prev2 = prev2Record ? Number(prev2Record.values[c.name] || 0) : null;
     return `
       <div class="input-line">
-        <div class="cat-title">
-          <b>${c.name}</b>
-          <small>${sideNames[c.side]} / ${typeNames[c.type] || 'その他'}</small>
+        <div class="input-line-top">
+          <div class="input-line-title">
+            <b>${c.name}</b>
+            <small>${sideNames[c.side]} / ${typeNames[c.type] || 'その他'}</small>
+          </div>
+          <div class="input-row-actions">
+            <button type="button" class="mini-action" onclick="moveCategory(${i},-1)">上へ</button>
+            <button type="button" class="mini-action" onclick="moveCategory(${i},1)">下へ</button>
+            <button type="button" class="mini-action" onclick="renameCategory('${escapeAttr(c.name)}')">編集</button>
+            <button type="button" class="mini-action danger" onclick="deleteCategory('${escapeAttr(c.name)}')">削除</button>
+          </div>
         </div>
-        <div class="readonly-money" title="前々月 ${prev2Month}">
-          <span class="inline-month-label">前々月（${prev2Month}）</span>${prev2 === null ? '-' : yen(prev2)}
+
+        <div class="input-line-values">
+          <div class="readonly-money" title="前々月 ${prev2Month}">
+            <span class="inline-month-label">前々月（${prev2Month}）</span>
+            <span class="money-value">${prev2 === null ? '-' : yen(prev2)}</span>
+          </div>
+          <div class="readonly-money" title="前月 ${prevMonth}">
+            <span class="inline-month-label">前月（${prevMonth}）</span>
+            <span class="money-value">${prev === null ? '-' : yen(prev)}</span>
+          </div>
+          <input
+            class="input month-input amount-input"
+            inputmode="numeric"
+            autocomplete="off"
+            data-category="${c.name}"
+            value="${currentValue === '' ? '' : formatNumber(currentValue)}"
+            placeholder="${c.name}の決算残高"
+            onfocus="focusRawNumber(this)"
+            oninput="formatAmountInput(this)"
+            onblur="formatAmountOnBlur(this)"
+          >
         </div>
-        <div class="readonly-money" title="前月 ${prevMonth}">
-          <span class="inline-month-label">前月（${prevMonth}）</span>${prev === null ? '-' : yen(prev)}
-        </div>
-        <input class="input month-input amount-input" data-category="${c.name}" value="${currentValue === '' ? '' : formatNumber(currentValue)}" placeholder="${c.name}の決算残高" oninput="formatAmountInput(this)">
       </div>
     `;
   }).join('');
 }
-
 function renderCategoryList(){
   document.getElementById('categoryList').innerHTML = categories.map((c,i)=>`
     <div class="category-card compact">
@@ -2412,7 +2584,7 @@ function renderPlanStatement(){
       <div class="plan-grid">
         <div>
           <label class="small-label">目標純資産</label>
-          <input class="input" id="planTarget" value="${formatNumber(target)}" oninput="formatAmountInput(this)">
+          <input class="input" id="planTarget" value="${formatNumber(target)}" onfocus="focusRawNumber(this)" oninput="formatAmountInput(this)" onblur="formatAmountOnBlur(this)">
         </div>
         <div>
           <label class="small-label">達成までの年数</label>
@@ -2426,7 +2598,7 @@ function renderPlanStatement(){
         </div>
         <div>
           <label class="small-label">年間ボーナス入金</label>
-          <input class="input" id="planBonus" value="${formatNumber(annualBonus)}" oninput="formatAmountInput(this)">
+          <input class="input" id="planBonus" value="${formatNumber(annualBonus)}" onfocus="focusRawNumber(this)" oninput="formatAmountInput(this)" onblur="formatAmountOnBlur(this)">
         </div>
       </div>
 
@@ -2438,7 +2610,7 @@ function renderPlanStatement(){
             <tr>
               <td>${c.name}</td>
               <td>${yen(Number(latest.values[c.name]||0))}</td>
-              <td><input class="input deposit-input" data-deposit-category="${c.name}" value="${formatNumber(planDeposits[c.name] || 0)}" oninput="formatAmountInput(this)"></td>
+              <td><input class="input deposit-input" data-deposit-category="${c.name}" value="${formatNumber(planDeposits[c.name] || 0)}" onfocus="focusRawNumber(this)" oninput="formatAmountInput(this)" onblur="formatAmountOnBlur(this)"></td>
             </tr>
           `).join('')}
         </tbody>
@@ -2676,7 +2848,7 @@ function addCategory(){
   document.getElementById('newCategoryName').value = '';
   normalizeRecords();
   saveState();
-  showToast('勘定科目を追加しました');
+  showToast('追加しました');
   render();
 }
 function renameCategory(oldName){
