@@ -98,6 +98,49 @@
   }
 }
 
+
+/* v37 refinements */
+.hero{
+  padding-bottom:24px!important;
+}
+.analysis-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+}
+.analysis-card{
+  min-height:138px!important;
+}
+.analysis-card b{
+  font-size:clamp(22px,5vw,32px)!important;
+}
+.analysis-card small{
+  font-size:clamp(11px,3vw,13px)!important;
+}
+.analysis-card .desc{
+  font-size:clamp(10px,2.8vw,12px)!important;
+}
+@media(max-width:560px){
+  .analysis-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+  .analysis-group{
+    padding:14px 10px 14px 14px!important;
+  }
+  .analysis-card{
+    padding:12px!important;
+    min-height:128px!important;
+  }
+  .analysis-card b{
+    font-size:22px!important;
+  }
+  .analysis-card small{
+    line-height:1.25!important;
+  }
+  .analysis-card .desc{
+    line-height:1.45!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -115,7 +158,6 @@
     <div class="metric"><small>同世代推定順位</small><b id="topPercentDisplay"><span style="color:#fbbf24">上位15.2%</span><span class="ribbon">🥉 銅メダル水準</span></b></div>
   </div>
   <div class="actions"><button class="btn btn-blue" onclick="showPage('input')">今月の月次決算入力</button><button class="btn btn-light" onclick="resetAll()">初期データに戻す</button></div>
-  <div class="hero-chart"><h3>NET ASSET TREND / 純資産推移</h3><canvas id="heroTrendChart"></canvas></div>
 </section>
 
 <div id="dashboardPage" class="page">
@@ -188,13 +230,13 @@ function renderTrendChart(){
   renderLineChart('trendChart','trend',records.slice(-period),'#2563eb','rgba(37,99,235,.12)');
 }
 function renderCharts(){
-  renderLineChart('heroTrendChart','hero',records.slice(-12),'#38bdf8','rgba(56,189,248,.16)');
+  if(document.getElementById('heroTrendChart')) renderLineChart('heroTrendChart','hero',records.slice(-12),'#38bdf8','rgba(56,189,248,.16)');
   renderTrendChart();
   renderAllocation();
 }
 function composition(){const l=latest();return categories.filter(c=>c.side!=='liability').map(c=>({name:c.name,amount:Number(l.values[c.name]||0)})).filter(e=>e.amount>0).sort((a,b)=>b.amount-a.amount);}
 function compact(arr){const total=arr.reduce((s,e)=>s+e.amount,0);let other=0,out=[];arr.forEach(e=>{if(e.amount/total<.025)other+=e.amount;else out.push(e);});if(other)out.push({name:'その他',amount:other});return out;}
-function renderAllocation(){destroy('alloc');const data=compact(composition()),total=data.reduce((s,e)=>s+e.amount,0)||1;charts.alloc=new Chart(document.getElementById('allocationChart'),{type:'doughnut',data:{labels:data.map(e=>e.name),datasets:[{data:data.map(e=>e.amount),backgroundColor:data.map((e,i)=>color(e.name,i)),borderColor:'#fff',borderWidth:4,hoverOffset:8,spacing:2}]},options:{cutout:'72%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${yen(c.raw)}（${(c.raw/total*100).toFixed(1)}%）`}}}}});document.getElementById('allocationCenter').innerHTML=`<div><small>NET ASSETS</small><b>${compactYen(net(latest()))}</b><span>${latest().month}</span></div>`;document.getElementById('allocationRanking').innerHTML=data.slice(0,6).map((e,i)=>`<div class="rank-row"><div class="rank-no">${i+1}</div><div class="rank-main"><b>${e.name}</b><small>${(e.amount/total*100).toFixed(1)}% of portfolio</small></div><div class="rank-val"><b>${yen(e.amount)}</b><small>${(e.amount/total*100).toFixed(1)}%</small></div><div class="rank-bar"><span style="width:${Math.min(100,e.amount/total*100)}%;background:${color(e.name,i)}"></span></div></div>`).join('');}
+function renderAllocation(){destroy('alloc');const data=compact(composition()),total=data.reduce((s,e)=>s+e.amount,0)||1;charts.alloc=new Chart(document.getElementById('allocationChart'),{type:'doughnut',data:{labels:data.map(e=>e.name),datasets:[{data:data.map(e=>e.amount),backgroundColor:data.map((e,i)=>color(e.name,i)),borderColor:'#fff',borderWidth:4,hoverOffset:8,spacing:2}]},options:{cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:false}}}});document.getElementById('allocationCenter').innerHTML=`<div><small>NET ASSETS</small><b>${compactYen(net(latest()))}</b><span>${latest().month}</span></div>`;document.getElementById('allocationRanking').innerHTML=data.slice(0,6).map((e,i)=>`<div class="rank-row"><div class="rank-no">${i+1}</div><div class="rank-main"><b>${e.name}</b><small>${(e.amount/total*100).toFixed(1)}% of portfolio</small></div><div class="rank-val"><b>${yen(e.amount)}</b><small>${(e.amount/total*100).toFixed(1)}%</small></div><div class="rank-bar"><span style="width:${Math.min(100,e.amount/total*100)}%;background:${color(e.name,i)}"></span></div></div>`).join('');}
 function renderStatement(){const l=latest(),a=assets(l),li=liabilities(l),n=net(l);const ar=categories.filter(c=>c.side!=='liability'&&l.values[c.name]).map(c=>`<div class="bs-row"><div><b>${c.name}</b><small>${typeNames[c.type]||'その他'} / ${(l.values[c.name]/a*100).toFixed(1)}%</small></div><b>${yen(l.values[c.name])}</b></div>`).join('');const lr=categories.filter(c=>c.side==='liability'&&l.values[c.name]).map(c=>`<div class="bs-row"><div><b>${c.name}</b><small>${typeNames[c.type]||'負債'}</small></div><b>${yen(l.values[c.name])}</b></div>`).join('')||`<div class="bs-row"><div><b>負債なし</b><small>-</small></div><b>¥0</b></div>`;document.getElementById('statementBody').innerHTML=`<div class="bs-chart"><b>BS構成チャート</b><canvas id="bsChart"></canvas></div><div class="bs-sheet"><div class="bs-col"><div class="bs-head asset"><span>資産</span><span>${yen(a)}</span></div>${ar}<div class="bs-row bs-total"><div>資産合計</div><b>${yen(a)}</b></div></div><div><div class="bs-col"><div class="bs-head liability"><span>負債</span><span>${yen(li)}</span></div>${lr}<div class="bs-row bs-total"><div>負債合計</div><b>${yen(li)}</b></div></div><div class="bs-col bs-net"><div class="bs-head equity"><span>純資産</span><span>${yen(n)}</span></div><div class="bs-row"><div><b>自己資本</b><small>資産 − 負債</small></div><b>${yen(n)}</b></div><div class="bs-row bs-total"><div>負債・純資産合計</div><b>${yen(li+n)}</b></div></div></div></div>`;destroy('bs');charts.bs=new Chart(document.getElementById('bsChart'),{type:'bar',data:{labels:['資産','負債＋純資産'],datasets:[{label:'資産',data:[a,0],backgroundColor:'#38bdf8',borderRadius:14},{label:'負債',data:[0,li],backgroundColor:'#ef4444',borderRadius:14},{label:'純資産',data:[0,n],backgroundColor:'#10b981',borderRadius:14}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,ticks:{callback:axisTick}}}}});}
 function analysisCard(label,val,desc,cls=''){return `<div class="analysis-card"><small>${label}</small><b class="${cls}">${val}</b><span class="desc">${desc}</span></div>`;}
 function renderAnalysis(){const l=latest(),p=byMonth(addMonths(l.month,-1)),y=byMonth(addMonths(l.month,-12));const a=assets(l),n=net(l),li=liabilities(l),ib=interestDebt(l),invest=n+ib,mp=p?n-net(p):0,yp=y?n-net(y):0;const roa=a?mp/a*100:0,roe=n?mp/n*100:0,roic=invest?mp/invest*100:0,aroa=a?yp/a*100:0,aroe=n?yp/n*100:0,aroic=invest?yp/invest*100:0;const cash=categories.filter(c=>c.type==='cash').reduce((s,c)=>s+(l.values[c.name]||0),0),liquidity=li?cash/li*100:null,debtRatio=a?li/a*100:0,equity=a?n/a*100:0,cap=p?(a-assets(p))/assets(p)*100:0,acap=y?(a-assets(y))/assets(y)*100:0;document.getElementById('analysisBody').innerHTML=`<div class="analysis-section"><div class="analysis-group profit"><h3>収益性分析</h3><div class="analysis-grid">${analysisCard('ROA 月次',pct(roa),'総資産でどれだけ純資産を増やしたか。',roa>=0?'pos':'neg')}${analysisCard('ROA 年次',pct(aroa),'12ヶ月前比の資産効率。',aroa>=0?'pos':'neg')}${analysisCard('ROE 月次',pct(roe),'自己資本に対する増加効率。',roe>=0?'pos':'neg')}${analysisCard('ROE 年次',pct(aroe),'12ヶ月前比の自己資本効率。',aroe>=0?'pos':'neg')}${analysisCard('ROIC 月次',pct(roic),'投下資本に対する増加効率。',roic>=0?'pos':'neg')}${analysisCard('ROIC 年次',pct(aroic),'12ヶ月前比の投下資本効率。',aroic>=0?'pos':'neg')}</div></div><div class="analysis-group safe"><h3>安全性分析</h3><div class="analysis-grid">${analysisCard('流動比率',liquidity==null?'負債なし':pct(liquidity),'短期的な支払い余力。')}${analysisCard('有利子負債残高',yen(ib),'利息負担のある借入残高。')}${analysisCard('負債比率',pct(debtRatio),'資産に占める負債の割合。')}${analysisCard('自己資本比率',pct(equity),'資産のうち純資産で賄う割合。','pos')}</div></div><div class="analysis-group growth"><h3>成長性分析</h3><div class="analysis-grid">${analysisCard('総資本成長率 月次',pct(cap),'資産全体の月次成長率。',cap>=0?'pos':'neg')}${analysisCard('総資本成長率 年次',y?pct(acap):'-','資産全体の12ヶ月成長率。',acap>=0?'pos':'neg')}</div></div></div>`;}
