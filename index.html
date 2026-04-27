@@ -850,8 +850,6 @@ let records = [];
 let statementView = 'bs';
 let benchmarkSettings = {age:27, household:'couple', basis:'median', target:'assets'};
 let planSettings = {target:30000000, years:5, annualReturn:3, annualBonus:0};
-  planDeposits = {};
-  planDeposits = {};
 let planDeposits = {};
 let trendChart = null;
 let allocationChart = null;
@@ -922,7 +920,14 @@ function loadState(){
 
   try{
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-    const valid = saved && Array.isArray(saved.categories) && saved.categories.length > 0 && Array.isArray(saved.records) && saved.records.length > 0;
+    const valid =
+      saved &&
+      Array.isArray(saved.categories) &&
+      saved.categories.length > 0 &&
+      Array.isArray(saved.records) &&
+      saved.records.length > 0 &&
+      saved.records.some(r => r.month === '2026/04');
+
     if(valid){
       categories = clone(saved.categories);
       records = clone(saved.records);
@@ -1631,6 +1636,20 @@ function renderStatement(){
   `;
 }
 
+
+function getTotalMonthlyDeposit(){
+  return Object.values(planDeposits || {}).reduce((s,v)=>s + (Number(v)||0),0);
+}
+
+function forecastNetAssets(startNet, months, monthlyRate, monthlyDeposit, annualBonus){
+  let value = Number(startNet)||0;
+  for(let i=1;i<=months;i++){
+    value = value * (1 + monthlyRate) + monthlyDeposit;
+    if(i % 12 === 0) value += Number(annualBonus)||0;
+  }
+  return value;
+}
+
 function renderPlanStatement(){
   const latest = latestRecord();
   const latestNet = netAssetOf(latest);
@@ -2019,6 +2038,16 @@ function showPage(page){
 document.getElementById('monthInput').addEventListener('change', renderCategoryInputs);
 
 loadState();
+
+// 初回表示で数字が出ない場合の自動復旧
+if(!records.length || netAssetOf(latestRecord()) === 0){
+  categories = clone(defaultCategories);
+  records = clone(defaultRecords);
+  planDeposits = {NASDAQ:52500,インド:52500,Bitcoin:10000,確定拠出年金:54200,持株会:55000};
+  normalizeRecords();
+  saveState();
+}
+
 document.getElementById('monthInput').value = latestRecord().month;
 render();
 </script>
