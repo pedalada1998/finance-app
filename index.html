@@ -1129,6 +1129,79 @@ body.input-mode #inputPage{
   }
 }
 
+
+/* v24 cleanup and analysis color polish */
+.footer-nav{display:none!important}
+.app{padding-bottom:28px!important}
+.back-to-dashboard{
+  margin:12px 0 14px;
+  display:flex;
+  justify-content:flex-start;
+}
+.analysis-group{
+  position:relative;
+  overflow:hidden;
+}
+.analysis-group::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:6px;
+}
+.analysis-group.profitability{
+  background:linear-gradient(135deg,rgba(37,99,235,.08),#fff)!important;
+  border-color:rgba(37,99,235,.18)!important;
+}
+.analysis-group.profitability::before{background:#2563eb}
+.analysis-group.safety{
+  background:linear-gradient(135deg,rgba(16,185,129,.10),#fff)!important;
+  border-color:rgba(16,185,129,.20)!important;
+}
+.analysis-group.safety::before{background:#10b981}
+.analysis-group.growth{
+  background:linear-gradient(135deg,rgba(139,92,246,.10),#fff)!important;
+  border-color:rgba(139,92,246,.20)!important;
+}
+.analysis-group.growth::before{background:#8b5cf6}
+.analysis-group h3{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.analysis-group.profitability h3::before{
+  content:"●";
+  color:#2563eb;
+}
+.analysis-group.safety h3::before{
+  content:"●";
+  color:#10b981;
+}
+.analysis-group.growth h3::before{
+  content:"●";
+  color:#8b5cf6;
+}
+.analysis-group.profitability .metric-period{
+  background:rgba(37,99,235,.10)!important;
+  color:#1d4ed8!important;
+}
+.analysis-group.safety .metric-period{
+  background:rgba(16,185,129,.12)!important;
+  color:#047857!important;
+}
+.analysis-group.growth .metric-period{
+  background:rgba(139,92,246,.12)!important;
+  color:#6d28d9!important;
+}
+.analysis-group.profitability .analysis-card{
+  box-shadow:inset 0 0 0 1px rgba(37,99,235,.06);
+}
+.analysis-group.safety .analysis-card{
+  box-shadow:inset 0 0 0 1px rgba(16,185,129,.06);
+}
+.analysis-group.growth .analysis-card{
+  box-shadow:inset 0 0 0 1px rgba(139,92,246,.06);
+}
+
 </style>
 </head>
 <body>
@@ -1318,6 +1391,9 @@ body.input-mode #inputPage{
 
 
 <div id="inputPage" class="page hidden inputPageStandalone">
+  <div class="back-to-dashboard">
+    <button class="btn btn-light" onclick="showPage('dashboard')">← ダッシュボードに戻る</button>
+  </div>
 <section class="input-compact-grid" id="input">
 
   <div class="panel panel-clean">
@@ -1383,7 +1459,7 @@ body.input-mode #inputPage{
     </div>
 
     <button class="btn" style="margin-top:10px;width:100%" onclick="addCategory()">追加</button>
-    <div id="categoryList" style="margin-top:12px"></div>
+    <div id="categoryList" style="display:none"></div>
 
     <div class="actions" style="margin-top:16px">
       <button class="btn btn-light" onclick="exportJSON()">データを書き出し</button>
@@ -1402,14 +1478,6 @@ body.input-mode #inputPage{
 
 </div>
 
-<nav class="footer-nav">
-  <a href="#home" class="active" onclick="showPage('dashboard')">ダッシュボード</a>
-  <a href="#charts" onclick="showPage('dashboard')">推移</a>
-  <a href="#compositionTitle" onclick="showPage('dashboard')">資産構成</a>
-  <a href="#statement" onclick="showPage('dashboard')">BS</a>
-  <a href="#planSection" onclick="showPage('dashboard')">計画</a>
-  <a href="#report" onclick="showPage('dashboard')">世代比較</a>
-</nav>
 
 <div id="toast" class="toast">保存しました</div>
 
@@ -2412,7 +2480,7 @@ function renderAnalysis(){
 
   body.innerHTML = `
     <div class="analysis-section">
-      <div class="analysis-group">
+      <div class="analysis-group profitability">
         <h3>収益性分析</h3>
         <div class="analysis-grid">
           ${renderMetricCard('ROA', pct(monthlyRoa), pct(annualRoa), posNeg(monthlyRoa), posNeg(annualRoa))}
@@ -2421,7 +2489,7 @@ function renderAnalysis(){
         </div>
       </div>
 
-      <div class="analysis-group">
+      <div class="analysis-group safety">
         <h3>安全性分析</h3>
         <div class="analysis-grid">
           <div class="analysis-card"><small>流動比率<span class="metric-period">現在</span></small><b>${liquidityRatio === null ? '負債なし' : pct(liquidityRatio)}</b><span class="metric-desc">短期的な支払い余力を見る指標。</span></div>
@@ -2431,7 +2499,7 @@ function renderAnalysis(){
         </div>
       </div>
 
-      <div class="analysis-group">
+      <div class="analysis-group growth">
         <h3>成長性分析</h3>
         <div class="analysis-grid">
           ${renderMetricCard('総資本成長率', pct(monthlyCapitalGrowth), yearAgo ? pct(annualCapitalGrowth) : '-', posNeg(monthlyCapitalGrowth), annualCapitalGrowth>=0?'pos':'neg')}
@@ -2981,6 +3049,3 @@ const monthInputEl = document.getElementById('monthInput');
 if(monthInputEl) monthInputEl.value = latestRecord().month;
 
 render();
-</script>
-</body>
-</html>
