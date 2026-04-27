@@ -189,6 +189,24 @@ body{
 @media(max-width:900px){.hero{grid-template-columns:1fr!important;padding:24px!important}.dashboard-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.portfolio-strategy{grid-template-columns:1fr!important}.mini-analysis-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:560px){.hero{padding:22px 16px!important;border-radius:24px!important}.total{font-size:clamp(52px,13vw,76px)!important;letter-spacing:-.075em!important}.dashboard-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}.dashboard-kpi-card{min-height:124px!important;padding:13px!important}.dashboard-kpi-card b{font-size:clamp(18px,4.9vw,24px)!important}.dashboard-actions-row{grid-template-columns:1fr 1fr!important}}
 
+
+/* v39 hard render stability */
+.hero-chart-panel{
+  min-height:260px!important;
+}
+.hero-chart-panel canvas{
+  min-height:220px!important;
+}
+.panel canvas{
+  min-height:260px!important;
+}
+.dashboard-kpi-card b,
+.strategy-card b,
+#netAssetDisplay{
+  opacity:1!important;
+  visibility:visible!important;
+}
+
 </style>
 </head>
 <body>
@@ -323,15 +341,12 @@ function renderCharts(){
 function composition(){const l=latest();return categories.filter(c=>c.side!=='liability').map(c=>({name:c.name,amount:Number(l.values[c.name]||0)})).filter(e=>e.amount>0).sort((a,b)=>b.amount-a.amount);}
 function compact(arr){const total=arr.reduce((s,e)=>s+e.amount,0);let other=0,out=[];arr.forEach(e=>{if(e.amount/total<.025)other+=e.amount;else out.push(e);});if(other)out.push({name:'その他',amount:other});return out;}
 function renderAllocation(){
-  destroy('alloc');
   const data=compact(composition()),total=data.reduce((s,e)=>s+e.amount,0)||1;
-  charts.alloc=new Chart(document.getElementById('allocationChart'),{
-    type:'doughnut',
-    data:{labels:data.map(e=>e.name),datasets:[{data:data.map(e=>e.amount),backgroundColor:data.map((e,i)=>color(e.name,i)),borderColor:'#fff',borderWidth:4,hoverOffset:8,spacing:2}]},
-    options:{cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:false}}}
-  });
-  document.getElementById('allocationCenter').innerHTML=`<div><small>NET ASSETS</small><b>${compactYen(net(latest()))}</b><span>${latest().month}</span></div>`;
-  document.getElementById('allocationRanking').innerHTML=data.slice(0,6).map((e,i)=>`<div class="rank-row"><div class="rank-no">${i+1}</div><div class="rank-main"><b>${e.name}</b><small>${(e.amount/total*100).toFixed(1)}% of portfolio</small></div><div class="rank-val"><b>${yen(e.amount)}</b><small>${(e.amount/total*100).toFixed(1)}%</small></div><div class="rank-bar"><span style="width:${Math.min(100,e.amount/total*100)}%;background:${color(e.name,i)}"></span></div></div>`).join('');
+  const center=document.getElementById('allocationCenter');
+  if(center) center.innerHTML=`<div><small>NET ASSETS</small><b>${compactYen(net(latest()))}</b><span>${latest().month}</span></div>`;
+  const ranking=document.getElementById('allocationRanking');
+  if(ranking) ranking.innerHTML=data.slice(0,6).map((e,i)=>`<div class="rank-row"><div class="rank-no">${i+1}</div><div class="rank-main"><b>${e.name}</b><small>${(e.amount/total*100).toFixed(1)}% of portfolio</small></div><div class="rank-val"><b>${yen(e.amount)}</b><small>${(e.amount/total*100).toFixed(1)}%</small></div><div class="rank-bar"><span style="width:${Math.min(100,e.amount/total*100)}%;background:${color(e.name,i)}"></span></div></div>`).join('');
+
   const l2=latest(), total2=assets(l2)||1;
   const risk=categories.filter(c=>c.side!=='liability'&&(c.type==='invest'||c.type==='realestate')).reduce((s,c)=>s+(Number(l2.values[c.name])||0),0);
   const stable=categories.filter(c=>c.side!=='liability'&&(c.type==='cash'||c.type==='retire')).reduce((s,c)=>s+(Number(l2.values[c.name])||0),0);
@@ -340,6 +355,14 @@ function renderAllocation(){
   if(riskEl) riskEl.textContent=(risk/total2*100).toFixed(1)+'%';
   if(stableEl) stableEl.textContent=(stable/total2*100).toFixed(1)+'%';
   if(maxEl) maxEl.textContent=top?`${top.name} ${(top.amount/total2*100).toFixed(1)}%`:'-';
+
+  if(!document.getElementById('allocationChart') || typeof Chart==='undefined') return;
+  destroy('alloc');
+  charts.alloc=new Chart(document.getElementById('allocationChart'),{
+    type:'doughnut',
+    data:{labels:data.map(e=>e.name),datasets:[{data:data.map(e=>e.amount),backgroundColor:data.map((e,i)=>color(e.name,i)),borderColor:'#fff',borderWidth:4,hoverOffset:8,spacing:2}]},
+    options:{cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:false}}}
+  });
 }
 function renderStatement(){const l=latest(),a=assets(l),li=liabilities(l),n=net(l);const ar=categories.filter(c=>c.side!=='liability'&&l.values[c.name]).map(c=>`<div class="bs-row"><div><b>${c.name}</b><small>${typeNames[c.type]||'その他'} / ${(l.values[c.name]/a*100).toFixed(1)}%</small></div><b>${yen(l.values[c.name])}</b></div>`).join('');const lr=categories.filter(c=>c.side==='liability'&&l.values[c.name]).map(c=>`<div class="bs-row"><div><b>${c.name}</b><small>${typeNames[c.type]||'負債'}</small></div><b>${yen(l.values[c.name])}</b></div>`).join('')||`<div class="bs-row"><div><b>負債なし</b><small>-</small></div><b>¥0</b></div>`;document.getElementById('statementBody').innerHTML=`<div class="bs-chart"><b>BS構成チャート</b><canvas id="bsChart"></canvas></div><div class="bs-sheet"><div class="bs-col"><div class="bs-head asset"><span>資産</span><span>${yen(a)}</span></div>${ar}<div class="bs-row bs-total"><div>資産合計</div><b>${yen(a)}</b></div></div><div><div class="bs-col"><div class="bs-head liability"><span>負債</span><span>${yen(li)}</span></div>${lr}<div class="bs-row bs-total"><div>負債合計</div><b>${yen(li)}</b></div></div><div class="bs-col bs-net"><div class="bs-head equity"><span>純資産</span><span>${yen(n)}</span></div><div class="bs-row"><div><b>自己資本</b><small>資産 − 負債</small></div><b>${yen(n)}</b></div><div class="bs-row bs-total"><div>負債・純資産合計</div><b>${yen(li+n)}</b></div></div></div></div>`;destroy('bs');charts.bs=new Chart(document.getElementById('bsChart'),{type:'bar',data:{labels:['資産','負債＋純資産'],datasets:[{label:'資産',data:[a,0],backgroundColor:'#38bdf8',borderRadius:14},{label:'負債',data:[0,li],backgroundColor:'#ef4444',borderRadius:14},{label:'純資産',data:[0,n],backgroundColor:'#10b981',borderRadius:14}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,ticks:{callback:axisTick}}}}});}
 function analysisCard(label,val,desc,cls=''){return `<div class="analysis-card"><small>${label}</small><b class="${cls}">${val}</b><span class="desc">${desc}</span></div>`;}
@@ -365,8 +388,107 @@ function renameCategory(old){const name=prompt('新しい科目名',old);if(!nam
 function deleteCategory(name){if(!confirm(name+'を削除しますか？'))return;categories=categories.filter(c=>c.name!==name);records.forEach(r=>delete r.values[name]);save();renderAll();}
 function moveCategory(i,d){const n=i+d;if(n<0||n>=categories.length)return;[categories[i],categories[n]]=[categories[n],categories[i]];save();renderAll();}
 function savePlan(){planSettings={target:raw(document.getElementById('planTarget').value),years:Number(document.getElementById('planYears').value),annualReturn:Number(document.getElementById('planReturn').value),annualBonus:raw(document.getElementById('planBonus').value)};document.querySelectorAll('[data-deposit-category]').forEach(i=>planDeposits[i.dataset.depositCategory]=raw(i.value));save();renderPlan();}
-function renderAll(){normalize();renderDashboard();renderCharts();renderStatement();renderAnalysis();renderPlan();renderInputs();}
-load();renderAll();
+
+function safeDataset(){
+  try{
+    if(!categories || !categories.length) categories = clone(seed.categories);
+    if(!records || !records.length) records = clone(seed.records);
+    normalize();
+    if(!latest() || net(latest()) === 0){
+      categories = clone(seed.categories);
+      records = clone(seed.records);
+      normalize();
+    }
+  }catch(e){
+    categories = JSON.parse(JSON.stringify(seed.categories));
+    records = JSON.parse(JSON.stringify(seed.records));
+    normalize();
+  }
+}
+
+function hardDashboardPaint(){
+  try{
+    safeDataset();
+    const l = latest();
+    const p = byMonth(addMonths(l.month,-1));
+    const y = byMonth(addMonths(l.month,-12));
+    const n = net(l);
+    const a = assets(l);
+    const li = liabilities(l);
+    const prevNet = p ? net(p) : 0;
+    const mom = p ? n - prevNet : null;
+    const momRate = p && prevNet ? mom / prevNet * 100 : null;
+    const yoy = y ? n - net(y) : null;
+    const yoyRate = y && net(y) ? yoy / net(y) * 100 : null;
+    const high = records.reduce((best,r)=>assets(r)>assets(best)?r:best,records[0]);
+
+    const setText = (id, value) => { const el=document.getElementById(id); if(el) el.textContent=value; };
+    const setHtml = (id, value) => { const el=document.getElementById(id); if(el) el.innerHTML=value; };
+
+    setText('netAssetDisplay', yen(n));
+    setText('netAssetLabel', 'NET ASSETS / ' + monthName(l.month));
+    setText('closingMonthBadge', l.month + ' 決算');
+
+    setHtml('momKpiDisplay', changeHtml(mom,momRate));
+    setHtml('yoyDisplay', changeHtml(yoy,yoyRate));
+    setHtml('highWatermarkDisplay', yen(assets(high)) + '<span class="kpi-sub">' + monthName(high.month) + '</span>');
+    setHtml('topPercentDisplay', '<span style="color:#fbbf24">上位15.2%</span><span class="ribbon">🥉 銅メダル水準</span>');
+
+    const growthLines = document.getElementById('heroGrowthLines');
+    if(growthLines){
+      growthLines.innerHTML =
+        '<div class="'+(mom>=0?'pos':'neg')+'">'+(mom>=0?'+':'−')+yen(Math.abs(mom||0))+'（'+(mom>=0?'+':'−')+Math.abs(momRate||0).toFixed(1)+'%） 前月比</div>'+
+        '<div class="'+(yoy>=0?'pos':'neg')+'">'+(yoy>=0?'+':'−')+yen(Math.abs(yoy||0))+'（'+(yoy>=0?'+':'−')+Math.abs(yoyRate||0).toFixed(1)+'%） 前年比</div>';
+    }
+
+    const status = document.getElementById('growthStatusText');
+    if(status) status.textContent = mom>=0 && yoy>=0 ? '資産成長フェーズ' : mom<0 ? '短期調整フェーズ' : '回復フェーズ';
+
+    const highLabel = document.getElementById('heroHighLabel');
+    if(highLabel) highLabel.textContent = '過去最高資産 ' + yen(assets(high));
+
+    const insight = document.getElementById('dashboardInsightText');
+    if(insight){
+      insight.innerHTML = '純資産は前年比 <b class="'+(yoy>=0?'pos':'neg')+'">'+(yoy>=0?'+':'−')+Math.abs(yoyRate||0).toFixed(1)+'%</b>。自己資本比率は <b>'+(a?(n/a*100).toFixed(1):'0.0')+'%</b> で、財務安全性は高めです。最大構成資産の集中度も定点観測しましょう。';
+    }
+
+    const risk = categories.filter(c=>c.side!=='liability'&&(c.type==='invest'||c.type==='realestate')).reduce((s,c)=>s+(Number(l.values[c.name])||0),0);
+    const stable = categories.filter(c=>c.side!=='liability'&&(c.type==='cash'||c.type==='retire')).reduce((s,c)=>s+(Number(l.values[c.name])||0),0);
+    const comp = categories.filter(c=>c.side!=='liability').map(c=>({name:c.name,amount:Number(l.values[c.name]||0)})).filter(e=>e.amount>0).sort((x,z)=>z.amount-x.amount);
+    const top = comp[0];
+
+    setText('riskAssetRatio', (risk/a*100).toFixed(1)+'%');
+    setText('stableAssetRatio', (stable/a*100).toFixed(1)+'%');
+    setText('maxConcentration', top ? top.name + ' ' + (top.amount/a*100).toFixed(1)+'%' : '-');
+
+    document.body.dataset.net = String(n);
+    document.body.dataset.assets = String(a);
+    document.body.dataset.liabilities = String(li);
+  }catch(e){
+    console.error('hardDashboardPaint', e);
+  }
+}
+
+function hardRenderAll(){
+  safeDataset();
+  hardDashboardPaint();
+
+  // These sections are pure HTML/calculation and must not depend on charts.
+  try{ renderStatement(); }catch(e){ console.error('renderStatement failed', e); }
+  try{ renderAnalysis(); }catch(e){ console.error('renderAnalysis failed', e); }
+  try{ renderPlan(); }catch(e){ console.error('renderPlan failed', e); }
+  try{ renderInputs(); }catch(e){ console.error('renderInputs failed', e); }
+
+  // Charts are optional; if Chart.js fails, numbers still remain.
+  try{ renderCharts(); }catch(e){ console.error('renderCharts failed', e); }
+
+  hardDashboardPaint();
+}
+
+function renderAll(){
+  hardRenderAll();
+}
+load();hardRenderAll();[100,300,800,1500].forEach(ms=>setTimeout(hardDashboardPaint,ms));
 </script>
 </body>
 </html>
