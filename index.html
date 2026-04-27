@@ -894,6 +894,50 @@ body.input-mode #inputPage{
   .kpi-change-rate{font-size:14px}
 }
 
+
+/* v20 analysis redesign */
+.analysis-section{
+  display:grid;
+  gap:16px;
+}
+.analysis-group{
+  padding:16px;
+  border-radius:22px;
+  background:#f8fafc;
+  border:1px solid rgba(15,23,42,.08);
+}
+.analysis-group h3{
+  margin:0 0 12px;
+  font-size:16px;
+  letter-spacing:-.03em;
+}
+.analysis-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+.analysis-card{
+  min-height:112px;
+}
+.analysis-card small{
+  line-height:1.45;
+}
+.analysis-card .metric-period{
+  display:inline-flex;
+  margin-left:6px;
+  padding:2px 7px;
+  border-radius:999px;
+  background:#eef2ff;
+  color:#2563eb;
+  font-size:10px;
+  font-weight:950;
+}
+@media(max-width:520px){
+  .analysis-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .analysis-card{padding:12px;min-height:104px}
+  .analysis-card b{font-size:18px}
+}
+
 </style>
 </head>
 <body>
@@ -2035,58 +2079,132 @@ function investedCapitalOf(record){
   return netAssetOf(record) + interestBearingDebtOf(record);
 }
 
+function pct(value){
+  if(!Number.isFinite(value)) return '-';
+  return `${value.toFixed(1)}%`;
+}
+
+function safeRatio(numerator, denominator){
+  return denominator ? numerator / denominator * 100 : 0;
+}
+
+function getRecordMonthsBack(record, monthsBack){
+  if(!record) return null;
+  return recordByMonth(addMonths(record.month, -monthsBack));
+}
+
+function renderMetricCard(label, monthlyValue, annualValue, clsMonthly='', clsAnnual=''){
+  return `
+    <div class="analysis-card">
+      <small>${label}<span class="metric-period">月次</span></small>
+      <b class="${clsMonthly}">${monthlyValue}</b>
+    </div>
+    <div class="analysis-card">
+      <small>${label}<span class="metric-period">年次</span></small>
+      <b class="${clsAnnual}">${annualValue}</b>
+    </div>
+  `;
+}
+
 function renderAnalysis(){
   const body = document.getElementById('analysisBody');
   if(!body) return;
 
   const latest = latestRecord();
-  const prev = records[records.length-2];
+  const prev = getRecordMonthsBack(latest, 1);
+  const yearAgo = getRecordMonthsBack(latest, 12);
+
   const assets = assetTotalOf(latest);
   const net = netAssetOf(latest);
-  const debt = totalDebtOf(latest);
+  const totalDebt = totalDebtOf(latest);
   const ibDebt = interestBearingDebtOf(latest);
   const investedCapital = investedCapitalOf(latest);
 
+  const cashLike = categories
+    .filter(c=>c.side !== 'liability' && c.type === 'cash')
+    .reduce((s,c)=>s + Number(latest.values[c.name]||0),0);
+
   const monthlyProfit = prev ? net - netAssetOf(prev) : 0;
-  const roe = net ? monthlyProfit / net * 100 : 0;
-  const roa = assets ? monthlyProfit / assets * 100 : 0;
-  const roic = investedCapital ? monthlyProfit / investedCapital * 100 : 0;
-  const equityRatio = assets ? net / assets * 100 : 0;
+  const annualProfit = yearAgo ? net - netAssetOf(yearAgo) : 0;
+
+  const monthlyRoe = safeRatio(monthlyProfit, net);
+  const annualRoe = safeRatio(annualProfit, net);
+  const monthlyRoa = safeRatio(monthlyProfit, assets);
+  const annualRoa = safeRatio(annualProfit, assets);
+  const monthlyRoic = safeRatio(monthlyProfit, investedCapital);
+  const annualRoic = safeRatio(annualProfit, investedCapital);
+
+  const liquidityRatio = totalDebt ? cashLike / totalDebt * 100 : null;
+  const debtRatio = safeRatio(totalDebt, assets);
+  const equityRatio = safeRatio(net, assets);
+
+  const monthlyCapitalGrowth = prev ? safeRatio(assets - assetTotalOf(prev), assetTotalOf(prev)) : 0;
+  const annualCapitalGrowth = yearAgo ? safeRatio(assets - assetTotalOf(yearAgo), assetTotalOf(yearAgo)) : 0;
+
+  const posNeg = v => v >= 0 ? 'pos' : 'neg';
 
   body.innerHTML = `
-    <div class="analysis-grid">
-      <div class="analysis-card"><small>ROE（月次）</small><b class="${roe>=0?'pos':'neg'}">${roe.toFixed(1)}%</b></div>
-      <div class="analysis-card"><small>ROIC（月次）</small><b class="${roic>=0?'pos':'neg'}">${roic.toFixed(1)}%</b></div>
-      <div class="analysis-card"><small>ROA（月次）</small><b class="${roa>=0?'pos':'neg'}">${roa.toFixed(1)}%</b></div>
-      <div class="analysis-card"><small>自己資本比率</small><b>${equityRatio.toFixed(1)}%</b></div>
-      <div class="analysis-card"><small>有利子負債残高</small><b>${yen(ibDebt)}</b></div>
-      <div class="analysis-card"><small>月次純資産増減</small><b class="${monthlyProfit>=0?'pos':'neg'}">${monthlyProfit>=0?'+':'−'}${yen(Math.abs(monthlyProfit))}</b></div>
+    <div class="analysis-section">
+      <div class="analysis-group">
+        <h3>収益性分析</h3>
+        <div class="analysis-grid">
+          ${renderMetricCard('ROA', pct(monthlyRoa), pct(annualRoa), posNeg(monthlyRoa), posNeg(annualRoa))}
+          ${renderMetricCard('ROE', pct(monthlyRoe), pct(annualRoe), posNeg(monthlyRoe), posNeg(annualRoe))}
+          ${renderMetricCard('ROIC', pct(monthlyRoic), pct(annualRoic), posNeg(monthlyRoic), posNeg(annualRoic))}
+        </div>
+      </div>
+
+      <div class="analysis-group">
+        <h3>安全性分析</h3>
+        <div class="analysis-grid">
+          <div class="analysis-card"><small>流動比率<span class="metric-period">現在</span></small><b>${liquidityRatio === null ? '負債なし' : pct(liquidityRatio)}</b></div>
+          <div class="analysis-card"><small>有利子負債残高<span class="metric-period">現在</span></small><b>${yen(ibDebt)}</b></div>
+          <div class="analysis-card"><small>負債比率<span class="metric-period">現在</span></small><b class="${debtRatio>50?'neg':''}">${pct(debtRatio)}</b></div>
+          <div class="analysis-card"><small>自己資本比率<span class="metric-period">現在</span></small><b class="${equityRatio>=80?'pos':''}">${pct(equityRatio)}</b></div>
+        </div>
+      </div>
+
+      <div class="analysis-group">
+        <h3>成長性分析</h3>
+        <div class="analysis-grid">
+          ${renderMetricCard('総資本成長率', pct(monthlyCapitalGrowth), yearAgo ? pct(annualCapitalGrowth) : '-', posNeg(monthlyCapitalGrowth), annualCapitalGrowth>=0?'pos':'neg')}
+          ${renderMetricCard('純資産増減額', `${monthlyProfit>=0?'+':'−'}${yen(Math.abs(monthlyProfit))}`, yearAgo ? `${annualProfit>=0?'+':'−'}${yen(Math.abs(annualProfit))}` : '-', posNeg(monthlyProfit), annualProfit>=0?'pos':'neg')}
+        </div>
+      </div>
     </div>
+
     <div class="analysis-note">
-      注：ここでのROE/ROIC/ROAは、企業会計上の利益ではなく「前月からの純資産増減」を便宜的な月次利益として算出しています。個人決算上の目安指標です。
+      注：ROA/ROE/ROICは、企業会計上の利益ではなく「純資産増減」を便宜的な利益として算出しています。月次は前月比、年次は12ヶ月前比です。流動比率は「現金・預金系資産 ÷ 負債合計」で簡易算出しています。
     </div>
   `;
 
-  renderAnalysisAiComment({roe,roic,roa,equityRatio,ibDebt,monthlyProfit,assets,net});
+  renderAnalysisAiComment({
+    monthlyRoe, annualRoe, monthlyRoa, annualRoa, monthlyRoic, annualRoic,
+    liquidityRatio, debtRatio, equityRatio, ibDebt,
+    monthlyCapitalGrowth, annualCapitalGrowth, monthlyProfit, annualProfit, yearAgo
+  });
 }
 
 function renderAnalysisAiComment(data){
   const el = document.getElementById('analysisAiComment');
   if(!el) return;
-  const good = data.monthlyProfit >= 0
-    ? `今月は純資産が <b class="pos">+${yen(data.monthlyProfit)}</b> 増加しており、月次ROEも <b>${data.roe.toFixed(1)}%</b> とプラスです。`
-    : `今月は純資産が <b class="neg">−${yen(Math.abs(data.monthlyProfit))}</b> 減少しており、要因分解が必要です。`;
-  const caution = data.equityRatio >= 90
-    ? `自己資本比率は <b>${data.equityRatio.toFixed(1)}%</b> と高く、財務安全性は非常に強い状態です。`
-    : `自己資本比率は <b>${data.equityRatio.toFixed(1)}%</b> です。負債を使う場合は返済負担と資産成長のバランスを確認しましょう。`;
-  const debtMsg = data.ibDebt === 0
-    ? `有利子負債はありません。今後、不動産やローンを入れる場合はROICと自己資本比率の変化を確認しましょう。`
-    : `有利子負債残高は <b>${yen(data.ibDebt)}</b> です。資産利回りが借入コストを上回っているかが重要です。`;
+
+  const profitability = data.annualProfit >= 0
+    ? `年次の純資産増減は <b class="pos">+${yen(data.annualProfit)}</b>、年次ROEは <b>${pct(data.annualRoe)}</b> です。資産形成の方向性はプラスです。`
+    : `年次の純資産増減は <b class="neg">−${yen(Math.abs(data.annualProfit))}</b> です。収支・投資評価・一時支出を分解して確認しましょう。`;
+
+  const safety = data.equityRatio >= 90
+    ? `自己資本比率は <b>${pct(data.equityRatio)}</b> と非常に高く、安全性は強い状態です。`
+    : `自己資本比率は <b>${pct(data.equityRatio)}</b> です。負債を活用する場合は返済余力と金利負担を確認しましょう。`;
+
+  const growth = data.yearAgo
+    ? `総資本成長率は年次で <b class="${data.annualCapitalGrowth>=0?'pos':'neg'}">${pct(data.annualCapitalGrowth)}</b> です。`
+    : `年次比較には12ヶ月分のデータが必要です。`;
 
   el.innerHTML = `<b>AIコメント</b><ul>
-    <li><span class="ai-badge">良い点</span>${good}</li>
-    <li><span class="ai-badge">注意点</span>${caution}</li>
-    <li><span class="ai-badge">次にやること</span>${debtMsg}</li>
+    <li><span class="ai-badge">収益性</span>${profitability}</li>
+    <li><span class="ai-badge">安全性</span>${safety}</li>
+    <li><span class="ai-badge">成長性</span>${growth} 中計では、積立額と想定利回りがこの成長率に対して十分かを確認しましょう。</li>
   </ul>`;
 }
 
@@ -2313,8 +2431,8 @@ function renderPlanChart(){
           borderColor:'#b9935a',
           backgroundColor:'rgba(185,147,90,.12)',
           pointBackgroundColor:'#b9935a',
-          pointRadius:3,
-          pointHoverRadius:5,
+          pointRadius:0.8,
+          pointHoverRadius:3,
           borderWidth:3,
           tension:.32,
           fill:true,
@@ -2598,3 +2716,4 @@ if(monthInputEl) monthInputEl.value = latestRecord().month;
 render();
 </script>
 </body>
+</html>
