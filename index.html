@@ -289,6 +289,16 @@
   .benchmark-settings{grid-template-columns:1fr}
 }
 
+
+/* v49: benchmark sync + axis refinements */
+.hero-month-axis{
+  font-size:13px;
+  font-weight:800;
+}
+#trendChart .axis-label.x-month{
+  display:none;
+}
+
 </style>
 </head>
 <body>
@@ -393,13 +403,11 @@ function svgBarTrend(data,id,dark=false,metric='net',selectedId='trendSelected')
   const vals=data.map(r=>seriesValue(r,metric));
   const maxVal=Math.max(...vals,1000000);
   const top=Math.ceil(maxVal/1000000)*1000000;
-  const w=760,h=340,ml=62,mr=24,mt=28,mb=48;
+  const w=760,h=340,ml=62,mr=24,mt=28,mb=30;
   const innerW=w-ml-mr,innerH=h-mt-mb;
   const step=1000000;
   const tickVals=[];
   for(let v=0;v<=top;v+=step)tickVals.push(v);
-  const everyTick=Math.max(1,Math.ceil(tickVals.length/7));
-  const compactTicks=tickVals.filter((_,i)=>i%everyTick===0||i===tickVals.length-1);
   const y=v=>mt+(top-v)*innerH/(top||1);
   const x=i=>ml+i*innerW/data.length;
   const barGap=data.length>18?5:8;
@@ -409,9 +417,7 @@ function svgBarTrend(data,id,dark=false,metric='net',selectedId='trendSelected')
   const baseColor=dark?'#d6bd84':'#c8ad74';
   const activeColor=dark?'#8f7a4f':'#8a7550';
   const latestIndex=data.length-1;
-  const grid=compactTicks.map(v=>`<line x1="${ml}" x2="${w-mr}" y1="${y(v)}" y2="${y(v)}" stroke="${gridColor}"/><text class="axis-label" x="${ml-8}" y="${y(v)+5}" fill="${axisColor}" font-size="13" font-weight="800" text-anchor="end">${axisTick(v)}</text>`).join('');
-  const labelEvery=Math.max(1,Math.ceil(data.length/8));
-  const labels=data.map((r,i)=>(i%labelEvery===0||i===data.length-1)?`<text class="axis-label" x="${x(i)+bw/2}" y="${h-20}" fill="${axisColor}" font-size="13" font-weight="800" text-anchor="middle">${axisMonthLabel(r.month)}</text>`:'').join('');
+  const grid=tickVals.map(v=>`<line x1="${ml}" x2="${w-mr}" y1="${y(v)}" y2="${y(v)}" stroke="${gridColor}"/><text class="axis-label" x="${ml-8}" y="${y(v)+5}" fill="${axisColor}" font-size="13" font-weight="800" text-anchor="end">${axisTick(v)}</text>`).join('');
   const bars=data.map((r,i)=>{
     const v=vals[i],bh=Math.max(2,innerH*v/(top||1)),xx=x(i)+barGap/2,yy=h-mb-bh;
     const fill=i===latestIndex?activeColor:baseColor;
@@ -419,7 +425,12 @@ function svgBarTrend(data,id,dark=false,metric='net',selectedId='trendSelected')
   }).join('');
   const latest=data[latestIndex];
   setTrendSelected(selectedId,latest.month,vals[latestIndex]);
-  el.innerHTML=`<svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><rect x="${ml}" y="${mt}" width="${innerW}" height="${innerH}" rx="14" fill="${dark?'rgba(255,255,255,.02)':'rgba(255,255,255,.35)'}"/>${grid}${bars}<line x1="${ml}" x2="${w-mr}" y1="${h-mb}" y2="${h-mb}" stroke="${gridColor}" stroke-width="1"/>${labels}</svg>`;
+  el.innerHTML=`<svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <rect x="${ml}" y="${mt}" width="${innerW}" height="${innerH}" rx="14" fill="${dark?'rgba(255,255,255,.02)':'rgba(255,255,255,.35)'}"/>
+    ${grid}
+    ${bars}
+    <line x1="${ml}" x2="${w-mr}" y1="${h-mb}" y2="${h-mb}" stroke="${gridColor}" stroke-width="1"/>
+  </svg>`;
 }
 function svgLine(data,id,dark=false,metric='net'){
   return svgBarTrend(data,id,dark,metric,id==='heroChart'?'heroTrendSelected':'trendSelected');
@@ -438,8 +449,10 @@ function svgStockTrend(data,id,metric='net'){
   const line=pts.map((p,i)=>(i===0?`M ${p.x} ${p.y}`:`L ${p.x} ${p.y}`)).join(' ');
   const gridVals=scale.ticks.length>5?scale.ticks.filter((_,i)=>i%2===0||i===scale.ticks.length-1):scale.ticks;
   const grid=gridVals.map(v=>`<line x1="${ml}" x2="${w-mr}" y1="${y(v)}" y2="${y(v)}" stroke="rgba(255,255,255,.14)"/><text class="axis-label" x="${w-mr+12}" y="${y(v)+5}" fill="rgba(255,255,255,.76)" font-size="14" font-weight="800">${axisTick(v)}</text>`).join('');
-  const every=Math.max(1,Math.ceil(data.length/5));
-  const labels=data.map((r,i)=>(i%every===0||i===data.length-1)?`<text class="axis-label" x="${x(i)}" y="${h-18}" fill="rgba(255,255,255,.72)" font-size="14" font-weight="800" text-anchor="middle">${axisMonthLabel(r.month)}</text>`:'').join('');
+  const labels=data.map((r,i)=>{
+    const mo=Number(r.month.split('/')[1]);
+    return `<text class="axis-label hero-month-axis" x="${x(i)}" y="${h-18}" fill="rgba(255,255,255,.72)" text-anchor="middle">${mo}</text>`;
+  }).join('');
   const last=pts[pts.length-1];
   const lineColor=vals[vals.length-1]>=vals[0]?'#5eead4':'#fb7185';
   el.innerHTML=`<svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
@@ -458,7 +471,37 @@ function svgStockTrend(data,id,metric='net'){
 }
 
 function changeHtml(a,r){if(a==null)return '-';const sign=a>=0?'+':'−',cls=a>=0?'pos':'neg';return `<span class="${cls}">${sign}${yen(Math.abs(a))}<span class="sub">（${sign}${Math.abs(r||0).toFixed(1)}%）</span></span>`}
-function renderDashboard(){const l=latest(),p=byMonth(addMonths(l.month,-1)),y=byMonth(addMonths(l.month,-12));const n=net(l),pn=p?net(p):0,mom=p?n-pn:null,mr=p&&pn?mom/pn*100:null,yoy=y?n-net(y):null,yr=y&&net(y)?yoy/net(y)*100:null,high=records.reduce((best,r)=>assets(r)>assets(best)?r:best,records[0]);document.getElementById('closingBadge').textContent=l.month+' 決算';document.getElementById('netLabel').textContent='NET ASSETS / '+monthName(l.month);document.getElementById('netDisplay').textContent=yen(n);document.getElementById('heroLines').innerHTML=`<div class="${mom>=0?'pos':'neg'}">${mom>=0?'+':'−'}${yen(Math.abs(mom||0))}（${mom>=0?'+':'−'}${Math.abs(mr||0).toFixed(1)}%） 前月比</div><div class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':'−'}${yen(Math.abs(yoy||0))}（${yoy>=0?'+':'−'}${Math.abs(yr||0).toFixed(1)}%） 前年比</div>`;document.getElementById('phaseText').textContent=mom>=0&&yoy>=0?'資産成長フェーズ':mom<0?'短期調整フェーズ':'回復フェーズ';document.getElementById('highPill').textContent='過去最高資産 '+yen(assets(high));document.getElementById('momKpi').innerHTML=changeHtml(mom,mr);document.getElementById('yoyKpi').innerHTML=changeHtml(yoy,yr);document.getElementById('highKpi').innerHTML=yen(assets(high))+'<span class="sub">'+monthName(high.month)+'</span>';document.getElementById('rankKpi').innerHTML='<span style="color:#d97706">上位15.2%</span><span class="ribbon">🥉 銅メダル水準</span>';document.getElementById('aiInsight').innerHTML=`純資産は前年比 <b class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':'−'}${Math.abs(yr||0).toFixed(1)}%</b>。自己資本比率は <b>${(n/assets(l)*100).toFixed(1)}%</b> で、財務安全性は高めです。`;svgStockTrend(records.slice(-12),'heroChart','net')}
+
+function currentBenchmarkSummary(){
+  const bs=benchmarkSettings||{birthDate:'1998-01-01',household:'couple',target:'assets'};
+  const age=calcAge(bs.birthDate),bucket=ageBucket(age),stat=benchmarkTable[bs.household][bucket],l=latest();
+  const value=bs.target==='net'?net(l):assets(l);
+  const top=topPercent(value,stat.average,stat.median);
+  let medal='🥉 銅メダル水準', col='#d97706';
+  if(top!==null&&top<=5){medal='🥇 金メダル水準';col='#ca8a04'}
+  else if(top!==null&&top<=15){medal='🥈 銀メダル水準';col='#64748b'}
+  else if(top!==null&&top<=50){medal='🥉 銅メダル水準';col='#d97706'}
+  else {medal='標準水準';col='#64748b'}
+  return {top,medal,col};
+}
+
+function renderDashboard(){
+  const l=latest(),p=byMonth(addMonths(l.month,-1)),y=byMonth(addMonths(l.month,-12));
+  const n=net(l),pn=p?net(p):0,mom=p?n-pn:null,mr=p&&pn?mom/pn*100:null,yoy=y?n-net(y):null,yr=y&&net(y)?yoy/net(y)*100:null,high=records.reduce((best,r)=>assets(r)>assets(best)?r:best,records[0]);
+  document.getElementById('closingBadge').textContent=l.month+' 決算';
+  document.getElementById('netLabel').textContent='NET ASSETS / '+monthName(l.month);
+  document.getElementById('netDisplay').textContent=yen(n);
+  document.getElementById('heroLines').innerHTML=`<div class="${mom>=0?'pos':'neg'}">${mom>=0?'+':'−'}${yen(Math.abs(mom||0))}（${mom>=0?'+':'−'}${Math.abs(mr||0).toFixed(1)}%） 前月比</div><div class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':'−'}${yen(Math.abs(yoy||0))}（${yoy>=0?'+':'−'}${Math.abs(yr||0).toFixed(1)}%） 前年比</div>`;
+  document.getElementById('phaseText').textContent=mom>=0&&yoy>=0?'資産成長フェーズ':mom<0?'短期調整フェーズ':'回復フェーズ';
+  document.getElementById('highPill').textContent='過去最高資産 '+yen(assets(high));
+  document.getElementById('momKpi').innerHTML=changeHtml(mom,mr);
+  document.getElementById('yoyKpi').innerHTML=changeHtml(yoy,yr);
+  document.getElementById('highKpi').innerHTML=yen(assets(high))+'<span class="sub">'+monthName(high.month)+'</span>';
+  const bench=currentBenchmarkSummary();
+  document.getElementById('rankKpi').innerHTML=`<span style="color:${bench.col}">${bench.top===null?'-':'上位'+bench.top.toFixed(1)+'%'}</span><span class="ribbon">${bench.medal}</span>`;
+  document.getElementById('aiInsight').innerHTML=`純資産は前年比 <b class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':'−'}${Math.abs(yr||0).toFixed(1)}%</b>。自己資本比率は <b>${(n/assets(l)*100).toFixed(1)}%</b> で、財務安全性は高めです。`;
+  svgStockTrend(records.slice(-12),'heroChart','net');
+}
 function renderTrend(){svgBarTrend(records.slice(-Number(document.getElementById('trendPeriod').value||12)),'trendChart',false,document.getElementById('trendMetric').value||'net','trendSelected')}
 function composition(){const l=latest(),estate=document.getElementById('estateMode')?.value||'include';return categories.filter(c=>c.side!=='liability').filter(c=>!(estate==='exclude'&&c.type==='realestate')).map(c=>({name:c.name,type:c.type,amount:Number(l.values[c.name]||0)})).filter(e=>e.amount>0).sort((a,b)=>b.amount-a.amount)}function compact(arr){const total=arr.reduce((s,e)=>s+e.amount,0)||1;let other=0,out=[];arr.forEach(e=>{if(e.amount/total<.025)other+=e.amount;else out.push(e)});if(other)out.push({name:'その他',type:'other',amount:other});return out}
 function renderPortfolio(){
