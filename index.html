@@ -114,6 +114,18 @@
   .donut-center small{font-size:9px!important}
 }
 
+
+/* v46 bar trend + linked plan + 2-col analysis */
+.analysis-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.trend-value-card{margin:10px 0 6px;padding:14px 18px;border-radius:20px;background:#fff;border:1px solid var(--line);box-shadow:0 12px 28px rgba(15,23,42,.06);display:grid;gap:4px}
+.hero .trend-value-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);box-shadow:none}
+.trend-value-card small{color:var(--muted);font-weight:850}.hero .trend-value-card small{color:rgba(255,255,255,.62)}
+.trend-value-card b{font-size:28px;letter-spacing:-.04em}.hero .trend-value-card b{color:#fff}
+.bar-rect{cursor:pointer;transition:opacity .15s ease}.bar-rect:hover{opacity:.82}
+.plan-legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 6px;color:#64748b;font-size:12px;font-weight:900}
+.legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px}
+@media(max-width:560px){.analysis-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.analysis-card{padding:12px!important}.analysis-card b{font-size:19px!important}.desc{font-size:10px!important}}
+
 </style>
 </head>
 <body>
@@ -138,7 +150,7 @@
     </div>
     <div class="hero-chart-card">
       <div class="hero-chart-head"><div><b>ASSET TREND</b><small>過去12ヶ月の資産推移</small></div><div class="hero-pill" id="highPill">過去最高資産</div></div>
-      <div id="heroChart"></div>
+      <div id="heroTrendSelected" class="trend-value-card"></div><div id="heroChart"></div>
     </div>
   </div>
 </section>
@@ -152,7 +164,7 @@
 <section class="insight"><div class="insight-icon">AI</div><div><b>AIインサイト</b><p id="aiInsight">-</p></div></section>
 
 <section class="grid" id="trendPortfolio">
-  <div class="panel" id="trendSection"><div class="chart-head"><div><p class="label">ASSET GROWTH</p><h2>資産推移</h2></div><div class="controls"><select id="trendMetric" onchange="renderTrend()"><option value="net">純資産</option><option value="assets">総資産</option><option value="liabilities">負債</option><option value="cash">現金・預金系</option><option value="invest">投資系</option><option value="retire">退職資産系</option><option value="realestate">不動産系</option></select><select id="trendPeriod" onchange="renderTrend()"><option value="3">3ヶ月</option><option value="6">6ヶ月</option><option value="12" selected>1年</option><option value="36">3年</option><option value="60">5年</option><option value="120">10年</option></select></div></div><div id="trendChart"></div></div>
+  <div class="panel" id="trendSection"><div class="chart-head"><div><p class="label">ASSET GROWTH</p><h2>資産推移</h2></div><div class="controls"><select id="trendMetric" onchange="renderTrend()"><option value="net">純資産</option><option value="assets">総資産</option><option value="liabilities">負債</option><option value="cash">現金・預金系</option><option value="invest">投資系</option><option value="retire">退職資産系</option><option value="realestate">不動産系</option></select><select id="trendPeriod" onchange="renderTrend()"><option value="3">3ヶ月</option><option value="6">6ヶ月</option><option value="12" selected>1年</option><option value="36">3年</option><option value="60">5年</option><option value="120">10年</option></select></div></div><div id="trendSelected" class="trend-value-card"></div><div id="trendChart"></div></div>
   <div class="panel" id="portfolioSection"><div class="portfolio-top"><div><p class="label">PORTFOLIO</p><h2 id="portfolioTitle">資産構成</h2></div><select class="portfolio-mode" id="estateMode" onchange="renderPortfolio()"><option value="include">不動産を含む</option><option value="exclude">不動産を除く</option></select></div><div class="strategy"><div class="strategy-card"><small>リスク資産比率</small><b id="riskRatio">-</b></div><div class="strategy-card"><small>安定資産比率</small><b id="stableRatio">-</b></div><div class="strategy-card"><small>最大集中</small><b id="maxConc">-</b></div></div><div class="portfolio-body"><div class="donut-area"><div class="donut-box"><div id="donutSvg"></div><div class="donut-center" id="donutCenter"></div></div><div class="donut-info" id="donutInfo"></div></div><div class="ranking"><div class="ranking-title">構成比ランキング</div><div id="rankingList"></div></div></div></div>
 </section>
 
@@ -197,57 +209,51 @@ function normalize(){categories=categories.map(c=>({name:c.name,side:c.side==='l
 function latest(){normalize();return records[records.length-1]}function byMonth(m){return records.find(r=>r.month===m)}function assets(r){return categories.filter(c=>c.side!=='liability').reduce((s,c)=>s+(Number(r.values[c.name])||0),0)}function liabilities(r){return categories.filter(c=>c.side==='liability').reduce((s,c)=>s+(Number(r.values[c.name])||0),0)}function net(r){return assets(r)-liabilities(r)}function interestDebt(r){return categories.filter(c=>c.side==='liability'&&(c.name.includes('借入')||c.name.includes('ローン'))).reduce((s,c)=>s+(Number(r.values[c.name])||0),0)}function seriesValue(r,metric){if(metric==='assets')return assets(r);if(metric==='liabilities')return liabilities(r);if(['cash','invest','retire','realestate'].includes(metric))return categories.filter(c=>c.side!=='liability'&&c.type===metric).reduce((s,c)=>s+(Number(r.values[c.name])||0),0);return net(r)}
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify({version:'v1',categories,records,planSettings,planDeposits}))}function load(){const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');if(s&&s.version==='v1'){categories=clone(s.categories);records=clone(s.records);planSettings={...planSettings,...(s.planSettings||{})};planDeposits={...planDeposits,...(s.planDeposits||{})}}else{categories=clone(seed.categories);records=clone(seed.records)}normalize();if(!records.length||net(latest())===0){categories=clone(seed.categories);records=clone(seed.records);normalize()}save()}function resetAll(){if(confirm('初期データに戻しますか？')){categories=clone(seed.categories);records=clone(seed.records);normalize();save();renderAll()}}
 function niceStep(raw){if(!raw||raw<=0)return 100000;const pow=Math.pow(10,Math.floor(Math.log10(raw))),n=raw/pow;return (n<=1?1:n<=2?2:n<=5?5:10)*pow}function niceScale(min,max,ticks=4){if(min===max){min-=100000;max+=100000}const step=niceStep((max-min)/Math.max(ticks-1,1)),niceMin=Math.floor(min/step)*step,niceMax=Math.ceil(max/step)*step,arr=[];for(let v=niceMin;v<=niceMax+step*.5;v+=step)arr.push(v);return {min:niceMin,max:niceMax,ticks:arr}}
-function svgLine(data,id,dark=false,metric='net'){
+function setTrendSelected(targetId, month, value){
+  const el=document.getElementById(targetId);
+  if(!el)return;
+  el.innerHTML=`<small>${month}</small><b>${yen(value)}</b>`;
+}
+function svgBarTrend(data,id,dark=false,metric='net',selectedId='trendSelected'){
   const el=document.getElementById(id);
   if(!el)return;
   const vals=data.map(r=>seriesValue(r,metric));
-  const scale=niceScale(Math.min(...vals),Math.max(...vals),4);
-  const w=760,h=330,ml=70,mr=26,mt=26,mb=58;
-  const x=i=>ml+i*(w-ml-mr)/Math.max(data.length-1,1);
-  const y=v=>mt+(scale.max-v)*(h-mt-mb)/(scale.max-scale.min||1);
-  const pts=vals.map((v,i)=>({x:x(i),y:y(v),v}));
-  const line=pts.map((p,i)=>{
-    if(i===0)return `M ${p.x} ${p.y}`;
-    const q=pts[i-1],cx=(q.x+p.x)/2;
-    return `C ${cx} ${q.y}, ${cx} ${p.y}, ${p.x} ${p.y}`;
-  }).join(' ');
-  const area=`M ${ml} ${h-mb} L ${pts[0].x} ${pts[0].y} `+
-    pts.slice(1).map((p,i)=>{
-      const q=pts[i],cx=(q.x+p.x)/2;
-      return `C ${cx} ${q.y}, ${cx} ${p.y}, ${p.x} ${p.y}`;
-    }).join(' ')+` L ${pts[pts.length-1].x} ${h-mb} Z`;
-  const tickVals=scale.ticks.length>5?scale.ticks.filter((_,i)=>i%2===0||i===scale.ticks.length-1):scale.ticks;
-  const axisColor=dark?'rgba(255,255,255,.66)':'#64748b';
-  const gridColor=dark?'rgba(255,255,255,.12)':'#e2e8f0';
-  const grid=tickVals.map(v=>`<line x1="${ml}" x2="${w-mr}" y1="${y(v)}" y2="${y(v)}" stroke="${gridColor}"/><text class="axis-label" x="${ml-12}" y="${y(v)+5}" fill="${axisColor}" font-size="14" font-weight="800" text-anchor="end">${axisTick(v)}</text>`).join('');
-  const every=Math.max(1,Math.ceil(data.length/5));
-  const labels=data.map((r,i)=>(i%every===0||i===data.length-1)?`<text class="axis-label" x="${x(i)}" y="${h-22}" fill="${axisColor}" font-size="14" font-weight="800" text-anchor="middle">${axisMonthLabel(r.month)}</text>`:'').join('');
-  const high=pts[vals.indexOf(Math.max(...vals))],last=pts[pts.length-1];
-  const stroke=dark?'#38bdf8':'#2563eb',accent=dark?'#a7f3d0':'#10b981';
-  el.innerHTML=`<svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-    <defs>
-      <linearGradient id="gr${id}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${stroke}" stop-opacity=".34"/>
-        <stop offset="68%" stop-color="${stroke}" stop-opacity=".08"/>
-        <stop offset="100%" stop-color="${stroke}" stop-opacity="0"/>
-      </linearGradient>
-      <filter id="gl${id}" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur stdDeviation="3" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    </defs>
-    <rect x="${ml}" y="${mt}" width="${w-ml-mr}" height="${h-mt-mb}" rx="14" fill="${dark?'rgba(255,255,255,.025)':'rgba(37,99,235,.025)'}"/>
-    ${grid}
-    <path d="${area}" fill="url(#gr${id})"/>
-    <path d="${line}" fill="none" stroke="${stroke}" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#gl${id})"/>
-    <circle cx="${high.x}" cy="${high.y}" r="6" fill="${accent}" stroke="${dark?'#09284b':'#fff'}" stroke-width="3"/>
-    <circle cx="${last.x}" cy="${last.y}" r="6" fill="${stroke}" stroke="${dark?'#09284b':'#fff'}" stroke-width="3"/>
-    ${labels}
-  </svg>`;
+  const maxVal=Math.max(...vals,1000000);
+  const top=Math.ceil(maxVal/1000000)*1000000;
+  const w=760,h=340,ml=62,mr=24,mt=28,mb=48;
+  const innerW=w-ml-mr,innerH=h-mt-mb;
+  const step=1000000;
+  const tickVals=[];
+  for(let v=0;v<=top;v+=step)tickVals.push(v);
+  const everyTick=Math.max(1,Math.ceil(tickVals.length/7));
+  const compactTicks=tickVals.filter((_,i)=>i%everyTick===0||i===tickVals.length-1);
+  const y=v=>mt+(top-v)*innerH/(top||1);
+  const x=i=>ml+i*innerW/data.length;
+  const barGap=data.length>18?5:8;
+  const bw=Math.max(8,innerW/data.length-barGap);
+  const axisColor=dark?'rgba(255,255,255,.68)':'#64748b';
+  const gridColor=dark?'rgba(255,255,255,.13)':'#e5e7eb';
+  const baseColor=dark?'#d6bd84':'#c8ad74';
+  const activeColor=dark?'#8f7a4f':'#8a7550';
+  const latestIndex=data.length-1;
+  const grid=compactTicks.map(v=>`<line x1="${ml}" x2="${w-mr}" y1="${y(v)}" y2="${y(v)}" stroke="${gridColor}"/><text class="axis-label" x="${ml-8}" y="${y(v)+5}" fill="${axisColor}" font-size="13" font-weight="800" text-anchor="end">${axisTick(v)}</text>`).join('');
+  const labelEvery=Math.max(1,Math.ceil(data.length/8));
+  const labels=data.map((r,i)=>(i%labelEvery===0||i===data.length-1)?`<text class="axis-label" x="${x(i)+bw/2}" y="${h-20}" fill="${axisColor}" font-size="13" font-weight="800" text-anchor="middle">${axisMonthLabel(r.month)}</text>`:'').join('');
+  const bars=data.map((r,i)=>{
+    const v=vals[i],bh=Math.max(2,innerH*v/(top||1)),xx=x(i)+barGap/2,yy=h-mb-bh;
+    const fill=i===latestIndex?activeColor:baseColor;
+    return `<rect class="bar-rect" onclick="setTrendSelected('${selectedId}','${r.month}',${v})" x="${xx}" y="${yy}" width="${bw}" height="${bh}" rx="2.5" fill="${fill}" opacity="${dark?'.95':'.92'}"/>`;
+  }).join('');
+  const latest=data[latestIndex];
+  setTrendSelected(selectedId,latest.month,vals[latestIndex]);
+  el.innerHTML=`<svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><rect x="${ml}" y="${mt}" width="${innerW}" height="${innerH}" rx="14" fill="${dark?'rgba(255,255,255,.02)':'rgba(255,255,255,.35)'}"/>${grid}${bars}<line x1="${ml}" x2="${w-mr}" y1="${h-mb}" y2="${h-mb}" stroke="${gridColor}" stroke-width="1"/>${labels}</svg>`;
+}
+function svgLine(data,id,dark=false,metric='net'){
+  return svgBarTrend(data,id,dark,metric,id==='heroChart'?'heroTrendSelected':'trendSelected');
 }
 function changeHtml(a,r){if(a==null)return '-';const sign=a>=0?'+':'−',cls=a>=0?'pos':'neg';return `<span class="${cls}">${sign}${yen(Math.abs(a))}<span class="sub">（${sign}${Math.abs(r||0).toFixed(1)}%）</span></span>`}
-function renderDashboard(){const l=latest(),p=byMonth(addMonths(l.month,-1)),y=byMonth(addMonths(l.month,-12));const n=net(l),pn=p?net(p):0,mom=p?n-pn:null,mr=p&&pn?mom/pn*100:null,yoy=y?n-net(y):null,yr=y&&net(y)?yoy/net(y)*100:null,high=records.reduce((best,r)=>assets(r)>assets(best)?r:best,records[0]);document.getElementById('closingBadge').textContent=l.month+' 決算';document.getElementById('netLabel').textContent='NET ASSETS / '+monthName(l.month);document.getElementById('netDisplay').textContent=yen(n);document.getElementById('heroLines').innerHTML=`<div class="${mom>=0?'pos':'neg'}">${mom>=0?'+':'−'}${yen(Math.abs(mom||0))}（${mom>=0?'+':'−'}${Math.abs(mr||0).toFixed(1)}%） 前月比</div><div class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':'−'}${yen(Math.abs(yoy||0))}（${yoy>=0?'+':'−'}${Math.abs(yr||0).toFixed(1)}%） 前年比</div>`;document.getElementById('phaseText').textContent=mom>=0&&yoy>=0?'資産成長フェーズ':mom<0?'短期調整フェーズ':'回復フェーズ';document.getElementById('highPill').textContent='過去最高資産 '+yen(assets(high));document.getElementById('momKpi').innerHTML=changeHtml(mom,mr);document.getElementById('yoyKpi').innerHTML=changeHtml(yoy,yr);document.getElementById('highKpi').innerHTML=yen(assets(high))+'<span class="sub">'+monthName(high.month)+'</span>';document.getElementById('rankKpi').innerHTML='<span style="color:#d97706">上位15.2%</span><span class="ribbon">🥉 銅メダル水準</span>';document.getElementById('aiInsight').innerHTML=`純資産は前年比 <b class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':'−'}${Math.abs(yr||0).toFixed(1)}%</b>。自己資本比率は <b>${(n/assets(l)*100).toFixed(1)}%</b> で、財務安全性は高めです。`;svgLine(records.slice(-12),'heroChart',true,'net')}
-function renderTrend(){svgLine(records.slice(-Number(document.getElementById('trendPeriod').value||12)),'trendChart',false,document.getElementById('trendMetric').value||'net')}
+function renderDashboard(){const l=latest(),p=byMonth(addMonths(l.month,-1)),y=byMonth(addMonths(l.month,-12));const n=net(l),pn=p?net(p):0,mom=p?n-pn:null,mr=p&&pn?mom/pn*100:null,yoy=y?n-net(y):null,yr=y&&net(y)?yoy/net(y)*100:null,high=records.reduce((best,r)=>assets(r)>assets(best)?r:best,records[0]);document.getElementById('closingBadge').textContent=l.month+' 決算';document.getElementById('netLabel').textContent='NET ASSETS / '+monthName(l.month);document.getElementById('netDisplay').textContent=yen(n);document.getElementById('heroLines').innerHTML=`<div class="${mom>=0?'pos':'neg'}">${mom>=0?'+':'−'}${yen(Math.abs(mom||0))}（${mom>=0?'+':'−'}${Math.abs(mr||0).toFixed(1)}%） 前月比</div><div class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':'−'}${yen(Math.abs(yoy||0))}（${yoy>=0?'+':'−'}${Math.abs(yr||0).toFixed(1)}%） 前年比</div>`;document.getElementById('phaseText').textContent=mom>=0&&yoy>=0?'資産成長フェーズ':mom<0?'短期調整フェーズ':'回復フェーズ';document.getElementById('highPill').textContent='過去最高資産 '+yen(assets(high));document.getElementById('momKpi').innerHTML=changeHtml(mom,mr);document.getElementById('yoyKpi').innerHTML=changeHtml(yoy,yr);document.getElementById('highKpi').innerHTML=yen(assets(high))+'<span class="sub">'+monthName(high.month)+'</span>';document.getElementById('rankKpi').innerHTML='<span style="color:#d97706">上位15.2%</span><span class="ribbon">🥉 銅メダル水準</span>';document.getElementById('aiInsight').innerHTML=`純資産は前年比 <b class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':'−'}${Math.abs(yr||0).toFixed(1)}%</b>。自己資本比率は <b>${(n/assets(l)*100).toFixed(1)}%</b> で、財務安全性は高めです。`;svgBarTrend(records.slice(-12),'heroChart',true,'net','heroTrendSelected')}
+function renderTrend(){svgBarTrend(records.slice(-Number(document.getElementById('trendPeriod').value||12)),'trendChart',false,document.getElementById('trendMetric').value||'net','trendSelected')}
 function composition(){const l=latest(),estate=document.getElementById('estateMode')?.value||'include';return categories.filter(c=>c.side!=='liability').filter(c=>!(estate==='exclude'&&c.type==='realestate')).map(c=>({name:c.name,type:c.type,amount:Number(l.values[c.name]||0)})).filter(e=>e.amount>0).sort((a,b)=>b.amount-a.amount)}function compact(arr){const total=arr.reduce((s,e)=>s+e.amount,0)||1;let other=0,out=[];arr.forEach(e=>{if(e.amount/total<.025)other+=e.amount;else out.push(e)});if(other)out.push({name:'その他',type:'other',amount:other});return out}
 function renderPortfolio(){
   const data=compact(composition()),total=data.reduce((s,e)=>s+e.amount,0)||1,l=latest(),estate=document.getElementById('estateMode').value;
@@ -286,18 +292,25 @@ function renderPlan(){
 }
 function svgCustom(data,id,target){
   const el=document.getElementById(id);
-  const vals=data.map(r=>r.values._net),scale=niceScale(Math.min(...vals,target),Math.max(...vals,target),4),w=760,h=310,ml=70,mr=26,mt=26,mb=52;
-  const x=i=>ml+i*(w-ml-mr)/Math.max(data.length-1,1);
-  const y=v=>mt+(scale.max-v)*(h-mt-mb)/(scale.max-scale.min||1);
-  const pts=vals.map((v,i)=>({x:x(i),y:y(v),v}));
-  const line=pts.map((p,i)=>{if(i===0)return `M ${p.x} ${p.y}`;const q=pts[i-1],cx=(q.x+p.x)/2;return `C ${cx} ${q.y}, ${cx} ${p.y}, ${p.x} ${p.y}`}).join(' ');
-  const area=`M ${ml} ${h-mb} L ${pts[0].x} ${pts[0].y} `+pts.slice(1).map((p,i)=>{const q=pts[i],cx=(q.x+p.x)/2;return `C ${cx} ${q.y}, ${cx} ${p.y}, ${p.x} ${p.y}`}).join(' ')+` L ${pts[pts.length-1].x} ${h-mb} Z`;
+  const actual=records.map(r=>({month:r.month,value:net(r)}));
+  const forecast=data.map(r=>({month:r.month,value:r.values._net}));
+  const combined=[...actual,...forecast.slice(1)];
+  const vals=[...combined.map(d=>d.value),target];
+  const scale=niceScale(Math.min(...vals),Math.max(...vals),4);
+  const w=760,h=330,ml=70,mr=26,mt=30,mb=56;
+  const innerW=w-ml-mr,innerH=h-mt-mb;
+  const x=i=>ml+i*innerW/Math.max(combined.length-1,1);
+  const y=v=>mt+(scale.max-v)*innerH/(scale.max-scale.min||1);
+  const actualPts=actual.map((d,i)=>({x:x(i),y:y(d.value),v:d.value}));
+  const forecastStartIndex=actual.length-1;
+  const forecastPts=forecast.map((d,i)=>({x:x(forecastStartIndex+i),y:y(d.value),v:d.value}));
+  const path=pts=>pts.map((p,i)=>{if(i===0)return `M ${p.x} ${p.y}`;const q=pts[i-1],cx=(q.x+p.x)/2;return `C ${cx} ${q.y}, ${cx} ${p.y}, ${p.x} ${p.y}`}).join(' ');
   const tickVals=scale.ticks.length>5?scale.ticks.filter((_,i)=>i%2===0||i===scale.ticks.length-1):scale.ticks;
   const grid=tickVals.map(v=>`<line x1="${ml}" x2="${w-mr}" y1="${y(v)}" y2="${y(v)}" stroke="#e2e8f0"/><text class="axis-label" x="${ml-12}" y="${y(v)+5}" fill="#64748b" font-size="14" font-weight="800" text-anchor="end">${axisTick(v)}</text>`).join('');
+  const every=Math.max(1,Math.ceil(combined.length/6));
+  const labels=combined.map((d,i)=>(i%every===0||i===combined.length-1)?`<text class="axis-label" x="${x(i)}" y="${h-20}" fill="#64748b" font-size="14" font-weight="800" text-anchor="middle">${axisMonthLabel(d.month)}</text>`:'').join('');
   const targetY=y(target);
-  const every=Math.max(1,Math.ceil(data.length/6));
-  const labels=data.map((r,i)=>(i%every===0||i===data.length-1)?`<text class="axis-label" x="${x(i)}" y="${h-20}" fill="#64748b" font-size="14" font-weight="800" text-anchor="middle">${axisMonthLabel(r.month)}</text>`:'').join('');
-  el.innerHTML=`<svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="plangrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10b981" stop-opacity=".28"/><stop offset="100%" stop-color="#10b981" stop-opacity="0"/></linearGradient></defs>${grid}<path d="${area}" fill="url(#plangrad)"/><line x1="${ml}" x2="${w-mr}" y1="${targetY}" y2="${targetY}" stroke="#f59e0b" stroke-width="3" stroke-dasharray="8 7"/><path d="${line}" fill="none" stroke="#10b981" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${pts[pts.length-1].x}" cy="${pts[pts.length-1].y}" r="6" fill="#10b981" stroke="#fff" stroke-width="3"/>${labels}</svg>`;
+  el.innerHTML=`<div class="plan-legend"><span><i class="legend-dot" style="background:#2563eb"></i>実績</span><span><i class="legend-dot" style="background:#10b981"></i>予想</span><span><i class="legend-dot" style="background:#f59e0b"></i>目標</span></div><svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${grid}<line x1="${ml}" x2="${w-mr}" y1="${targetY}" y2="${targetY}" stroke="#f59e0b" stroke-width="3" stroke-dasharray="8 7"/><path d="${path(actualPts)}" fill="none" stroke="#2563eb" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/><path d="${path(forecastPts)}" fill="none" stroke="#10b981" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${actualPts[actualPts.length-1].x}" cy="${actualPts[actualPts.length-1].y}" r="6" fill="#2563eb" stroke="#fff" stroke-width="3"/><circle cx="${forecastPts[forecastPts.length-1].x}" cy="${forecastPts[forecastPts.length-1].y}" r="6" fill="#10b981" stroke="#fff" stroke-width="3"/>${labels}</svg>`;
 }
 function renderInputs(){const m=document.getElementById('monthInput')?.value||latest().month,cur=byMonth(m),p=byMonth(addMonths(m,-1)),p2=byMonth(addMonths(m,-2));document.getElementById('recordSelector').innerHTML=records.map(r=>`<option value="${r.month}">${r.month}</option>`).join('');document.getElementById('recordSelector').value=m;document.getElementById('categoryInputs').innerHTML=categories.map((c,i)=>`<div class="input-row"><div class="input-top"><div><span class="input-title-main">${c.name}</span><span class="input-title-sub">${sideNames[c.side]} / ${typeNames[c.type]||'その他'}</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="mini" onclick="moveCategory(${i},-1)">上へ</button><button class="mini" onclick="moveCategory(${i},1)">下へ</button><button class="mini" onclick="renameCategory('${c.name}')">編集</button><button class="mini danger" onclick="deleteCategory('${c.name}')">削除</button></div></div><div class="input-values"><div class="readonly"><small>前々月（${addMonths(m,-2)}）</small><b>${p2?yen(p2.values[c.name]||0):'-'}</b></div><div class="readonly"><small>前月（${addMonths(m,-1)}）</small><b>${p?yen(p.values[c.name]||0):'-'}</b></div><input class="input month-input amount-input" data-category="${c.name}" value="${num(cur?.values[c.name]||0)}"></div></div>`).join('')}
 function showPage(p){const input=p==='input';document.getElementById('dashboardPage').classList.toggle('hidden',input);document.getElementById('inputPage').classList.toggle('hidden',!input);window.scrollTo({top:0,behavior:'smooth'})}function loadSelectedRecord(){document.getElementById('monthInput').value=document.getElementById('recordSelector').value;renderInputs()}function prepareNextMonth(){document.getElementById('monthInput').value=addMonths(latest().month,1);renderInputs();document.querySelectorAll('.amount-input').forEach(i=>i.value='')}function copyPreviousToCurrent(){const p=byMonth(addMonths(document.getElementById('monthInput').value,-1));if(!p)return;document.querySelectorAll('.amount-input').forEach(i=>i.value=num(p.values[i.dataset.category]||0))}function saveMonth(){const m=document.getElementById('monthInput').value.trim(),ex=byMonth(m),values={};categories.forEach(c=>values[c.name]=0);document.querySelectorAll('.amount-input').forEach(i=>values[i.dataset.category]=raw(i.value));if(ex)ex.values=values;else records.push({month:m,values});normalize();save();renderAll();showPage('dashboard')}function addCategory(){const name=document.getElementById('newCategoryName').value.trim();if(!name)return alert('科目名を入力してください');if(categories.some(c=>c.name===name))return alert('同じ科目があります');categories.push({name,side:document.getElementById('newCategorySide').value,type:document.getElementById('newCategoryType').value});records.forEach(r=>r.values[name]=0);save();renderAll()}function renameCategory(old){const name=prompt('新しい科目名',old);if(!name||name===old)return;categories.find(c=>c.name===old).name=name;records.forEach(r=>{r.values[name]=r.values[old]||0;delete r.values[old]});save();renderAll()}function deleteCategory(name){if(!confirm(name+'を削除しますか？'))return;categories=categories.filter(c=>c.name!==name);records.forEach(r=>delete r.values[name]);save();renderAll()}function moveCategory(i,d){const n=i+d;if(n<0||n>=categories.length)return;[categories[i],categories[n]]=[categories[n],categories[i]];save();renderAll()}function savePlan(){planSettings={target:raw(document.getElementById('planTarget').value),years:Number(document.getElementById('planYears').value),annualReturn:Number(document.getElementById('planReturn').value),annualBonus:raw(document.getElementById('planBonus').value)};document.querySelectorAll('[data-deposit-category]').forEach(i=>planDeposits[i.dataset.depositCategory]=raw(i.value));save();renderPlan()}
