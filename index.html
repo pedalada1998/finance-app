@@ -210,9 +210,47 @@ body{
 
 /* v40 SVG chart stability */
 .svgbox{width:100%;height:300px;display:block;overflow:visible}.hero-chart-panel .svgbox{height:250px}.donut svg{width:100%;max-width:360px;display:block;margin:auto}.donut{min-height:320px}.page.hidden{display:none!important}#dashboardShell.hidden{display:none!important}.portfolio-strategy .strategy-card b{opacity:1!important;visibility:visible!important}.panel{overflow:hidden}
+
+/* v42 chart polish + real estate toggle */
+.svgbox{filter:drop-shadow(0 16px 24px rgba(37,99,235,.10))}
+.hero .svgbox{filter:drop-shadow(0 16px 28px rgba(56,189,248,.22))}
+.trend-head{align-items:flex-start!important}
+.donut-wrap{position:relative!important;min-height:360px!important;display:grid!important;place-items:center!important}
+.donut-wrap svg{display:block;width:min(360px,100%)!important;margin:auto!important}
+.donut-center{position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;width:148px!important;height:148px!important;z-index:2!important}
+.portfolio-control{display:flex;justify-content:flex-end;margin:0 0 12px}
+.portfolio-control select{width:auto;min-width:180px;padding:10px 12px;border-radius:14px;font-weight:800}
+.donut-tooltip{width:100%;max-width:520px;margin:12px auto 0!important}
+.rank-row{cursor:pointer}
+@media(max-width:560px){
+  .donut-wrap{min-height:330px!important}
+  .donut-center{width:132px!important;height:132px!important}
+  .portfolio-control{justify-content:stretch}
+  .portfolio-control select{width:100%}
+}
+
 </style>
 <style id="v41-patch-css">
 .badge{top:26px!important;right:24px!important}.hero .eyebrow{padding-right:150px!important}.asset-trend-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.asset-trend-controls select{width:auto;min-width:128px;padding:10px 12px;border-radius:14px;font-weight:800}.donut-segment{cursor:pointer;transition:opacity .15s}.donut-segment:hover{opacity:.82}.donut-tooltip{margin-top:12px;padding:13px 14px;border-radius:18px;background:#0f172a;color:#fff;display:grid;gap:4px;box-shadow:0 14px 36px rgba(15,23,42,.22)}.donut-tooltip small{color:rgba(255,255,255,.62);font-weight:900}.donut-tooltip b{font-size:18px}@media(max-width:560px){.badge{position:relative!important;top:auto!important;right:auto!important;width:max-content;margin-bottom:14px}.hero .eyebrow{padding-right:0!important}.asset-trend-controls{width:100%;display:grid;grid-template-columns:1fr 1fr}.asset-trend-controls select{width:100%;min-width:0}}
+
+/* v42 chart polish + real estate toggle */
+.svgbox{filter:drop-shadow(0 16px 24px rgba(37,99,235,.10))}
+.hero .svgbox{filter:drop-shadow(0 16px 28px rgba(56,189,248,.22))}
+.trend-head{align-items:flex-start!important}
+.donut-wrap{position:relative!important;min-height:360px!important;display:grid!important;place-items:center!important}
+.donut-wrap svg{display:block;width:min(360px,100%)!important;margin:auto!important}
+.donut-center{position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;width:148px!important;height:148px!important;z-index:2!important}
+.portfolio-control{display:flex;justify-content:flex-end;margin:0 0 12px}
+.portfolio-control select{width:auto;min-width:180px;padding:10px 12px;border-radius:14px;font-weight:800}
+.donut-tooltip{width:100%;max-width:520px;margin:12px auto 0!important}
+.rank-row{cursor:pointer}
+@media(max-width:560px){
+  .donut-wrap{min-height:330px!important}
+  .donut-center{width:132px!important;height:132px!important}
+  .portfolio-control{justify-content:stretch}
+  .portfolio-control select{width:100%}
+}
+
 </style>
 </head>
 <body>
@@ -349,39 +387,102 @@ function renderDashboard(){
   }
   document.body.dataset.net=String(n);
 }
-function svgLine(data,id,dark=false){
-  const el=document.getElementById(id); if(!el) return;
-  const vals=data.map(r=>net(r)); if(!vals.length){el.innerHTML=''; return;}
-  const min=Math.min(...vals), max=Math.max(...vals), pad=(max-min)*0.14||100000;
-  const w=720,h=300,ml=58,mr=22,mt=26,mb=56,lo=min-pad,hi=max+pad;
+function svgLine(data, id, dark=false, metric='net'){
+  const el=document.getElementById(id);
+  if(!el) return;
+  const vals=data.map(r=>seriesValue(r, metric));
+  const rawMin=Math.min(...vals), rawMax=Math.max(...vals);
+  const scale=niceScale(rawMin, rawMax, 4);
+  const w=720,h=300,ml=62,mr=24,mt=24,mb=52;
   const x=i=>ml+i*(w-ml-mr)/Math.max(data.length-1,1);
-  const y=v=>mt+(hi-v)*(h-mt-mb)/(hi-lo);
-  const pts=vals.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
-  const area=`${ml},${h-mb} ${pts} ${x(vals.length-1)},${h-mb}`;
-  const grid=[0,.5,1].map(t=>{const yy=mt+t*(h-mt-mb), val=hi-t*(hi-lo); return `<line x1="${ml}" x2="${w-mr}" y1="${yy}" y2="${yy}" stroke="${dark?'rgba(255,255,255,.10)':'#e2e8f0'}"/><text x="8" y="${yy+5}" fill="${dark?'rgba(255,255,255,.62)':'#64748b'}" font-size="18">${axisTick(val)}</text>`}).join('');
-  const step=Math.max(1,Math.ceil(data.length/5));
-  const labels=data.map((r,i)=>i%step===0?`<text x="${x(i)}" y="${h-14}" fill="${dark?'rgba(255,255,255,.62)':'#64748b'}" font-size="16" text-anchor="middle" transform="rotate(-32 ${x(i)} ${h-14})">${r.month}</text>`:'').join('');
-  el.innerHTML=`<svg class="svgbox" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="grad_${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${dark?'#38bdf8':'#2563eb'}" stop-opacity=".30"/><stop offset="100%" stop-color="${dark?'#38bdf8':'#2563eb'}" stop-opacity=".02"/></linearGradient></defs>${grid}<polygon points="${area}" fill="url(#grad_${id})"/><polyline points="${pts}" fill="none" stroke="${dark?'#38bdf8':'#2563eb'}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>${vals.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="${dark?'#a5f3fc':'#2563eb'}"/>`).join('')}${labels}</svg>`;
+  const y=v=>mt+(scale.max-v)*(h-mt-mb)/(scale.max-scale.min || 1);
+  const points=vals.map((v,i)=>({x:x(i),y:y(v),v}));
+  const linePath=points.map((p,i)=>{
+    if(i===0) return `M ${p.x} ${p.y}`;
+    const prev=points[i-1];
+    const cx=(prev.x+p.x)/2;
+    return `C ${cx} ${prev.y}, ${cx} ${p.y}, ${p.x} ${p.y}`;
+  }).join(' ');
+  const areaPath=`M ${ml} ${h-mb} L ${points[0].x} ${points[0].y} `+
+    points.slice(1).map((p,i)=>{
+      const prev=points[i];
+      const cx=(prev.x+p.x)/2;
+      return `C ${cx} ${prev.y}, ${cx} ${p.y}, ${p.x} ${p.y}`;
+    }).join(' ') + ` L ${points[points.length-1].x} ${h-mb} Z`;
+  const tickVals = scale.ticks.length > 6 ? scale.ticks.filter((_,i)=>i%2===0) : scale.ticks;
+  const grid=tickVals.map(v=>{
+    const yy=y(v);
+    return `<line x1="${ml}" x2="${w-mr}" y1="${yy}" y2="${yy}" stroke="${dark?'rgba(255,255,255,.12)':'#e2e8f0'}" stroke-width="1"/><text x="10" y="${yy+5}" fill="${dark?'rgba(255,255,255,.68)':'#64748b'}" font-size="16" font-weight="800">${axisTick(v)}</text>`;
+  }).join('');
+  const labelEvery=Math.max(1,Math.ceil(data.length/5));
+  const labels=data.map((r,i)=>(i%labelEvery===0||i===data.length-1)?`<text x="${x(i)}" y="${h-18}" fill="${dark?'rgba(255,255,255,.68)':'#64748b'}" font-size="15" font-weight="800" text-anchor="middle">${r.month.slice(2)}</text>`:'').join('');
+  const last=points[points.length-1];
+  const highIndex=vals.indexOf(Math.max(...vals));
+  const high=points[highIndex];
+  const stroke=dark?'#38bdf8':'#2563eb';
+  const fill=dark?'#38bdf8':'#2563eb';
+  el.innerHTML=`<svg class="svgbox" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="g${id}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${fill}" stop-opacity=".34"/>
+        <stop offset="70%" stop-color="${fill}" stop-opacity=".08"/>
+        <stop offset="100%" stop-color="${fill}" stop-opacity=".00"/>
+      </linearGradient>
+      <filter id="glow${id}" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    ${grid}
+    <path d="${areaPath}" fill="url(#g${id})"/>
+    <path d="${linePath}" fill="none" stroke="${stroke}" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow${id})"/>
+    <circle cx="${high.x}" cy="${high.y}" r="5.5" fill="${dark?'#a7f3d0':'#10b981'}" stroke="${dark?'#0f2746':'#fff'}" stroke-width="3"/>
+    <circle cx="${last.x}" cy="${last.y}" r="5.5" fill="${dark?'#e0f2fe':'#2563eb'}" stroke="${dark?'#0f2746':'#fff'}" stroke-width="3"/>
+    ${labels}
+  </svg>`;
 }
 function renderHeroTrend(){svgLine(records.slice(-12),'heroTrendSvg',true);}
 function renderTrendChart(){const period=Number(document.getElementById('trendPeriod')?.value||12); svgLine(records.slice(-period),'trendSvg',false);}
 function renderCharts(){renderHeroTrend(); renderTrendChart(); renderAllocation();}
-function composition(){const l=latest();return categories.filter(c=>c.side!=='liability').map(c=>({name:c.name,amount:Number(l.values[c.name]||0)})).filter(e=>e.amount>0).sort((a,b)=>b.amount-a.amount);}
+function composition(){
+  const l=latest();
+  const estateMode=document.getElementById('portfolioEstateMode')?.value || 'include';
+  return categories
+    .filter(c=>c.side!=='liability')
+    .filter(c=>!(estateMode==='exclude' && c.type==='realestate'))
+    .map(c=>({name:c.name,amount:Number(l.values[c.name]||0),type:c.type}))
+    .filter(e=>e.amount>0)
+    .sort((a,b)=>b.amount-a.amount);
+}
 function compact(arr){const total=arr.reduce((s,e)=>s+e.amount,0);let other=0,out=[];arr.forEach(e=>{if(e.amount/total<.025)other+=e.amount;else out.push(e);});if(other)out.push({name:'その他',amount:other});return out;}
 function renderAllocation(){
-  const data=compact(composition()), total=data.reduce((s,e)=>s+e.amount,0)||1, l=latest(), a=assets(l)||1;
+  const data=compact(composition());
+  const total=data.reduce((s,e)=>s+e.amount,0)||1;
+  const l=latest();
+  const estateMode=document.getElementById('portfolioEstateMode')?.value || 'include';
   let offset=0;
-  const circles=data.map((e,i)=>{const ratio=e.amount/total, len=314*ratio, empty=314-len; const s=`<circle cx="90" cy="90" r="50" fill="none" stroke="${color(e.name,i)}" stroke-width="22" stroke-dasharray="${len} ${empty}" stroke-dashoffset="${-offset}" transform="rotate(-90 90 90)"/>`; offset+=len; return s;}).join('');
-  const donut=document.getElementById('donutSvg'); if(donut) donut.innerHTML=`<svg viewBox="0 0 180 180"><circle cx="90" cy="90" r="50" fill="none" stroke="#e2e8f0" stroke-width="22"/>${circles}</svg>`;
-  const center=document.getElementById('allocationCenter'); if(center) center.innerHTML=`<div><small>NET ASSETS</small><b>${compactYen(net(l))}</b><span>${l.month}</span></div>`;
-  const ranking=document.getElementById('allocationRanking'); if(ranking) ranking.innerHTML=data.slice(0,6).map((e,i)=>`<div class="rank-row"><div class="rank-no">${i+1}</div><div class="rank-main"><b>${e.name}</b><small>${(e.amount/total*100).toFixed(1)}% of portfolio</small></div><div class="rank-val"><b>${yen(e.amount)}</b><small>${(e.amount/total*100).toFixed(1)}%</small></div><div class="rank-bar"><span style="width:${Math.min(100,e.amount/total*100)}%;background:${color(e.name,i)}"></span></div></div>`).join('');
-  const risk=categories.filter(c=>c.side!=='liability'&&(c.type==='invest'||c.type==='realestate')).reduce((s,c)=>s+(Number(l.values[c.name])||0),0);
-  const stable=categories.filter(c=>c.side!=='liability'&&(c.type==='cash'||c.type==='retire')).reduce((s,c)=>s+(Number(l.values[c.name])||0),0);
-  const top=composition()[0];
-  const riskEl=document.getElementById('riskAssetRatio'), stableEl=document.getElementById('stableAssetRatio'), maxEl=document.getElementById('maxConcentration');
-  if(riskEl) riskEl.textContent=(risk/a*100).toFixed(1)+'%';
-  if(stableEl) stableEl.textContent=(stable/a*100).toFixed(1)+'%';
-  if(maxEl) maxEl.textContent=top?`${top.name} ${(top.amount/a*100).toFixed(1)}%`:'-';
+  const circles=data.map((e,i)=>{
+    const share=e.amount/total;
+    const stroke=314*share, empty=314-stroke, dashOffset=-offset;
+    offset+=stroke;
+    return `<circle class="donut-segment" onclick="showDonutInfo('${e.name.replace(/'/g,"\\'")}',${e.amount},${share*100},'${color(e.name,i)}')" cx="90" cy="90" r="50" fill="none" stroke="${color(e.name,i)}" stroke-width="22" stroke-dasharray="${stroke} ${empty}" stroke-dashoffset="${dashOffset}" transform="rotate(-90 90 90)" stroke-linecap="butt"/>`;
+  }).join('');
+  const first=data[0];
+  document.getElementById('donutSvg').innerHTML=`<svg viewBox="0 0 180 180" aria-label="資産構成ドーナツ"><circle cx="90" cy="90" r="50" fill="none" stroke="#e2e8f0" stroke-width="22"/>${circles}</svg><div id="donutInfo" class="donut-tooltip"><small>選択中</small><b style="color:${first?color(first.name,0):'#fff'}">${first?.name || '-'}</b><span>${first?yen(first.amount):'-'} / ${first?(first.amount/total*100).toFixed(1):'0.0'}%</span></div>`;
+  document.getElementById('allocationCenter').innerHTML=`<div><small>${estateMode==='exclude'?'NET ASSETS<br>不動産除く':'NET ASSETS'}</small><b>${compactYen(total-liabilities(l))}</b><span>${l.month}</span></div>`;
+  document.getElementById('allocationRanking').innerHTML=data.slice(0,6).map((e,i)=>`<div class="rank-row" onclick="showDonutInfo('${e.name.replace(/'/g,"\\'")}',${e.amount},${e.amount/total*100},'${color(e.name,i)}')"><div class="rank-no">${i+1}</div><div class="rank-main"><b>${e.name}</b><small>${(e.amount/total*100).toFixed(1)}% of portfolio</small></div><div class="rank-val"><b>${yen(e.amount)}</b><small>${(e.amount/total*100).toFixed(1)}%</small></div><div class="rank-bar"><span style="width:${Math.min(100,e.amount/total*100)}%;background:${color(e.name,i)}"></span></div></div>`).join('');
+  const risk=data.filter(e=>{
+    const c=categories.find(x=>x.name===e.name);
+    return c && (c.type==='invest'||c.type==='realestate');
+  }).reduce((s,e)=>s+e.amount,0);
+  const stable=data.filter(e=>{
+    const c=categories.find(x=>x.name===e.name);
+    return c && (c.type==='cash'||c.type==='retire');
+  }).reduce((s,e)=>s+e.amount,0);
+  const top=data[0];
+  document.getElementById('riskAssetRatio').textContent=(risk/total*100).toFixed(1)+'%';
+  document.getElementById('stableAssetRatio').textContent=(stable/total*100).toFixed(1)+'%';
+  document.getElementById('maxConcentration').textContent=top?`${top.name} ${(top.amount/total*100).toFixed(1)}%`:'-';
 }
 function renderStatement(){const l=latest(),a=assets(l),li=liabilities(l),n=net(l);const ar=categories.filter(c=>c.side!=='liability'&&l.values[c.name]).map(c=>`<div class="bs-row"><div><b>${c.name}</b><small>${typeNames[c.type]||'その他'} / ${(l.values[c.name]/a*100).toFixed(1)}%</small></div><b>${yen(l.values[c.name])}</b></div>`).join('');const lr=categories.filter(c=>c.side==='liability'&&l.values[c.name]).map(c=>`<div class="bs-row"><div><b>${c.name}</b><small>${typeNames[c.type]||'負債'}</small></div><b>${yen(l.values[c.name])}</b></div>`).join('')||`<div class="bs-row"><div><b>負債なし</b><small>-</small></div><b>¥0</b></div>`;document.getElementById('statementBody').innerHTML=`<div class="bs-chart"><b>BS構成チャート</b><canvas id="bsChart"></canvas></div><div class="bs-sheet"><div class="bs-col"><div class="bs-head asset"><span>資産</span><span>${yen(a)}</span></div>${ar}<div class="bs-row bs-total"><div>資産合計</div><b>${yen(a)}</b></div></div><div><div class="bs-col"><div class="bs-head liability"><span>負債</span><span>${yen(li)}</span></div>${lr}<div class="bs-row bs-total"><div>負債合計</div><b>${yen(li)}</b></div></div><div class="bs-col bs-net"><div class="bs-head equity"><span>純資産</span><span>${yen(n)}</span></div><div class="bs-row"><div><b>自己資本</b><small>資産 − 負債</small></div><b>${yen(n)}</b></div><div class="bs-row bs-total"><div>負債・純資産合計</div><b>${yen(li+n)}</b></div></div></div></div>`;destroy('bs');charts.bs=new Chart(document.getElementById('bsChart'),{type:'bar',data:{labels:['資産','負債＋純資産'],datasets:[{label:'資産',data:[a,0],backgroundColor:'#38bdf8',borderRadius:14},{label:'負債',data:[0,li],backgroundColor:'#ef4444',borderRadius:14},{label:'純資産',data:[0,n],backgroundColor:'#10b981',borderRadius:14}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,ticks:{callback:axisTick}}}}});}
 function analysisCard(label,val,desc,cls=''){return `<div class="analysis-card"><small>${label}</small><b class="${cls}">${val}</b><span class="desc">${desc}</span></div>`;}
