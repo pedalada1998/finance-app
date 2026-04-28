@@ -126,6 +126,59 @@
 .legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px}
 @media(max-width:560px){.analysis-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.analysis-card{padding:12px!important}.analysis-card b{font-size:19px!important}.desc{font-size:10px!important}}
 
+
+/* v47: dashboard stock-style trend + two-column BS statement */
+.stock-chart-meta{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  justify-content:flex-end;
+  margin-top:6px;
+  color:rgba(255,255,255,.62);
+  font-size:11px;
+  font-weight:800;
+}
+.bs-two-column{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  align-items:start;
+}
+.bs-stack{
+  display:grid;
+  gap:14px;
+}
+.bs-compact .bs-row{
+  grid-template-columns:1fr auto;
+}
+.bs-compact .bs-row b{
+  white-space:nowrap;
+}
+@media(max-width:560px){
+  .bs-two-column{
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+  }
+  .bs-head{
+    padding:10px 9px!important;
+    font-size:12px!important;
+  }
+  .bs-row{
+    padding:9px 9px!important;
+    font-size:11px!important;
+    gap:6px!important;
+  }
+  .bs-row small{
+    font-size:9px!important;
+  }
+  .bs-row b{
+    font-size:11px!important;
+  }
+  .bs-net{
+    margin-top:0!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -251,8 +304,45 @@ function svgBarTrend(data,id,dark=false,metric='net',selectedId='trendSelected')
 function svgLine(data,id,dark=false,metric='net'){
   return svgBarTrend(data,id,dark,metric,id==='heroChart'?'heroTrendSelected':'trendSelected');
 }
+
+function svgStockTrend(data,id,metric='net'){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const vals=data.map(r=>seriesValue(r,metric));
+  const scale=niceScale(Math.min(...vals),Math.max(...vals),4);
+  const w=760,h=330,ml=70,mr=72,mt=26,mb=48;
+  const innerW=w-ml-mr,innerH=h-mt-mb;
+  const x=i=>ml+i*innerW/Math.max(data.length-1,1);
+  const y=v=>mt+(scale.max-v)*innerH/(scale.max-scale.min||1);
+  const pts=vals.map((v,i)=>({x:x(i),y:y(v),v}));
+  const path=pts.map((p,i)=>{
+    if(i===0)return `M ${p.x} ${p.y}`;
+    const q=pts[i-1],cx=(q.x+p.x)/2;
+    return `C ${cx} ${q.y}, ${cx} ${p.y}, ${p.x} ${p.y}`;
+  }).join(' ');
+  const gridVals=scale.ticks.length>5?scale.ticks.filter((_,i)=>i%2===0||i===scale.ticks.length-1):scale.ticks;
+  const grid=gridVals.map(v=>`<line x1="${ml}" x2="${w-mr}" y1="${y(v)}" y2="${y(v)}" stroke="rgba(255,255,255,.14)"/><text class="axis-label" x="${w-mr+12}" y="${y(v)+5}" fill="rgba(255,255,255,.76)" font-size="14" font-weight="800">${axisTick(v)}</text>`).join('');
+  const every=Math.max(1,Math.ceil(data.length/5));
+  const labels=data.map((r,i)=>(i%every===0||i===data.length-1)?`<text class="axis-label" x="${x(i)}" y="${h-18}" fill="rgba(255,255,255,.72)" font-size="14" font-weight="800" text-anchor="middle">${axisMonthLabel(r.month)}</text>`:'').join('');
+  const last=pts[pts.length-1];
+  const lineColor=vals[vals.length-1]>=vals[0]?'#5eead4':'#fb7185';
+  el.innerHTML=`<svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <defs>
+      <filter id="stockGlow${id}" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    ${grid}
+    <path d="${path}" fill="none" stroke="${lineColor}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" filter="url(#stockGlow${id})"/>
+    <circle cx="${last.x}" cy="${last.y}" r="6" fill="${lineColor}" stroke="#071a33" stroke-width="3"/>
+    <line x1="${ml}" x2="${w-mr}" y1="${h-mb}" y2="${h-mb}" stroke="rgba(255,255,255,.14)"/>
+    ${labels}
+  </svg><div class="stock-chart-meta"><span>12M</span><span>｜</span><span>${data[0].month} - ${data[data.length-1].month}</span></div>`;
+}
+
 function changeHtml(a,r){if(a==null)return '-';const sign=a>=0?'+':'−',cls=a>=0?'pos':'neg';return `<span class="${cls}">${sign}${yen(Math.abs(a))}<span class="sub">（${sign}${Math.abs(r||0).toFixed(1)}%）</span></span>`}
-function renderDashboard(){const l=latest(),p=byMonth(addMonths(l.month,-1)),y=byMonth(addMonths(l.month,-12));const n=net(l),pn=p?net(p):0,mom=p?n-pn:null,mr=p&&pn?mom/pn*100:null,yoy=y?n-net(y):null,yr=y&&net(y)?yoy/net(y)*100:null,high=records.reduce((best,r)=>assets(r)>assets(best)?r:best,records[0]);document.getElementById('closingBadge').textContent=l.month+' 決算';document.getElementById('netLabel').textContent='NET ASSETS / '+monthName(l.month);document.getElementById('netDisplay').textContent=yen(n);document.getElementById('heroLines').innerHTML=`<div class="${mom>=0?'pos':'neg'}">${mom>=0?'+':'−'}${yen(Math.abs(mom||0))}（${mom>=0?'+':'−'}${Math.abs(mr||0).toFixed(1)}%） 前月比</div><div class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':'−'}${yen(Math.abs(yoy||0))}（${yoy>=0?'+':'−'}${Math.abs(yr||0).toFixed(1)}%） 前年比</div>`;document.getElementById('phaseText').textContent=mom>=0&&yoy>=0?'資産成長フェーズ':mom<0?'短期調整フェーズ':'回復フェーズ';document.getElementById('highPill').textContent='過去最高資産 '+yen(assets(high));document.getElementById('momKpi').innerHTML=changeHtml(mom,mr);document.getElementById('yoyKpi').innerHTML=changeHtml(yoy,yr);document.getElementById('highKpi').innerHTML=yen(assets(high))+'<span class="sub">'+monthName(high.month)+'</span>';document.getElementById('rankKpi').innerHTML='<span style="color:#d97706">上位15.2%</span><span class="ribbon">🥉 銅メダル水準</span>';document.getElementById('aiInsight').innerHTML=`純資産は前年比 <b class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':'−'}${Math.abs(yr||0).toFixed(1)}%</b>。自己資本比率は <b>${(n/assets(l)*100).toFixed(1)}%</b> で、財務安全性は高めです。`;svgBarTrend(records.slice(-12),'heroChart',true,'net','heroTrendSelected')}
+function renderDashboard(){const l=latest(),p=byMonth(addMonths(l.month,-1)),y=byMonth(addMonths(l.month,-12));const n=net(l),pn=p?net(p):0,mom=p?n-pn:null,mr=p&&pn?mom/pn*100:null,yoy=y?n-net(y):null,yr=y&&net(y)?yoy/net(y)*100:null,high=records.reduce((best,r)=>assets(r)>assets(best)?r:best,records[0]);document.getElementById('closingBadge').textContent=l.month+' 決算';document.getElementById('netLabel').textContent='NET ASSETS / '+monthName(l.month);document.getElementById('netDisplay').textContent=yen(n);document.getElementById('heroLines').innerHTML=`<div class="${mom>=0?'pos':'neg'}">${mom>=0?'+':'−'}${yen(Math.abs(mom||0))}（${mom>=0?'+':'−'}${Math.abs(mr||0).toFixed(1)}%） 前月比</div><div class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':'−'}${yen(Math.abs(yoy||0))}（${yoy>=0?'+':'−'}${Math.abs(yr||0).toFixed(1)}%） 前年比</div>`;document.getElementById('phaseText').textContent=mom>=0&&yoy>=0?'資産成長フェーズ':mom<0?'短期調整フェーズ':'回復フェーズ';document.getElementById('highPill').textContent='過去最高資産 '+yen(assets(high));document.getElementById('momKpi').innerHTML=changeHtml(mom,mr);document.getElementById('yoyKpi').innerHTML=changeHtml(yoy,yr);document.getElementById('highKpi').innerHTML=yen(assets(high))+'<span class="sub">'+monthName(high.month)+'</span>';document.getElementById('rankKpi').innerHTML='<span style="color:#d97706">上位15.2%</span><span class="ribbon">🥉 銅メダル水準</span>';document.getElementById('aiInsight').innerHTML=`純資産は前年比 <b class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':'−'}${Math.abs(yr||0).toFixed(1)}%</b>。自己資本比率は <b>${(n/assets(l)*100).toFixed(1)}%</b> で、財務安全性は高めです。`;svgStockTrend(records.slice(-12),'heroChart','net')}
 function renderTrend(){svgBarTrend(records.slice(-Number(document.getElementById('trendPeriod').value||12)),'trendChart',false,document.getElementById('trendMetric').value||'net','trendSelected')}
 function composition(){const l=latest(),estate=document.getElementById('estateMode')?.value||'include';return categories.filter(c=>c.side!=='liability').filter(c=>!(estate==='exclude'&&c.type==='realestate')).map(c=>({name:c.name,type:c.type,amount:Number(l.values[c.name]||0)})).filter(e=>e.amount>0).sort((a,b)=>b.amount-a.amount)}function compact(arr){const total=arr.reduce((s,e)=>s+e.amount,0)||1;let other=0,out=[];arr.forEach(e=>{if(e.amount/total<.025)other+=e.amount;else out.push(e)});if(other)out.push({name:'その他',type:'other',amount:other});return out}
 function renderPortfolio(){
@@ -276,7 +366,31 @@ function renderPortfolio(){
   document.getElementById('maxConc').textContent=first?first.name+' '+(first.amount/total*100).toFixed(1)+'%':'-';
 }
 function showDonut(name,amount,ratio,col){document.getElementById('donutInfo').innerHTML=`<small>選択中</small><b style="color:${col}">${name}</b><span>${yen(amount)} / ${Number(ratio).toFixed(1)}%</span>`}
-function renderStatement(){const l=latest(),a=assets(l),li=liabilities(l),n=net(l),max=Math.max(a,li+n)||1;const ar=categories.filter(c=>c.side!=='liability'&&l.values[c.name]).map(c=>`<div class="bs-row"><div><b>${c.name}</b><small>${typeNames[c.type]||'その他'} / ${(l.values[c.name]/a*100).toFixed(1)}%</small></div><b>${yen(l.values[c.name])}</b></div>`).join('');const lr=categories.filter(c=>c.side==='liability'&&l.values[c.name]).map(c=>`<div class="bs-row"><div><b>${c.name}</b><small>${typeNames[c.type]||'負債'}</small></div><b>${yen(l.values[c.name])}</b></div>`).join('')||'<div class="bs-row"><div><b>負債なし</b><small>-</small></div><b>¥0</b></div>';document.getElementById('statementBody').innerHTML=`<div class="bs-chart"><b>BS構成チャート</b><div class="bs-bars"><div class="bar bar-asset" style="height:${a/max*210}px"></div><div class="bar bar-right" style="height:${(li+n)/max*210}px;--equity:${n/(li+n)*100}%"></div></div><div class="bs-labels"><span>資産</span><span>負債＋純資産</span></div></div><div class="bs-sheet"><div class="bs-col"><div class="bs-head asset-head"><span>資産</span><span>${yen(a)}</span></div>${ar}<div class="bs-row bs-total"><div>資産合計</div><b>${yen(a)}</b></div></div><div><div class="bs-col"><div class="bs-head liability-head"><span>負債</span><span>${yen(li)}</span></div>${lr}<div class="bs-row bs-total"><div>負債合計</div><b>${yen(li)}</b></div></div><div class="bs-col bs-net"><div class="bs-head equity-head"><span>純資産</span><span>${yen(n)}</span></div><div class="bs-row"><div><b>自己資本</b><small>資産 − 負債</small></div><b>${yen(n)}</b></div><div class="bs-row bs-total"><div>負債・純資産合計</div><b>${yen(li+n)}</b></div></div></div></div>`}
+function renderStatement(){
+  const l=latest(),a=assets(l),li=liabilities(l),n=net(l),max=Math.max(a,li+n)||1;
+  const assetRows=categories.filter(c=>c.side!=='liability'&&l.values[c.name]).map(c=>`<div class="bs-row"><div><b>${c.name}</b><small>${typeNames[c.type]||'その他'} / ${(l.values[c.name]/a*100).toFixed(1)}%</small></div><b>${yen(l.values[c.name])}</b></div>`).join('');
+  const liabilityRows=categories.filter(c=>c.side==='liability'&&l.values[c.name]).map(c=>`<div class="bs-row"><div><b>${c.name}</b><small>${typeNames[c.type]||'負債'} / ${li?(l.values[c.name]/li*100).toFixed(1):'0.0'}%</small></div><b>${yen(l.values[c.name])}</b></div>`).join('')||'<div class="bs-row"><div><b>負債なし</b><small>-</small></div><b>¥0</b></div>';
+  document.getElementById('statementBody').innerHTML=`<div class="bs-chart"><b>BS構成チャート</b><div class="bs-bars"><div class="bar bar-asset" style="height:${a/max*210}px"></div><div class="bar bar-right" style="height:${(li+n)/max*210}px;--equity:${n/(li+n)*100}%"></div></div><div class="bs-labels"><span>資産</span><span>負債＋純資産</span></div></div>
+  <div class="bs-two-column">
+    <div class="bs-col bs-compact">
+      <div class="bs-head asset-head"><span>資産</span><span>${yen(a)}</span></div>
+      ${assetRows}
+      <div class="bs-row bs-total"><div>資産合計</div><b>${yen(a)}</b></div>
+    </div>
+    <div class="bs-stack">
+      <div class="bs-col bs-compact">
+        <div class="bs-head liability-head"><span>負債</span><span>${yen(li)}</span></div>
+        ${liabilityRows}
+        <div class="bs-row bs-total"><div>負債合計</div><b>${yen(li)}</b></div>
+      </div>
+      <div class="bs-col bs-compact bs-net">
+        <div class="bs-head equity-head"><span>純資産</span><span>${yen(n)}</span></div>
+        <div class="bs-row"><div><b>自己資本</b><small>資産 − 負債</small></div><b>${yen(n)}</b></div>
+        <div class="bs-row bs-total"><div>負債・純資産合計</div><b>${yen(li+n)}</b></div>
+      </div>
+    </div>
+  </div>`;
+}
 function acard(label,val,desc,cls=''){return `<div class="analysis-card"><small>${label}</small><b class="${cls}">${val}</b><span class="desc">${desc}</span></div>`}
 function renderAnalysis(){const l=latest(),p=byMonth(addMonths(l.month,-1)),y=byMonth(addMonths(l.month,-12));const a=assets(l),n=net(l),li=liabilities(l),ib=interestDebt(l),invest=n+ib,mp=p?n-net(p):0,yp=y?n-net(y):0;const roa=a?mp/a*100:0,roe=n?mp/n*100:0,roic=invest?mp/invest*100:0,aroa=a?yp/a*100:0,aroe=n?yp/n*100:0,aroic=invest?yp/invest*100:0,cash=categories.filter(c=>c.type==='cash').reduce((s,c)=>s+(l.values[c.name]||0),0),liq=li?cash/li*100:null,debt=a?li/a*100:0,equity=a?n/a*100:0,cap=p?(a-assets(p))/assets(p)*100:0,acap=y?(a-assets(y))/assets(y)*100:0;document.getElementById('analysisBody').innerHTML=`<div class="analysis-wrap"><div class="analysis-group profit"><h3>収益性分析</h3><div class="analysis-grid">${acard('ROA 月次',pct(roa),'総資産でどれだけ純資産を増やしたか。',roa>=0?'pos':'neg')}${acard('ROA 年次',pct(aroa),'12ヶ月前比の資産効率。',aroa>=0?'pos':'neg')}${acard('ROE 月次',pct(roe),'自己資本に対する増加効率。',roe>=0?'pos':'neg')}${acard('ROE 年次',pct(aroe),'12ヶ月前比の自己資本効率。',aroe>=0?'pos':'neg')}${acard('ROIC 月次',pct(roic),'投下資本に対する増加効率。',roic>=0?'pos':'neg')}${acard('ROIC 年次',pct(aroic),'12ヶ月前比の投下資本効率。',aroic>=0?'pos':'neg')}</div></div><div class="analysis-group safe"><h3>安全性分析</h3><div class="analysis-grid">${acard('流動比率',liq==null?'負債なし':pct(liq),'短期的な支払い余力。')}${acard('有利子負債残高',yen(ib),'利息負担のある借入残高。')}${acard('負債比率',pct(debt),'資産に占める負債の割合。')}${acard('自己資本比率',pct(equity),'資産のうち純資産で賄う割合。','pos')}</div></div><div class="analysis-group growth"><h3>成長性分析</h3><div class="analysis-grid">${acard('総資本成長率 月次',pct(cap),'資産全体の月次成長率。',cap>=0?'pos':'neg')}${acard('総資本成長率 年次',y?pct(acap):'-','資産全体の12ヶ月成長率。',acap>=0?'pos':'neg')}</div></div></div>`}
 function renderPlan(){
