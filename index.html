@@ -19,6 +19,101 @@
 .input-shell{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}.input-row{display:grid;gap:10px;padding:14px;border-radius:22px;background:#fff;border:1px solid var(--line);box-shadow:0 10px 26px rgba(15,23,42,.04)}.input-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.input-title-main{display:block;font-size:20px;font-weight:950;line-height:1.25}.input-title-sub{display:block;margin-top:5px;color:var(--muted);font-size:13px;font-weight:800;line-height:1.4}.input-values{display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:8px}.readonly{border-radius:16px;padding:11px 12px;background:#f8fafc}.readonly small{display:block;color:var(--muted);font-size:10px;font-weight:950}.month-input{height:62px;font-size:20px;font-weight:850;text-align:right}.mini{border:1px solid var(--line);background:#f8fafc;border-radius:999px;padding:7px 9px;font-size:11px;font-weight:950;cursor:pointer}.mini.danger{background:#fff1f2;color:var(--red)}.category-tools{display:grid;grid-template-columns:1fr 120px 150px auto;gap:8px;align-items:end}.back-row{margin-bottom:14px}
 @media(max-width:920px){.hero-inner,.grid,.portfolio-body,.bs-sheet,.plan-shell,.input-shell{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}.strategy,.sum-grid,.plan-result{grid-template-columns:1fr}}
 @media(max-width:560px){.app{padding:14px 10px 32px}.header{border-radius:20px}.top-actions{display:none}.hero{padding:22px 16px;border-radius:24px}.total{font-size:clamp(52px,13vw,76px)}.kpi-grid{gap:9px}.kpi{min-height:122px;padding:13px}.hero-actions{grid-template-columns:1fr 1fr}.controls{width:100%;display:grid;grid-template-columns:1fr 1fr}.controls select,.portfolio-mode{width:100%;min-width:0}.analysis-grid,.input-values,.form-grid,.deposit-row,.category-tools{grid-template-columns:1fr}.bs-bars{gap:34px}.bar{width:76px}}
+
+/* COMPLETE REBUILD V2 PATCH: polished charts, donut, analysis, plan */
+.chart-svg{
+  height:330px!important;
+  overflow:visible;
+  filter:drop-shadow(0 14px 20px rgba(37,99,235,.10));
+}
+.hero .chart-svg{
+  height:286px!important;
+  filter:drop-shadow(0 16px 26px rgba(56,189,248,.22));
+}
+.axis-label{
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  letter-spacing:.02em;
+}
+.donut-center{
+  width:46%!important;
+  height:46%!important;
+  padding:10px!important;
+  line-height:1.05!important;
+}
+.donut-center small{
+  display:block!important;
+  line-height:1.05!important;
+  margin-bottom:4px!important;
+  letter-spacing:.14em!important;
+  white-space:nowrap!important;
+  font-size:10px!important;
+}
+.donut-center b{
+  display:block!important;
+  font-size:clamp(22px,5.2vw,34px)!important;
+  line-height:1.05!important;
+  white-space:nowrap!important;
+}
+.donut-center span{
+  display:block!important;
+  margin-top:5px!important;
+  color:var(--muted);
+  font-size:13px!important;
+  font-weight:900;
+}
+.analysis-wrap{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:14px!important;
+}
+.analysis-grid{
+  grid-template-columns:1fr!important;
+}
+.analysis-card b{
+  font-size:22px!important;
+}
+.plan-hero{
+  padding:18px;
+  border-radius:24px;
+  background:linear-gradient(135deg,rgba(37,99,235,.10),rgba(16,185,129,.08));
+  border:1px solid rgba(37,99,235,.16);
+  margin-bottom:14px;
+}
+.plan-hero h3{margin:0 0 4px}
+.plan-hero p{
+  margin:0;
+  color:#475569;
+  font-size:13px;
+  line-height:1.7;
+  font-weight:700;
+}
+.plan-form-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+.plan-chart-card{
+  margin-top:14px;
+  padding:14px;
+  border-radius:22px;
+  background:linear-gradient(180deg,#ffffff,#f8fafc);
+  border:1px solid var(--line);
+}
+.plan-chart-card .chart-svg{height:300px!important}
+.plan-result .sum-card:nth-child(1){background:linear-gradient(135deg,rgba(37,99,235,.10),#fff)}
+.plan-result .sum-card:nth-child(2){background:linear-gradient(135deg,rgba(16,185,129,.10),#fff)}
+.plan-result .sum-card:nth-child(3){background:linear-gradient(135deg,rgba(245,158,11,.12),#fff)}
+.plan-result .sum-card:nth-child(4){background:linear-gradient(135deg,rgba(139,92,246,.12),#fff)}
+@media(max-width:920px){
+  .analysis-wrap{grid-template-columns:1fr!important}
+}
+@media(max-width:560px){
+  .plan-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .donut-center{width:48%!important;height:48%!important}
+  .donut-center b{font-size:clamp(20px,5vw,28px)!important}
+  .donut-center small{font-size:9px!important}
+}
+
 </style>
 </head>
 <body>
@@ -82,23 +177,128 @@ let categories=[],records=[],planSettings={target:30000000,years:5,annualReturn:
 const typeNames={cash:'現金・預金系',invest:'投資系',retire:'退職資産系',realestate:'不動産系',debt:'負債系',realestate_debt:'不動産負債系',other:'その他'},sideNames={asset:'資産',liability:'負債'};
 const palette={'預金':'#38bdf8','SP500':'#2563eb','ロイヤルマイル':'#f59e0b','NASDAQ':'#6366f1','インド':'#8b5cf6','Fantom':'#06b6d4','Doge':'#f97316','Bitcoin':'#f59e0b','確定拠出年金':'#10b981','持株会':'#14b8a6','不動産':'#84cc16','借入金':'#ef4444','カード未払':'#fb7185','住宅ローン':'#dc2626','不動産ローン':'#b91c1c','その他':'#94a3b8'},colors=['#10b981','#14b8a6','#38bdf8','#2563eb','#6366f1','#8b5cf6','#f59e0b','#f97316','#94a3b8'];
 const yen=n=>new Intl.NumberFormat('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}).format(Number(n)||0),num=n=>Number(n||0).toLocaleString('ja-JP'),raw=s=>Number(String(s||'').replace(/,/g,''))||0,clone=o=>JSON.parse(JSON.stringify(o)),color=(name,i=0)=>palette[name]||colors[i%colors.length];
-function pct(n){return Number.isFinite(n)?n.toFixed(1)+'%':'-'}function monthName(m){const [y,mo]=m.split('/');return `${y}年${Number(mo)}月時点`}function shortMonth(m){const [y,mo]=m.split('/');return `${String(y).slice(2)}/${mo}`}function addMonths(m,d){const [y,mo]=m.split('/').map(Number);const dt=new Date(y,mo-1+d,1);return `${dt.getFullYear()}/${String(dt.getMonth()+1).padStart(2,'0')}`}function compactYen(n){n=Number(n)||0;if(Math.abs(n)>=1e8)return '¥'+(n/1e8).toFixed(1)+'億';if(Math.abs(n)>=1e4)return '¥'+(n/1e4).toFixed(1)+'万';return yen(n)}function axisTick(v){v=Number(v)||0;if(Math.abs(v)>=1e8)return (v/1e8).toFixed(1)+'億';if(Math.abs(v)>=1e4)return Math.round(v/1e4)+'万';return String(Math.round(v))}
+function pct(n){return Number.isFinite(n)?n.toFixed(1)+'%':'-'}function monthName(m){const [y,mo]=m.split('/');return `${y}年${Number(mo)}月時点`}function shortMonth(m){const [y,mo]=m.split('/');return `${String(y).slice(2)}/${mo}`}function addMonths(m,d){const [y,mo]=m.split('/').map(Number);const dt=new Date(y,mo-1+d,1);return `${dt.getFullYear()}/${String(dt.getMonth()+1).padStart(2,'0')}`}function compactYen(n){n=Number(n)||0;if(Math.abs(n)>=1e8)return '¥'+(n/1e8).toFixed(1)+'億';if(Math.abs(n)>=1e4)return '¥'+(n/1e4).toFixed(1)+'万';return yen(n)}function axisTick(v){
+  v=Number(v)||0;
+  const abs=Math.abs(v);
+  if(abs>=100000000) return (v/100000000).toFixed(abs>=1000000000?0:1)+'億';
+  if(abs>=10000){
+    const man=v/10000;
+    if(Math.abs(man)>=1000) return Math.round(man).toLocaleString('ja-JP')+'万';
+    if(Math.abs(man)>=100) return Math.round(man)+'万';
+    return (Math.round(man*10)/10).toString().replace('.0','')+'万';
+  }
+  return Math.round(v).toLocaleString('ja-JP');
+}
+function axisMonthLabel(m){
+  const [y,mo]=m.split('/');
+  return `${String(y).slice(2)}.${Number(mo)}`;
+}
 function normalize(){categories=categories.map(c=>({name:c.name,side:c.side==='liability'?'liability':'asset',type:c.type||'other'}));records=records.filter(r=>r&&r.month).sort((a,b)=>a.month.localeCompare(b.month));records.forEach(r=>categories.forEach(c=>{if(r.values[c.name]===undefined)r.values[c.name]=0;r.values[c.name]=Number(r.values[c.name])||0}))}
 function latest(){normalize();return records[records.length-1]}function byMonth(m){return records.find(r=>r.month===m)}function assets(r){return categories.filter(c=>c.side!=='liability').reduce((s,c)=>s+(Number(r.values[c.name])||0),0)}function liabilities(r){return categories.filter(c=>c.side==='liability').reduce((s,c)=>s+(Number(r.values[c.name])||0),0)}function net(r){return assets(r)-liabilities(r)}function interestDebt(r){return categories.filter(c=>c.side==='liability'&&(c.name.includes('借入')||c.name.includes('ローン'))).reduce((s,c)=>s+(Number(r.values[c.name])||0),0)}function seriesValue(r,metric){if(metric==='assets')return assets(r);if(metric==='liabilities')return liabilities(r);if(['cash','invest','retire','realestate'].includes(metric))return categories.filter(c=>c.side!=='liability'&&c.type===metric).reduce((s,c)=>s+(Number(r.values[c.name])||0),0);return net(r)}
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify({version:'v1',categories,records,planSettings,planDeposits}))}function load(){const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');if(s&&s.version==='v1'){categories=clone(s.categories);records=clone(s.records);planSettings={...planSettings,...(s.planSettings||{})};planDeposits={...planDeposits,...(s.planDeposits||{})}}else{categories=clone(seed.categories);records=clone(seed.records)}normalize();if(!records.length||net(latest())===0){categories=clone(seed.categories);records=clone(seed.records);normalize()}save()}function resetAll(){if(confirm('初期データに戻しますか？')){categories=clone(seed.categories);records=clone(seed.records);normalize();save();renderAll()}}
 function niceStep(raw){if(!raw||raw<=0)return 100000;const pow=Math.pow(10,Math.floor(Math.log10(raw))),n=raw/pow;return (n<=1?1:n<=2?2:n<=5?5:10)*pow}function niceScale(min,max,ticks=4){if(min===max){min-=100000;max+=100000}const step=niceStep((max-min)/Math.max(ticks-1,1)),niceMin=Math.floor(min/step)*step,niceMax=Math.ceil(max/step)*step,arr=[];for(let v=niceMin;v<=niceMax+step*.5;v+=step)arr.push(v);return {min:niceMin,max:niceMax,ticks:arr}}
-function svgLine(data,id,dark=false,metric='net'){const el=document.getElementById(id);if(!el)return;const vals=data.map(r=>seriesValue(r,metric)),scale=niceScale(Math.min(...vals),Math.max(...vals),4);const w=760,h=320,ml=64,mr=24,mt=26,mb=54,x=i=>ml+i*(w-ml-mr)/Math.max(data.length-1,1),y=v=>mt+(scale.max-v)*(h-mt-mb)/(scale.max-scale.min||1);const pts=vals.map((v,i)=>({x:x(i),y:y(v),v}));const line=pts.map((p,i)=>{if(i===0)return `M ${p.x} ${p.y}`;const q=pts[i-1],cx=(q.x+p.x)/2;return `C ${cx} ${q.y}, ${cx} ${p.y}, ${p.x} ${p.y}`}).join(' ');const area=`M ${ml} ${h-mb} L ${pts[0].x} ${pts[0].y} `+pts.slice(1).map((p,i)=>{const q=pts[i],cx=(q.x+p.x)/2;return `C ${cx} ${q.y}, ${cx} ${p.y}, ${p.x} ${p.y}`}).join(' ')+` L ${pts[pts.length-1].x} ${h-mb} Z`;const tickVals=scale.ticks.length>6?scale.ticks.filter((_,i)=>i%2===0):scale.ticks;const grid=tickVals.map(v=>`<line x1="${ml}" x2="${w-mr}" y1="${y(v)}" y2="${y(v)}" stroke="${dark?'rgba(255,255,255,.12)':'#e2e8f0'}"/><text x="10" y="${y(v)+5}" fill="${dark?'rgba(255,255,255,.68)':'#64748b'}" font-size="16" font-weight="800">${axisTick(v)}</text>`).join('');const every=Math.max(1,Math.ceil(data.length/5));const labels=data.map((r,i)=>(i%every===0||i===data.length-1)?`<text x="${x(i)}" y="${h-18}" fill="${dark?'rgba(255,255,255,.68)':'#64748b'}" font-size="15" font-weight="800" text-anchor="middle">${shortMonth(r.month)}</text>`:'').join('');const high=pts[vals.indexOf(Math.max(...vals))],last=pts[pts.length-1],stroke=dark?'#38bdf8':'#2563eb';el.innerHTML=`<svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="gr${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${stroke}" stop-opacity=".34"/><stop offset="72%" stop-color="${stroke}" stop-opacity=".08"/><stop offset="100%" stop-color="${stroke}" stop-opacity="0"/></linearGradient><filter id="gl${id}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${grid}<path d="${area}" fill="url(#gr${id})"/><path d="${line}" fill="none" stroke="${stroke}" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#gl${id})"/><circle cx="${high.x}" cy="${high.y}" r="5.5" fill="#10b981" stroke="${dark?'#09284b':'#fff'}" stroke-width="3"/><circle cx="${last.x}" cy="${last.y}" r="5.5" fill="${stroke}" stroke="${dark?'#09284b':'#fff'}" stroke-width="3"/>${labels}</svg>`}
+function svgLine(data,id,dark=false,metric='net'){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const vals=data.map(r=>seriesValue(r,metric));
+  const scale=niceScale(Math.min(...vals),Math.max(...vals),4);
+  const w=760,h=330,ml=70,mr=26,mt=26,mb=58;
+  const x=i=>ml+i*(w-ml-mr)/Math.max(data.length-1,1);
+  const y=v=>mt+(scale.max-v)*(h-mt-mb)/(scale.max-scale.min||1);
+  const pts=vals.map((v,i)=>({x:x(i),y:y(v),v}));
+  const line=pts.map((p,i)=>{
+    if(i===0)return `M ${p.x} ${p.y}`;
+    const q=pts[i-1],cx=(q.x+p.x)/2;
+    return `C ${cx} ${q.y}, ${cx} ${p.y}, ${p.x} ${p.y}`;
+  }).join(' ');
+  const area=`M ${ml} ${h-mb} L ${pts[0].x} ${pts[0].y} `+
+    pts.slice(1).map((p,i)=>{
+      const q=pts[i],cx=(q.x+p.x)/2;
+      return `C ${cx} ${q.y}, ${cx} ${p.y}, ${p.x} ${p.y}`;
+    }).join(' ')+` L ${pts[pts.length-1].x} ${h-mb} Z`;
+  const tickVals=scale.ticks.length>5?scale.ticks.filter((_,i)=>i%2===0||i===scale.ticks.length-1):scale.ticks;
+  const axisColor=dark?'rgba(255,255,255,.66)':'#64748b';
+  const gridColor=dark?'rgba(255,255,255,.12)':'#e2e8f0';
+  const grid=tickVals.map(v=>`<line x1="${ml}" x2="${w-mr}" y1="${y(v)}" y2="${y(v)}" stroke="${gridColor}"/><text class="axis-label" x="${ml-12}" y="${y(v)+5}" fill="${axisColor}" font-size="14" font-weight="800" text-anchor="end">${axisTick(v)}</text>`).join('');
+  const every=Math.max(1,Math.ceil(data.length/5));
+  const labels=data.map((r,i)=>(i%every===0||i===data.length-1)?`<text class="axis-label" x="${x(i)}" y="${h-22}" fill="${axisColor}" font-size="14" font-weight="800" text-anchor="middle">${axisMonthLabel(r.month)}</text>`:'').join('');
+  const high=pts[vals.indexOf(Math.max(...vals))],last=pts[pts.length-1];
+  const stroke=dark?'#38bdf8':'#2563eb',accent=dark?'#a7f3d0':'#10b981';
+  el.innerHTML=`<svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="gr${id}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${stroke}" stop-opacity=".34"/>
+        <stop offset="68%" stop-color="${stroke}" stop-opacity=".08"/>
+        <stop offset="100%" stop-color="${stroke}" stop-opacity="0"/>
+      </linearGradient>
+      <filter id="gl${id}" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    <rect x="${ml}" y="${mt}" width="${w-ml-mr}" height="${h-mt-mb}" rx="14" fill="${dark?'rgba(255,255,255,.025)':'rgba(37,99,235,.025)'}"/>
+    ${grid}
+    <path d="${area}" fill="url(#gr${id})"/>
+    <path d="${line}" fill="none" stroke="${stroke}" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#gl${id})"/>
+    <circle cx="${high.x}" cy="${high.y}" r="6" fill="${accent}" stroke="${dark?'#09284b':'#fff'}" stroke-width="3"/>
+    <circle cx="${last.x}" cy="${last.y}" r="6" fill="${stroke}" stroke="${dark?'#09284b':'#fff'}" stroke-width="3"/>
+    ${labels}
+  </svg>`;
+}
 function changeHtml(a,r){if(a==null)return '-';const sign=a>=0?'+':'−',cls=a>=0?'pos':'neg';return `<span class="${cls}">${sign}${yen(Math.abs(a))}<span class="sub">（${sign}${Math.abs(r||0).toFixed(1)}%）</span></span>`}
 function renderDashboard(){const l=latest(),p=byMonth(addMonths(l.month,-1)),y=byMonth(addMonths(l.month,-12));const n=net(l),pn=p?net(p):0,mom=p?n-pn:null,mr=p&&pn?mom/pn*100:null,yoy=y?n-net(y):null,yr=y&&net(y)?yoy/net(y)*100:null,high=records.reduce((best,r)=>assets(r)>assets(best)?r:best,records[0]);document.getElementById('closingBadge').textContent=l.month+' 決算';document.getElementById('netLabel').textContent='NET ASSETS / '+monthName(l.month);document.getElementById('netDisplay').textContent=yen(n);document.getElementById('heroLines').innerHTML=`<div class="${mom>=0?'pos':'neg'}">${mom>=0?'+':'−'}${yen(Math.abs(mom||0))}（${mom>=0?'+':'−'}${Math.abs(mr||0).toFixed(1)}%） 前月比</div><div class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':'−'}${yen(Math.abs(yoy||0))}（${yoy>=0?'+':'−'}${Math.abs(yr||0).toFixed(1)}%） 前年比</div>`;document.getElementById('phaseText').textContent=mom>=0&&yoy>=0?'資産成長フェーズ':mom<0?'短期調整フェーズ':'回復フェーズ';document.getElementById('highPill').textContent='過去最高資産 '+yen(assets(high));document.getElementById('momKpi').innerHTML=changeHtml(mom,mr);document.getElementById('yoyKpi').innerHTML=changeHtml(yoy,yr);document.getElementById('highKpi').innerHTML=yen(assets(high))+'<span class="sub">'+monthName(high.month)+'</span>';document.getElementById('rankKpi').innerHTML='<span style="color:#d97706">上位15.2%</span><span class="ribbon">🥉 銅メダル水準</span>';document.getElementById('aiInsight').innerHTML=`純資産は前年比 <b class="${yoy>=0?'pos':'neg'}">${yoy>=0?'+':'−'}${Math.abs(yr||0).toFixed(1)}%</b>。自己資本比率は <b>${(n/assets(l)*100).toFixed(1)}%</b> で、財務安全性は高めです。`;svgLine(records.slice(-12),'heroChart',true,'net')}
 function renderTrend(){svgLine(records.slice(-Number(document.getElementById('trendPeriod').value||12)),'trendChart',false,document.getElementById('trendMetric').value||'net')}
 function composition(){const l=latest(),estate=document.getElementById('estateMode')?.value||'include';return categories.filter(c=>c.side!=='liability').filter(c=>!(estate==='exclude'&&c.type==='realestate')).map(c=>({name:c.name,type:c.type,amount:Number(l.values[c.name]||0)})).filter(e=>e.amount>0).sort((a,b)=>b.amount-a.amount)}function compact(arr){const total=arr.reduce((s,e)=>s+e.amount,0)||1;let other=0,out=[];arr.forEach(e=>{if(e.amount/total<.025)other+=e.amount;else out.push(e)});if(other)out.push({name:'その他',type:'other',amount:other});return out}
-function renderPortfolio(){const data=compact(composition()),total=data.reduce((s,e)=>s+e.amount,0)||1,l=latest(),estate=document.getElementById('estateMode').value;document.getElementById('portfolioTitle').textContent=l.month+'の資産構成';let off=0;const seg=data.map((e,i)=>{const sh=e.amount/total,st=314*sh,em=314-st,d=-off;off+=st;return `<circle class="donut-seg" onclick="showDonut('${e.name.replace(/'/g,"\\'")}',${e.amount},${sh*100},'${color(e.name,i)}')" cx="90" cy="90" r="50" fill="none" stroke="${color(e.name,i)}" stroke-width="22" stroke-dasharray="${st} ${em}" stroke-dashoffset="${d}" transform="rotate(-90 90 90)"/>`}).join('');document.getElementById('donutSvg').innerHTML=`<svg viewBox="0 0 180 180"><circle cx="90" cy="90" r="50" fill="none" stroke="#e2e8f0" stroke-width="22"/>${seg}</svg>`;document.getElementById('donutCenter').innerHTML=`<div><small>${estate==='exclude'?'NET ASSETS<br>不動産除く':'NET ASSETS'}</small><b>${compactYen(total-liabilities(l))}</b><span>${l.month}</span></div>`;const first=data[0];showDonut(first?.name||'-',first?.amount||0,first?first.amount/total*100:0,first?color(first.name,0):'#fff');document.getElementById('rankingList').innerHTML=data.slice(0,6).map((e,i)=>`<div class="rank-row" onclick="showDonut('${e.name.replace(/'/g,"\\'")}',${e.amount},${e.amount/total*100},'${color(e.name,i)}')"><div class="rank-no">${i+1}</div><div class="rank-main"><b>${e.name}</b><small>${(e.amount/total*100).toFixed(1)}% of portfolio</small></div><div class="rank-val"><b>${yen(e.amount)}</b><small>${(e.amount/total*100).toFixed(1)}%</small></div><div class="rank-bar"><span style="width:${Math.min(100,e.amount/total*100)}%;background:${color(e.name,i)}"></span></div></div>`).join('');const risk=data.filter(e=>['invest','realestate'].includes(e.type)).reduce((s,e)=>s+e.amount,0),stable=data.filter(e=>['cash','retire'].includes(e.type)).reduce((s,e)=>s+e.amount,0);document.getElementById('riskRatio').textContent=(risk/total*100).toFixed(1)+'%';document.getElementById('stableRatio').textContent=(stable/total*100).toFixed(1)+'%';document.getElementById('maxConc').textContent=first?first.name+' '+(first.amount/total*100).toFixed(1)+'%':'-'}
+function renderPortfolio(){
+  const data=compact(composition()),total=data.reduce((s,e)=>s+e.amount,0)||1,l=latest(),estate=document.getElementById('estateMode').value;
+  document.getElementById('portfolioTitle').textContent=l.month+'の資産構成';
+  let off=0;
+  const seg=data.map((e,i)=>{
+    const sh=e.amount/total,st=314*sh,em=314-st,d=-off;
+    off+=st;
+    return `<circle class="donut-seg" onclick="showDonut('${e.name.replace(/'/g,"\\'")}',${e.amount},${sh*100},'${color(e.name,i)}')" cx="90" cy="90" r="50" fill="none" stroke="${color(e.name,i)}" stroke-width="22" stroke-dasharray="${st} ${em}" stroke-dashoffset="${d}" transform="rotate(-90 90 90)"/>`;
+  }).join('');
+  document.getElementById('donutSvg').innerHTML=`<svg viewBox="0 0 180 180"><circle cx="90" cy="90" r="50" fill="none" stroke="#e2e8f0" stroke-width="22"/>${seg}</svg>`;
+  document.getElementById('donutCenter').innerHTML=`<div><small>NET ASSETS</small><b>${compactYen(total-liabilities(l))}</b><span>${estate==='exclude'?'不動産除く / ':''}${l.month}</span></div>`;
+  const first=data[0];
+  showDonut(first?.name||'-',first?.amount||0,first?first.amount/total*100:0,first?color(first.name,0):'#fff');
+  document.getElementById('rankingList').innerHTML=data.slice(0,6).map((e,i)=>`<div class="rank-row" onclick="showDonut('${e.name.replace(/'/g,"\\'")}',${e.amount},${e.amount/total*100},'${color(e.name,i)}')"><div class="rank-no">${i+1}</div><div class="rank-main"><b>${e.name}</b><small>${(e.amount/total*100).toFixed(1)}% of portfolio</small></div><div class="rank-val"><b>${yen(e.amount)}</b><small>${(e.amount/total*100).toFixed(1)}%</small></div><div class="rank-bar"><span style="width:${Math.min(100,e.amount/total*100)}%;background:${color(e.name,i)}"></span></div></div>`).join('');
+  const risk=data.filter(e=>['invest','realestate'].includes(e.type)).reduce((s,e)=>s+e.amount,0);
+  const stable=data.filter(e=>['cash','retire'].includes(e.type)).reduce((s,e)=>s+e.amount,0);
+  document.getElementById('riskRatio').textContent=(risk/total*100).toFixed(1)+'%';
+  document.getElementById('stableRatio').textContent=(stable/total*100).toFixed(1)+'%';
+  document.getElementById('maxConc').textContent=first?first.name+' '+(first.amount/total*100).toFixed(1)+'%':'-';
+}
 function showDonut(name,amount,ratio,col){document.getElementById('donutInfo').innerHTML=`<small>選択中</small><b style="color:${col}">${name}</b><span>${yen(amount)} / ${Number(ratio).toFixed(1)}%</span>`}
 function renderStatement(){const l=latest(),a=assets(l),li=liabilities(l),n=net(l),max=Math.max(a,li+n)||1;const ar=categories.filter(c=>c.side!=='liability'&&l.values[c.name]).map(c=>`<div class="bs-row"><div><b>${c.name}</b><small>${typeNames[c.type]||'その他'} / ${(l.values[c.name]/a*100).toFixed(1)}%</small></div><b>${yen(l.values[c.name])}</b></div>`).join('');const lr=categories.filter(c=>c.side==='liability'&&l.values[c.name]).map(c=>`<div class="bs-row"><div><b>${c.name}</b><small>${typeNames[c.type]||'負債'}</small></div><b>${yen(l.values[c.name])}</b></div>`).join('')||'<div class="bs-row"><div><b>負債なし</b><small>-</small></div><b>¥0</b></div>';document.getElementById('statementBody').innerHTML=`<div class="bs-chart"><b>BS構成チャート</b><div class="bs-bars"><div class="bar bar-asset" style="height:${a/max*210}px"></div><div class="bar bar-right" style="height:${(li+n)/max*210}px;--equity:${n/(li+n)*100}%"></div></div><div class="bs-labels"><span>資産</span><span>負債＋純資産</span></div></div><div class="bs-sheet"><div class="bs-col"><div class="bs-head asset-head"><span>資産</span><span>${yen(a)}</span></div>${ar}<div class="bs-row bs-total"><div>資産合計</div><b>${yen(a)}</b></div></div><div><div class="bs-col"><div class="bs-head liability-head"><span>負債</span><span>${yen(li)}</span></div>${lr}<div class="bs-row bs-total"><div>負債合計</div><b>${yen(li)}</b></div></div><div class="bs-col bs-net"><div class="bs-head equity-head"><span>純資産</span><span>${yen(n)}</span></div><div class="bs-row"><div><b>自己資本</b><small>資産 − 負債</small></div><b>${yen(n)}</b></div><div class="bs-row bs-total"><div>負債・純資産合計</div><b>${yen(li+n)}</b></div></div></div></div>`}
 function acard(label,val,desc,cls=''){return `<div class="analysis-card"><small>${label}</small><b class="${cls}">${val}</b><span class="desc">${desc}</span></div>`}
 function renderAnalysis(){const l=latest(),p=byMonth(addMonths(l.month,-1)),y=byMonth(addMonths(l.month,-12));const a=assets(l),n=net(l),li=liabilities(l),ib=interestDebt(l),invest=n+ib,mp=p?n-net(p):0,yp=y?n-net(y):0;const roa=a?mp/a*100:0,roe=n?mp/n*100:0,roic=invest?mp/invest*100:0,aroa=a?yp/a*100:0,aroe=n?yp/n*100:0,aroic=invest?yp/invest*100:0,cash=categories.filter(c=>c.type==='cash').reduce((s,c)=>s+(l.values[c.name]||0),0),liq=li?cash/li*100:null,debt=a?li/a*100:0,equity=a?n/a*100:0,cap=p?(a-assets(p))/assets(p)*100:0,acap=y?(a-assets(y))/assets(y)*100:0;document.getElementById('analysisBody').innerHTML=`<div class="analysis-wrap"><div class="analysis-group profit"><h3>収益性分析</h3><div class="analysis-grid">${acard('ROA 月次',pct(roa),'総資産でどれだけ純資産を増やしたか。',roa>=0?'pos':'neg')}${acard('ROA 年次',pct(aroa),'12ヶ月前比の資産効率。',aroa>=0?'pos':'neg')}${acard('ROE 月次',pct(roe),'自己資本に対する増加効率。',roe>=0?'pos':'neg')}${acard('ROE 年次',pct(aroe),'12ヶ月前比の自己資本効率。',aroe>=0?'pos':'neg')}${acard('ROIC 月次',pct(roic),'投下資本に対する増加効率。',roic>=0?'pos':'neg')}${acard('ROIC 年次',pct(aroic),'12ヶ月前比の投下資本効率。',aroic>=0?'pos':'neg')}</div></div><div class="analysis-group safe"><h3>安全性分析</h3><div class="analysis-grid">${acard('流動比率',liq==null?'負債なし':pct(liq),'短期的な支払い余力。')}${acard('有利子負債残高',yen(ib),'利息負担のある借入残高。')}${acard('負債比率',pct(debt),'資産に占める負債の割合。')}${acard('自己資本比率',pct(equity),'資産のうち純資産で賄う割合。','pos')}</div></div><div class="analysis-group growth"><h3>成長性分析</h3><div class="analysis-grid">${acard('総資本成長率 月次',pct(cap),'資産全体の月次成長率。',cap>=0?'pos':'neg')}${acard('総資本成長率 年次',y?pct(acap):'-','資産全体の12ヶ月成長率。',acap>=0?'pos':'neg')}</div></div></div>`}
-function renderPlan(){const l=latest(),n=net(l),target=Number(planSettings.target),years=Number(planSettings.years),monthly=Object.values(planDeposits).reduce((s,v)=>s+(Number(v)||0),0),mr=Math.pow(1+Number(planSettings.annualReturn)/100,1/12)-1;let fv=n;const future=[];for(let i=0;i<=years*12;i++){if(i>0)fv=fv*(1+mr)+monthly;future.push({month:addMonths(l.month,i),values:{_net:fv}})}document.getElementById('planBody').innerHTML=`<div class="plan-shell"><div><div class="form-grid"><div><label class="label">目標純資産</label><input class="input" id="planTarget" value="${num(target)}"></div><div><label class="label">達成年数</label><input class="input" id="planYears" type="number" value="${years}"></div><div><label class="label">年率リターン</label><input class="input" id="planReturn" type="number" step="0.1" value="${planSettings.annualReturn}"></div><div><label class="label">年間ボーナス入金</label><input class="input" id="planBonus" value="${num(planSettings.annualBonus)}"></div></div><div class="sum-grid"><div class="sum-card"><small>毎月積立合計</small><b>${yen(monthly)}</b></div><div class="sum-card"><small>計画最終着地</small><b>${yen(fv)}</b></div><div class="sum-card"><small>目標との差額</small><b class="${fv-target>=0?'pos':'neg'}">${fv-target>=0?'+':'−'}${yen(Math.abs(fv-target))}</b></div></div><button class="btn btn-blue" onclick="savePlan()">中期資産計画を更新</button></div><div><h3>資産別の毎月積立</h3><div class="deposit-list">${categories.filter(c=>c.side!=='liability').map(c=>`<div class="deposit-row"><div><b>${c.name}</b><small>${typeNames[c.type]||'その他'} / 現在 ${yen(l.values[c.name]||0)}</small></div><input class="input deposit-input" data-deposit-category="${c.name}" value="${num(planDeposits[c.name]||0)}"></div>`).join('')}</div></div></div><div id="planChart"></div><div class="plan-result"><div class="sum-card"><small>現在の純資産</small><b>${yen(n)}</b></div><div class="sum-card"><small>目標まで</small><b>${yen(Math.max(target-n,0))}</b></div><div class="sum-card"><small>必要年率成長率</small><b>${((Math.pow(target/n,1/years)-1)*100).toFixed(1)}%</b></div><div class="sum-card"><small>進捗率</small><b>${(n/target*100).toFixed(1)}%</b></div></div>`;svgCustom(future,'planChart',target)}
-function svgCustom(data,id,target){const el=document.getElementById(id);const vals=data.map(r=>r.values._net),scale=niceScale(Math.min(...vals,target),Math.max(...vals,target),4),w=760,h=320,ml=64,mr=24,mt=26,mb=54,x=i=>ml+i*(w-ml-mr)/Math.max(data.length-1,1),y=v=>mt+(scale.max-v)*(h-mt-mb)/(scale.max-scale.min||1),pts=vals.map((v,i)=>`${x(i)},${y(v)}`).join(' ');const grid=scale.ticks.map(v=>`<line x1="${ml}" x2="${w-mr}" y1="${y(v)}" y2="${y(v)}" stroke="#e2e8f0"/><text x="10" y="${y(v)+5}" fill="#64748b" font-size="16" font-weight="800">${axisTick(v)}</text>`).join('');el.innerHTML=`<svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${grid}<line x1="${ml}" x2="${w-mr}" y1="${y(target)}" y2="${y(target)}" stroke="#f59e0b" stroke-width="3" stroke-dasharray="8 6"/><polyline points="${pts}" fill="none" stroke="#10b981" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`}
+function renderPlan(){
+  const l=latest(),n=net(l),target=Number(planSettings.target),years=Number(planSettings.years),monthly=Object.values(planDeposits).reduce((s,v)=>s+(Number(v)||0),0),mr=Math.pow(1+Number(planSettings.annualReturn)/100,1/12)-1;
+  let fv=n;
+  const future=[];
+  for(let i=0;i<=years*12;i++){
+    if(i>0)fv=fv*(1+mr)+monthly;
+    future.push({month:addMonths(l.month,i),values:{_net:fv}});
+  }
+  document.getElementById('planBody').innerHTML=`<div class="plan-hero"><h3>中期資産計画サマリー</h3><p>毎月積立と想定リターンを反映し、目標純資産までの進捗と着地見込みを可視化します。</p></div><div class="plan-shell"><div><div class="plan-form-grid"><div><label class="label">目標純資産</label><input class="input" id="planTarget" value="${num(target)}"></div><div><label class="label">達成年数</label><input class="input" id="planYears" type="number" value="${years}"></div><div><label class="label">年率リターン</label><input class="input" id="planReturn" type="number" step="0.1" value="${planSettings.annualReturn}"></div><div><label class="label">年間ボーナス入金</label><input class="input" id="planBonus" value="${num(planSettings.annualBonus)}"></div></div><div class="sum-grid"><div class="sum-card"><small>毎月積立合計</small><b>${yen(monthly)}</b></div><div class="sum-card"><small>計画最終着地</small><b>${yen(fv)}</b></div><div class="sum-card"><small>目標との差額</small><b class="${fv-target>=0?'pos':'neg'}">${fv-target>=0?'+':'−'}${yen(Math.abs(fv-target))}</b></div></div><button class="btn btn-blue" onclick="savePlan()">中期資産計画を更新</button></div><div><h3>資産別の毎月積立</h3><div class="deposit-list">${categories.filter(c=>c.side!=='liability').map(c=>`<div class="deposit-row"><div><b>${c.name}</b><small>${typeNames[c.type]||'その他'} / 現在 ${yen(l.values[c.name]||0)}</small></div><input class="input deposit-input" data-deposit-category="${c.name}" value="${num(planDeposits[c.name]||0)}"></div>`).join('')}</div></div></div><div class="plan-chart-card"><div id="planChart"></div></div><div class="plan-result"><div class="sum-card"><small>現在の純資産</small><b>${yen(n)}</b></div><div class="sum-card"><small>目標まで</small><b>${yen(Math.max(target-n,0))}</b></div><div class="sum-card"><small>必要年率成長率</small><b>${((Math.pow(target/n,1/years)-1)*100).toFixed(1)}%</b></div><div class="sum-card"><small>進捗率</small><b>${(n/target*100).toFixed(1)}%</b></div></div>`;
+  svgCustom(future,'planChart',target);
+}
+function svgCustom(data,id,target){
+  const el=document.getElementById(id);
+  const vals=data.map(r=>r.values._net),scale=niceScale(Math.min(...vals,target),Math.max(...vals,target),4),w=760,h=310,ml=70,mr=26,mt=26,mb=52;
+  const x=i=>ml+i*(w-ml-mr)/Math.max(data.length-1,1);
+  const y=v=>mt+(scale.max-v)*(h-mt-mb)/(scale.max-scale.min||1);
+  const pts=vals.map((v,i)=>({x:x(i),y:y(v),v}));
+  const line=pts.map((p,i)=>{if(i===0)return `M ${p.x} ${p.y}`;const q=pts[i-1],cx=(q.x+p.x)/2;return `C ${cx} ${q.y}, ${cx} ${p.y}, ${p.x} ${p.y}`}).join(' ');
+  const area=`M ${ml} ${h-mb} L ${pts[0].x} ${pts[0].y} `+pts.slice(1).map((p,i)=>{const q=pts[i],cx=(q.x+p.x)/2;return `C ${cx} ${q.y}, ${cx} ${p.y}, ${p.x} ${p.y}`}).join(' ')+` L ${pts[pts.length-1].x} ${h-mb} Z`;
+  const tickVals=scale.ticks.length>5?scale.ticks.filter((_,i)=>i%2===0||i===scale.ticks.length-1):scale.ticks;
+  const grid=tickVals.map(v=>`<line x1="${ml}" x2="${w-mr}" y1="${y(v)}" y2="${y(v)}" stroke="#e2e8f0"/><text class="axis-label" x="${ml-12}" y="${y(v)+5}" fill="#64748b" font-size="14" font-weight="800" text-anchor="end">${axisTick(v)}</text>`).join('');
+  const targetY=y(target);
+  const every=Math.max(1,Math.ceil(data.length/6));
+  const labels=data.map((r,i)=>(i%every===0||i===data.length-1)?`<text class="axis-label" x="${x(i)}" y="${h-20}" fill="#64748b" font-size="14" font-weight="800" text-anchor="middle">${axisMonthLabel(r.month)}</text>`:'').join('');
+  el.innerHTML=`<svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="plangrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10b981" stop-opacity=".28"/><stop offset="100%" stop-color="#10b981" stop-opacity="0"/></linearGradient></defs>${grid}<path d="${area}" fill="url(#plangrad)"/><line x1="${ml}" x2="${w-mr}" y1="${targetY}" y2="${targetY}" stroke="#f59e0b" stroke-width="3" stroke-dasharray="8 7"/><path d="${line}" fill="none" stroke="#10b981" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${pts[pts.length-1].x}" cy="${pts[pts.length-1].y}" r="6" fill="#10b981" stroke="#fff" stroke-width="3"/>${labels}</svg>`;
+}
 function renderInputs(){const m=document.getElementById('monthInput')?.value||latest().month,cur=byMonth(m),p=byMonth(addMonths(m,-1)),p2=byMonth(addMonths(m,-2));document.getElementById('recordSelector').innerHTML=records.map(r=>`<option value="${r.month}">${r.month}</option>`).join('');document.getElementById('recordSelector').value=m;document.getElementById('categoryInputs').innerHTML=categories.map((c,i)=>`<div class="input-row"><div class="input-top"><div><span class="input-title-main">${c.name}</span><span class="input-title-sub">${sideNames[c.side]} / ${typeNames[c.type]||'その他'}</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="mini" onclick="moveCategory(${i},-1)">上へ</button><button class="mini" onclick="moveCategory(${i},1)">下へ</button><button class="mini" onclick="renameCategory('${c.name}')">編集</button><button class="mini danger" onclick="deleteCategory('${c.name}')">削除</button></div></div><div class="input-values"><div class="readonly"><small>前々月（${addMonths(m,-2)}）</small><b>${p2?yen(p2.values[c.name]||0):'-'}</b></div><div class="readonly"><small>前月（${addMonths(m,-1)}）</small><b>${p?yen(p.values[c.name]||0):'-'}</b></div><input class="input month-input amount-input" data-category="${c.name}" value="${num(cur?.values[c.name]||0)}"></div></div>`).join('')}
 function showPage(p){const input=p==='input';document.getElementById('dashboardPage').classList.toggle('hidden',input);document.getElementById('inputPage').classList.toggle('hidden',!input);window.scrollTo({top:0,behavior:'smooth'})}function loadSelectedRecord(){document.getElementById('monthInput').value=document.getElementById('recordSelector').value;renderInputs()}function prepareNextMonth(){document.getElementById('monthInput').value=addMonths(latest().month,1);renderInputs();document.querySelectorAll('.amount-input').forEach(i=>i.value='')}function copyPreviousToCurrent(){const p=byMonth(addMonths(document.getElementById('monthInput').value,-1));if(!p)return;document.querySelectorAll('.amount-input').forEach(i=>i.value=num(p.values[i.dataset.category]||0))}function saveMonth(){const m=document.getElementById('monthInput').value.trim(),ex=byMonth(m),values={};categories.forEach(c=>values[c.name]=0);document.querySelectorAll('.amount-input').forEach(i=>values[i.dataset.category]=raw(i.value));if(ex)ex.values=values;else records.push({month:m,values});normalize();save();renderAll();showPage('dashboard')}function addCategory(){const name=document.getElementById('newCategoryName').value.trim();if(!name)return alert('科目名を入力してください');if(categories.some(c=>c.name===name))return alert('同じ科目があります');categories.push({name,side:document.getElementById('newCategorySide').value,type:document.getElementById('newCategoryType').value});records.forEach(r=>r.values[name]=0);save();renderAll()}function renameCategory(old){const name=prompt('新しい科目名',old);if(!name||name===old)return;categories.find(c=>c.name===old).name=name;records.forEach(r=>{r.values[name]=r.values[old]||0;delete r.values[old]});save();renderAll()}function deleteCategory(name){if(!confirm(name+'を削除しますか？'))return;categories=categories.filter(c=>c.name!==name);records.forEach(r=>delete r.values[name]);save();renderAll()}function moveCategory(i,d){const n=i+d;if(n<0||n>=categories.length)return;[categories[i],categories[n]]=[categories[n],categories[i]];save();renderAll()}function savePlan(){planSettings={target:raw(document.getElementById('planTarget').value),years:Number(document.getElementById('planYears').value),annualReturn:Number(document.getElementById('planReturn').value),annualBonus:raw(document.getElementById('planBonus').value)};document.querySelectorAll('[data-deposit-category]').forEach(i=>planDeposits[i.dataset.depositCategory]=raw(i.value));save();renderPlan()}
 function renderAll(){normalize();renderDashboard();renderTrend();renderPortfolio();renderStatement();renderAnalysis();renderPlan();renderInputs()}load();renderAll();
