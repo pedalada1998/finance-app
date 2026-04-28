@@ -179,6 +179,116 @@
   }
 }
 
+
+/* v48 fixes: dashboard chart, BS equal height, age comparison */
+.hero #heroTrendSelected{display:none!important}
+.bs-two-column{align-items:stretch!important}
+.bs-stack{height:100%;grid-template-rows:1fr 1fr!important}
+.bs-stack .bs-col{height:100%;display:flex;flex-direction:column}
+.bs-stack .bs-row:last-child{margin-top:auto}
+.benchmark-settings{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:10px;
+  margin-bottom:14px;
+}
+.pyramid-wrap{
+  display:grid;
+  grid-template-columns:.95fr 1.05fr;
+  gap:18px;
+  align-items:center;
+}
+.pyramid{
+  display:grid;
+  gap:8px;
+  padding:18px;
+  border-radius:24px;
+  background:linear-gradient(135deg,#f8fafc,#fff);
+  border:1px solid var(--line);
+}
+.pyramid-row{
+  display:grid;
+  grid-template-columns:90px 1fr 92px;
+  gap:10px;
+  align-items:center;
+}
+.pyramid-label{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:950;
+}
+.pyramid-track{
+  position:relative;
+  height:26px;
+  border-radius:999px;
+  background:#e2e8f0;
+  overflow:hidden;
+}
+.pyramid-fill{
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,#93c5fd,#2563eb);
+}
+.pyramid-marker{
+  position:absolute;
+  top:-6px;
+  width:5px;
+  height:38px;
+  border-radius:999px;
+  background:#0f172a;
+  box-shadow:0 0 0 4px rgba(255,255,255,.82);
+}
+.pyramid-value{
+  text-align:right;
+  font-size:12px;
+  font-weight:950;
+}
+.benchmark-result{
+  display:grid;
+  gap:10px;
+}
+.benchmark-hero{
+  padding:18px;
+  border-radius:24px;
+  background:linear-gradient(135deg,#071a33,#102846);
+  color:white;
+  box-shadow:0 18px 50px rgba(7,26,51,.18);
+}
+.benchmark-hero small{
+  display:block;
+  color:rgba(255,255,255,.62);
+  font-weight:950;
+  margin-bottom:6px;
+}
+.benchmark-hero b{
+  font-size:34px;
+  letter-spacing:-.04em;
+}
+.benchmark-card{
+  padding:14px;
+  border-radius:18px;
+  background:#fff;
+  border:1px solid var(--line);
+}
+.benchmark-card small{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:950;
+  margin-bottom:5px;
+}
+.benchmark-card b{
+  font-size:20px;
+}
+@media(max-width:920px){
+  .benchmark-settings,.pyramid-wrap{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .pyramid-row{grid-template-columns:58px 1fr 74px;gap:6px}
+  .pyramid-label,.pyramid-value{font-size:10px}
+  .benchmark-settings{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -224,6 +334,16 @@
 <section class="panel" id="statementSection"><p class="label">FINANCIAL STATEMENT</p><h2>個人財務諸表</h2><div id="statementBody"></div></section>
 <section class="panel" id="analysisSection"><p class="label">FINANCIAL ANALYSIS</p><h2>分析</h2><div id="analysisBody"></div></section>
 <section class="panel" id="planSection"><p class="label">MEDIUM-TERM ASSET PLAN</p><h2>中期資産計画</h2><div id="planBody"></div></section>
+<section class="panel" id="benchmarkSection">
+  <p class="label">AGE BENCHMARK</p>
+  <h2>同世代比較</h2>
+  <div class="benchmark-settings">
+    <div><label class="label">生年月日</label><input class="input" id="birthDate" type="date" value="1998-01-01" onchange="saveBenchmark();renderBenchmark()"></div>
+    <div><label class="label">世帯区分</label><select id="benchmarkHousehold" onchange="saveBenchmark();renderBenchmark()"><option value="single">単身世帯</option><option value="couple" selected>二人以上世帯</option></select></div>
+    <div><label class="label">比較対象</label><select id="benchmarkTarget" onchange="saveBenchmark();renderBenchmark()"><option value="net">純資産</option><option value="assets" selected>金融資産</option></select></div>
+  </div>
+  <div id="benchmarkBody"></div>
+</section>
 </div>
 
 <div id="inputPage" class="page hidden">
@@ -315,11 +435,7 @@ function svgStockTrend(data,id,metric='net'){
   const x=i=>ml+i*innerW/Math.max(data.length-1,1);
   const y=v=>mt+(scale.max-v)*innerH/(scale.max-scale.min||1);
   const pts=vals.map((v,i)=>({x:x(i),y:y(v),v}));
-  const path=pts.map((p,i)=>{
-    if(i===0)return `M ${p.x} ${p.y}`;
-    const q=pts[i-1],cx=(q.x+p.x)/2;
-    return `C ${cx} ${q.y}, ${cx} ${p.y}, ${p.x} ${p.y}`;
-  }).join(' ');
+  const line=pts.map((p,i)=>(i===0?`M ${p.x} ${p.y}`:`L ${p.x} ${p.y}`)).join(' ');
   const gridVals=scale.ticks.length>5?scale.ticks.filter((_,i)=>i%2===0||i===scale.ticks.length-1):scale.ticks;
   const grid=gridVals.map(v=>`<line x1="${ml}" x2="${w-mr}" y1="${y(v)}" y2="${y(v)}" stroke="rgba(255,255,255,.14)"/><text class="axis-label" x="${w-mr+12}" y="${y(v)+5}" fill="rgba(255,255,255,.76)" font-size="14" font-weight="800">${axisTick(v)}</text>`).join('');
   const every=Math.max(1,Math.ceil(data.length/5));
@@ -329,12 +445,12 @@ function svgStockTrend(data,id,metric='net'){
   el.innerHTML=`<svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
     <defs>
       <filter id="stockGlow${id}" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feGaussianBlur stdDeviation="2.5" result="blur"/>
         <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
       </filter>
     </defs>
     ${grid}
-    <path d="${path}" fill="none" stroke="${lineColor}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" filter="url(#stockGlow${id})"/>
+    <path d="${line}" fill="none" stroke="${lineColor}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" filter="url(#stockGlow${id})"/>
     <circle cx="${last.x}" cy="${last.y}" r="6" fill="${lineColor}" stroke="#071a33" stroke-width="3"/>
     <line x1="${ml}" x2="${w-mr}" y1="${h-mb}" y2="${h-mb}" stroke="rgba(255,255,255,.14)"/>
     ${labels}
@@ -428,7 +544,90 @@ function svgCustom(data,id,target){
 }
 function renderInputs(){const m=document.getElementById('monthInput')?.value||latest().month,cur=byMonth(m),p=byMonth(addMonths(m,-1)),p2=byMonth(addMonths(m,-2));document.getElementById('recordSelector').innerHTML=records.map(r=>`<option value="${r.month}">${r.month}</option>`).join('');document.getElementById('recordSelector').value=m;document.getElementById('categoryInputs').innerHTML=categories.map((c,i)=>`<div class="input-row"><div class="input-top"><div><span class="input-title-main">${c.name}</span><span class="input-title-sub">${sideNames[c.side]} / ${typeNames[c.type]||'その他'}</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="mini" onclick="moveCategory(${i},-1)">上へ</button><button class="mini" onclick="moveCategory(${i},1)">下へ</button><button class="mini" onclick="renameCategory('${c.name}')">編集</button><button class="mini danger" onclick="deleteCategory('${c.name}')">削除</button></div></div><div class="input-values"><div class="readonly"><small>前々月（${addMonths(m,-2)}）</small><b>${p2?yen(p2.values[c.name]||0):'-'}</b></div><div class="readonly"><small>前月（${addMonths(m,-1)}）</small><b>${p?yen(p.values[c.name]||0):'-'}</b></div><input class="input month-input amount-input" data-category="${c.name}" value="${num(cur?.values[c.name]||0)}"></div></div>`).join('')}
 function showPage(p){const input=p==='input';document.getElementById('dashboardPage').classList.toggle('hidden',input);document.getElementById('inputPage').classList.toggle('hidden',!input);window.scrollTo({top:0,behavior:'smooth'})}function loadSelectedRecord(){document.getElementById('monthInput').value=document.getElementById('recordSelector').value;renderInputs()}function prepareNextMonth(){document.getElementById('monthInput').value=addMonths(latest().month,1);renderInputs();document.querySelectorAll('.amount-input').forEach(i=>i.value='')}function copyPreviousToCurrent(){const p=byMonth(addMonths(document.getElementById('monthInput').value,-1));if(!p)return;document.querySelectorAll('.amount-input').forEach(i=>i.value=num(p.values[i.dataset.category]||0))}function saveMonth(){const m=document.getElementById('monthInput').value.trim(),ex=byMonth(m),values={};categories.forEach(c=>values[c.name]=0);document.querySelectorAll('.amount-input').forEach(i=>values[i.dataset.category]=raw(i.value));if(ex)ex.values=values;else records.push({month:m,values});normalize();save();renderAll();showPage('dashboard')}function addCategory(){const name=document.getElementById('newCategoryName').value.trim();if(!name)return alert('科目名を入力してください');if(categories.some(c=>c.name===name))return alert('同じ科目があります');categories.push({name,side:document.getElementById('newCategorySide').value,type:document.getElementById('newCategoryType').value});records.forEach(r=>r.values[name]=0);save();renderAll()}function renameCategory(old){const name=prompt('新しい科目名',old);if(!name||name===old)return;categories.find(c=>c.name===old).name=name;records.forEach(r=>{r.values[name]=r.values[old]||0;delete r.values[old]});save();renderAll()}function deleteCategory(name){if(!confirm(name+'を削除しますか？'))return;categories=categories.filter(c=>c.name!==name);records.forEach(r=>delete r.values[name]);save();renderAll()}function moveCategory(i,d){const n=i+d;if(n<0||n>=categories.length)return;[categories[i],categories[n]]=[categories[n],categories[i]];save();renderAll()}function savePlan(){planSettings={target:raw(document.getElementById('planTarget').value),years:Number(document.getElementById('planYears').value),annualReturn:Number(document.getElementById('planReturn').value),annualBonus:raw(document.getElementById('planBonus').value)};document.querySelectorAll('[data-deposit-category]').forEach(i=>planDeposits[i.dataset.depositCategory]=raw(i.value));save();renderPlan()}
-function renderAll(){normalize();renderDashboard();renderTrend();renderPortfolio();renderStatement();renderAnalysis();renderPlan();renderInputs()}load();renderAll();
+
+let benchmarkSettings={birthDate:'1998-01-01',household:'couple',target:'assets'};
+const benchmarkTable={
+  single:{20:{average:2550000,median:370000},30:{average:5010000,median:1000000},40:{average:8590000,median:1000000},50:{average:9990000,median:1200000},60:{average:13640000,median:3000000},70:{average:14890000,median:5000000}},
+  couple:{20:{average:5250000,median:1250000},30:{average:10960000,median:3110000},40:{average:14860000,median:5000000},50:{average:19080000,median:7000000},60:{average:26830000,median:14000000},70:{average:24160000,median:11780000}}
+};
+function calcAge(birth){
+  const d=new Date(birth),now=new Date();
+  let age=now.getFullYear()-d.getFullYear();
+  const m=now.getMonth()-d.getMonth();
+  if(m<0||(m===0&&now.getDate()<d.getDate()))age--;
+  return Math.max(0,age);
+}
+function ageBucket(age){
+  if(age<30)return 20;if(age<40)return 30;if(age<50)return 40;if(age<60)return 50;if(age<70)return 60;return 70;
+}
+function erf(x){
+  const sign=x>=0?1:-1;x=Math.abs(x);
+  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+  const t=1/(1+p*x);
+  const y=1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
+  return sign*y;
+}
+function normalCdf(x){return .5*(1+erf(x/Math.sqrt(2)))}
+function topPercent(value,average,median){
+  if(!value||!average||!median||average<=median)return null;
+  const sigma=Math.sqrt(Math.max(.0001,2*Math.log(average/median)));
+  const z=(Math.log(value)-Math.log(median))/sigma;
+  return Math.max(.1,Math.min(99.9,(1-normalCdf(z))*100));
+}
+function valueAtTop(top,average,median){
+  if(!average||!median||average<=median)return average||median||0;
+  const z={50:0,30:.5244,15:1.036,5:1.6449,1:2.3263}[top]??0;
+  const sigma=Math.sqrt(Math.max(.0001,2*Math.log(average/median)));
+  return Math.exp(Math.log(median)+sigma*z);
+}
+function saveBenchmark(){
+  benchmarkSettings={
+    birthDate:document.getElementById('birthDate')?.value||benchmarkSettings.birthDate,
+    household:document.getElementById('benchmarkHousehold')?.value||benchmarkSettings.household,
+    target:document.getElementById('benchmarkTarget')?.value||benchmarkSettings.target
+  };
+  localStorage.setItem('pfs-benchmark-settings-v1',JSON.stringify(benchmarkSettings));
+}
+function loadBenchmark(){
+  try{benchmarkSettings={...benchmarkSettings,...JSON.parse(localStorage.getItem('pfs-benchmark-settings-v1')||'{}')}}catch(e){}
+}
+function renderBenchmark(){
+  const body=document.getElementById('benchmarkBody');if(!body)return;
+  document.getElementById('birthDate').value=benchmarkSettings.birthDate;
+  document.getElementById('benchmarkHousehold').value=benchmarkSettings.household;
+  document.getElementById('benchmarkTarget').value=benchmarkSettings.target;
+  const age=calcAge(benchmarkSettings.birthDate),bucket=ageBucket(age),stat=benchmarkTable[benchmarkSettings.household][bucket],l=latest();
+  const value=benchmarkSettings.target==='net'?net(l):assets(l);
+  const top=topPercent(value,stat.average,stat.median);
+  const layers=[
+    {label:'上位1%',value:valueAtTop(1,stat.average,stat.median)},
+    {label:'上位5%',value:valueAtTop(5,stat.average,stat.median)},
+    {label:'上位15%',value:valueAtTop(15,stat.average,stat.median)},
+    {label:'上位30%',value:valueAtTop(30,stat.average,stat.median)},
+    {label:'中央値',value:stat.median}
+  ];
+  const max=Math.max(value,...layers.map(x=>x.value),1);
+  const marker=Math.max(0,Math.min(100,value/max*100));
+  const rankText=top===null?'-':`上位${top.toFixed(1)}%`;
+  const targetName=benchmarkSettings.target==='net'?'純資産':'金融資産';
+  body.innerHTML=`<div class="pyramid-wrap">
+    <div class="pyramid">
+      ${layers.map(row=>{
+        const width=Math.max(4,Math.min(100,row.value/max*100));
+        return `<div class="pyramid-row"><div class="pyramid-label">${row.label}</div><div class="pyramid-track"><div class="pyramid-fill" style="width:${width}%"></div><div class="pyramid-marker" style="left:calc(${marker}% - 2px)"></div></div><div class="pyramid-value">${compactYen(row.value)}</div></div>`;
+      }).join('')}
+    </div>
+    <div class="benchmark-result">
+      <div class="benchmark-hero"><small>あなたの位置</small><b>${rankText}</b><span class="sub" style="color:rgba(255,255,255,.70)">黒い縦線が現在位置です</span></div>
+      <div class="benchmark-card"><small>${age}歳 / ${benchmarkSettings.household==='couple'?'二人以上世帯':'単身世帯'} / ${targetName}</small><b>${yen(value)}</b></div>
+      <div class="benchmark-card"><small>同世代中央値</small><b>${yen(stat.median)}</b></div>
+      <div class="benchmark-card"><small>同世代平均値</small><b>${yen(stat.average)}</b></div>
+    </div>
+  </div>
+  <p class="sub">注：比較値は年代別金融資産の平均・中央値を用いた簡易推定です。統計上の定義と本アプリの入力定義は完全には一致しません。</p>`;
+}
+
+function renderAll(){normalize();renderDashboard();renderTrend();renderPortfolio();renderStatement();renderAnalysis();renderPlan();renderBenchmark();renderInputs()}load();loadBenchmark();renderAll();
 </script>
 </body>
 </html>
