@@ -658,6 +658,152 @@
 @media(max-width:920px){.fs-layout{grid-template-columns:1fr}.fs-kpi-strip{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.fs-title{padding:14px 13px}.fs-table{padding:12px 13px 14px}.fs-row{font-size:12px;gap:8px}.fs-row .name b{font-size:12px}.fs-row .name small{font-size:10px}.fs-row .amount{font-size:12px}.fs-row.final .amount{font-size:15px}.fs-bridge-row{grid-template-columns:82px 1fr auto}}
 
+
+/* v5 PL/CF fixes: latest default, tax analysis, cleaner fixed items */
+#plPage .panel,#plPage .pl-hero,#plPage section{
+  width:100%;
+  max-width:100%;
+  overflow:hidden;
+}
+#plPage .pl-layout{
+  grid-template-columns:1fr!important;
+}
+#plPage .grid{
+  grid-template-columns:1fr!important;
+}
+.pl-fixed-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+.pl-fixed-card{
+  min-width:0;
+  padding:14px;
+  border-radius:18px;
+  background:#fff;
+  border:1px solid var(--line);
+  box-shadow:0 8px 24px rgba(15,23,42,.035);
+}
+.pl-fixed-card small{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:900;
+  line-height:1.45;
+  margin-top:3px;
+}
+.pl-fixed-card b{
+  display:block;
+  font-size:20px;
+  margin-top:8px;
+  letter-spacing:-.03em;
+  white-space:nowrap;
+}
+.pl-fixed-card.highlight{
+  grid-column:1/-1;
+  color:white;
+  background:linear-gradient(135deg,#071a33,#102846);
+  border-color:transparent;
+}
+.pl-fixed-card.highlight small{color:rgba(255,255,255,.62)}
+.tax-board{
+  display:grid;
+  grid-template-columns:1fr .95fr;
+  gap:16px;
+  align-items:start;
+}
+.tax-summary{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-bottom:14px;
+}
+.tax-card{
+  padding:14px;
+  border-radius:18px;
+  background:#fff;
+  border:1px solid var(--line);
+}
+.tax-card small{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:950;
+  margin-bottom:6px;
+}
+.tax-card b{
+  font-size:20px;
+}
+.tax-list{
+  display:grid;
+  gap:10px;
+}
+.tax-line{
+  display:grid;
+  grid-template-columns:110px 1fr auto;
+  gap:10px;
+  align-items:center;
+}
+.tax-line small{
+  color:var(--muted);
+  font-weight:950;
+  font-size:11px;
+}
+.tax-bar{
+  height:12px;
+  border-radius:999px;
+  background:#e2e8f0;
+  overflow:hidden;
+}
+.tax-bar span{
+  display:block;
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,#ef4444,#fb7185);
+}
+.tax-note{
+  padding:16px;
+  border-radius:22px;
+  color:white;
+  background:linear-gradient(135deg,#071a33,#102846);
+}
+.tax-note small{
+  display:block;
+  color:rgba(255,255,255,.62);
+  font-weight:950;
+  margin-bottom:6px;
+}
+.tax-note b{
+  font-size:30px;
+}
+.tax-note p{
+  color:rgba(255,255,255,.72);
+  font-size:13px;
+  line-height:1.7;
+}
+.fs-layout{
+  grid-template-columns:1fr!important;
+}
+.fs-paper + .fs-paper{
+  margin-top:14px;
+}
+.fs-row .amount{
+  max-width:42%;
+  text-align:right;
+}
+@media(max-width:760px){
+  .tax-board{grid-template-columns:1fr}
+  .tax-summary{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:560px){
+  .pl-fixed-grid{grid-template-columns:1fr 1fr}
+  .pl-fixed-card{padding:12px}
+  .pl-fixed-card b{font-size:16px}
+  .tax-summary{grid-template-columns:1fr 1fr}
+  .tax-line{grid-template-columns:82px 1fr auto}
+  .tax-line small{font-size:10px}
+}
+
 </style>
 </head>
 <body>
@@ -771,6 +917,12 @@
     </div>
   </section>
 
+  <section class="panel">
+    <p class="label">TAX & TAKE-HOME ANALYSIS</p>
+    <h2>今日の控除分析</h2>
+    <div id="taxAnalysis"></div>
+  </section>
+
   <section class="grid">
     <div class="panel">
       <div class="pl-select-row">
@@ -790,14 +942,14 @@
     <div class="panel">
       <p class="label">MONTHLY FIXED ITEMS</p>
       <h2>固定項目</h2>
-      <div class="pl-statement">
-        <div class="pl-line"><div><b>NISA積立</b><small>India / NASDAQ</small></div><b>¥105,000</b></div>
-        <div class="pl-line"><div><b>DC</b><small>確定拠出年金</small></div><b>¥54,200</b></div>
-        <div class="pl-line"><div><b>持株会</b><small>SMFG</small></div><b>¥55,000</b></div>
-        <div class="pl-line"><div><b>Bitcoin</b><small>暗号資産積立</small></div><b>¥10,000</b></div>
-        <div class="pl-line total"><div><b>Monthly Investment</b><small>投資合計</small></div><b>¥224,200</b></div>
-        <div class="pl-line"><div><b>共同口座</b><small>家賃＋水道等</small></div><b>¥190,600</b></div>
-        <div class="pl-line"><div><b>Monthly Subscription</b><small>Amazon / KDDI / ChatGPT / ジム</small></div><b>¥19,877</b></div>
+      <div class="pl-fixed-grid">
+        <div class="pl-fixed-card"><b>NISA積立</b><small>India / NASDAQ</small><b>¥105,000</b></div>
+        <div class="pl-fixed-card"><b>DC</b><small>確定拠出年金</small><b>¥54,200</b></div>
+        <div class="pl-fixed-card"><b>持株会</b><small>SMFG</small><b>¥55,000</b></div>
+        <div class="pl-fixed-card"><b>Bitcoin</b><small>暗号資産積立</small><b>¥10,000</b></div>
+        <div class="pl-fixed-card highlight"><b>Monthly Investment</b><small>投資合計</small><b>¥224,200</b></div>
+        <div class="pl-fixed-card"><b>共同口座</b><small>家賃・生活費</small><b>¥185,600</b></div>
+        <div class="pl-fixed-card"><b>Monthly Subscription</b><small>Amazon / KDDI / ChatGPT / ジム</small><b>¥19,877</b></div>
       </div>
     </div>
   </section>
@@ -1118,32 +1270,38 @@ function renderBenchmark(){
 
 
 const plRecords=[
-{month:'2025/03',gross:727240,tax:160486,otherDeduction:3680,deductions:164166,assignment:94040,investment:100500,redRockets:20000,coupleSaving:40000,shared:0,subscription:0,cashflow:308534},
-{month:'2025/04',gross:727240,tax:159872,otherDeduction:3680,deductions:163552,assignment:94040,investment:100500,redRockets:20000,coupleSaving:40000,shared:0,subscription:0,cashflow:309148},
-{month:'2025/06',gross:746630,tax:197066,otherDeduction:3680,deductions:197066,assignment:94040,investment:207000,redRockets:20000,coupleSaving:40000,shared:0,subscription:17557,cashflow:170967},
-{month:'2025/07',gross:758466,tax:198691,otherDeduction:3680,deductions:202371,assignment:94040,investment:207000,redRockets:20000,coupleSaving:40000,shared:0,subscription:17557,cashflow:177498},
-{month:'2025/08',gross:718802,tax:189383,otherDeduction:3710,deductions:193093,assignment:0,investment:224200,redRockets:20000,coupleSaving:40000,shared:0,subscription:19177,cashflow:222332},
-{month:'2025/09',gross:692335,tax:184587,otherDeduction:3710,deductions:188297,assignment:0,investment:224200,redRockets:20000,coupleSaving:190600,shared:0,subscription:19177,cashflow:50061},
-{month:'2025/10',gross:726349,tax:193094,otherDeduction:3710,deductions:193094,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19177,cashflow:84278},
-{month:'2025/11',gross:767690,tax:200874,otherDeduction:3710,deductions:200874,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19177,cashflow:117839},
-{month:'2025/12',gross:742883,tax:10689,otherDeduction:3710,deductions:10689,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19177,cashflow:283217},
-{month:'2026/01',gross:678008,tax:181456,otherDeduction:3710,deductions:185166,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19877,cashflow:43165},
-{month:'2026/02',gross:712337,tax:188747,otherDeduction:3710,deductions:188747,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19877,cashflow:73913},
-{month:'2026/03',gross:677307,tax:182155,otherDeduction:3710,deductions:182155,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19877,cashflow:45475},
-{month:'2026/04',gross:678008,tax:182015,otherDeduction:3710,deductions:182015,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19877,cashflow:46316}
+{month:'2025/03',gross:727240,incomeTax:48490,residentTax:29800,health:18200,employment:4521,pension:59475,deductions:164166,assignment:94040,investment:100500,redRockets:20000,coupleSaving:40000,shared:0,subscription:19877,cashflow:308534},
+{month:'2025/04',gross:727240,incomeTax:48620,residentTax:29800,health:18200,employment:3777,pension:59475,deductions:163552,assignment:94040,investment:100500,redRockets:20000,coupleSaving:40000,shared:0,subscription:19877,cashflow:309148},
+{month:'2025/06',gross:746630,incomeTax:58940,residentTax:56400,health:18200,employment:4051,pension:59475,deductions:197066,assignment:94040,investment:207000,redRockets:20000,coupleSaving:40000,shared:0,subscription:17557,cashflow:170967},
+{month:'2025/07',gross:758466,incomeTax:61100,residentTax:55800,health:18200,employment:4116,pension:59475,deductions:202371,assignment:94040,investment:207000,redRockets:20000,coupleSaving:40000,shared:0,subscription:17557,cashflow:177498},
+{month:'2025/08',gross:718802,incomeTax:52010,residentTax:55800,health:18200,employment:3898,pension:59475,deductions:193093,assignment:0,investment:224200,redRockets:20000,coupleSaving:40000,shared:0,subscription:19177,cashflow:222332},
+{month:'2025/09',gross:692335,incomeTax:47170,residentTax:55800,health:18200,employment:3942,pension:59475,deductions:188297,assignment:0,investment:224200,redRockets:20000,coupleSaving:190600,shared:0,subscription:19177,cashflow:50061},
+{month:'2025/10',gross:726349,incomeTax:52880,residentTax:55880,health:21000,employment:3939,pension:59475,deductions:193094,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19177,cashflow:84278},
+{month:'2025/11',gross:767690,incomeTax:60430,residentTax:55800,health:21000,employment:4169,pension:59475,deductions:200874,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19177,cashflow:117839},
+{month:'2025/12',gross:742883,incomeTax:55900,residentTax:55800,health:21000,employment:4030,pension:59475,yearEndAdjustment:-185516,deductions:10689,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19177,cashflow:283217},
+{month:'2026/01',gross:678008,incomeTax:42300,residentTax:55800,health:21000,employment:3881,pension:58475,deductions:185166,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19877,cashflow:43165},
+{month:'2026/02',gross:712337,incomeTax:48610,residentTax:55800,health:21000,employment:3862,pension:59475,deductions:188747,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19877,cashflow:73913},
+{month:'2026/03',gross:677307,incomeTax:42210,residentTax:55800,health:21000,employment:3670,pension:59475,deductions:182155,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19877,cashflow:45475},
+{month:'2026/04',gross:678008,incomeTax:42400,residentTax:55800,health:21000,employment:3340,pension:59475,deductions:182015,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19877,cashflow:46316}
 ];
 function currentPL(){
   const sel=document.getElementById('plMonthSelect');
-  const month=sel?.value||plRecords[plRecords.length-1].month;
+  const latestMonth=plRecords[plRecords.length-1].month;
+  let month=sel?.value;
+  if(!month || !plRecords.some(r=>r.month===month)){
+    month=latestMonth;
+    if(sel) sel.value=latestMonth;
+  }
   return plRecords.find(r=>r.month===month)||plRecords[plRecords.length-1];
 }
 function plValue(r,metric){
+  const d=fsPLData(r);
   if(metric==='gross')return r.gross;
   if(metric==='deductions')return r.deductions;
   if(metric==='investment')return r.investment;
   if(metric==='subscription')return r.subscription;
   if(metric==='shared')return (r.shared||0)+(r.coupleSaving||0);
-  return r.cashflow;
+  return d.netCashChange;
 }
 function plMetricName(metric){
   return {cashflow:'残存CF',gross:'支給額',deductions:'控除額',investment:'投資関連',subscription:'サブスク',shared:'共同口座・夫婦貯金'}[metric]||'残存CF';
@@ -1250,7 +1408,7 @@ function fsPLData(r){
   const netIncome=ordinaryProfit-taxes;
   const operatingCF=netIncome;
   const investmentCF=-(r.investment||0);
-  const financeCF=-((r.redRockets||0)+(r.coupleSaving||0));
+  const financeCF=-(r.redRockets||0)-(r.coupleSaving||0);
   const netCashChange=operatingCF+investmentCF+financeCF;
   return {revenue,salary,bonus,otherRevenue,cogs,grossProfit,housing,assignment,subscription,sga,operatingProfit,nonOperatingIncome,nonOperatingExpense,ordinaryProfit,taxes,netIncome,operatingCF,investmentCF,financeCF,netCashChange};
 }
@@ -1266,11 +1424,60 @@ function fsBridge(label,value,total,color){
   return `<div class="fs-bridge-row"><small>${label}</small><div class="fs-bridge-bar"><span style="width:${pct}%;background:${color}"></span></div><b>${yen(Math.abs(value||0))}</b></div>`;
 }
 
+
+function taxParts(r){
+  return [
+    ['所得税',r.incomeTax||0],
+    ['住民税',r.residentTax||0],
+    ['健康保険',r.health||0],
+    ['雇用保険',r.employment||0],
+    ['厚生年金',r.pension||0]
+  ];
+}
+function renderTaxAnalysis(r,d){
+  const el=document.getElementById('taxAnalysis');
+  if(!el)return;
+  const parts=taxParts(r);
+  const statutory=parts.reduce((s,x)=>s+x[1],0);
+  const adjustment=r.yearEndAdjustment||0;
+  const rate=r.gross?d.taxes/r.gross*100:0;
+  const takeHomeBeforeInvestment=r.gross-d.taxes;
+  const maxPart=Math.max(...parts.map(x=>x[1]),1);
+  el.innerHTML=`<div class="tax-board">
+    <div>
+      <div class="tax-summary">
+        <div class="tax-card"><small>支給額</small><b>${yen(r.gross)}</b></div>
+        <div class="tax-card"><small>控除額</small><b class="neg">▲${yen(d.taxes)}</b></div>
+        <div class="tax-card"><small>税金・社会保険率</small><b>${rate.toFixed(1)}%</b></div>
+        <div class="tax-card"><small>手取り相当</small><b>${yen(takeHomeBeforeInvestment)}</b></div>
+        <div class="tax-card"><small>投資前CF</small><b>${yen(takeHomeBeforeInvestment-d.sga)}</b></div>
+        <div class="tax-card"><small>最終現金増減</small><b class="${d.netCashChange>=0?'pos':'neg'}">${yen(d.netCashChange)}</b></div>
+      </div>
+      <div class="tax-list">
+        ${parts.map(([label,value])=>{
+          const pct=r.gross?value/r.gross*100:0;
+          const width=value/maxPart*100;
+          return `<div class="tax-line"><small>${label}</small><div class="tax-bar"><span style="width:${width}%"></span></div><b>${yen(value)} / ${pct.toFixed(1)}%</b></div>`;
+        }).join('')}
+        ${adjustment?`<div class="tax-line"><small>年末調整</small><div class="tax-bar"><span style="width:100%;background:linear-gradient(90deg,#10b981,#34d399)"></span></div><b>${yen(adjustment)}</b></div>`:''}
+      </div>
+    </div>
+    <div class="tax-note">
+      <small>TAKE-HOME BRIDGE</small>
+      <b>${rate.toFixed(1)}%</b>
+      <p>支給額から所得税・住民税・社会保険が控除され、手取り相当は <b style="color:white">${yen(takeHomeBeforeInvestment)}</b> です。そこから生活固定費、投資CF、目的別貯蓄を差し引いた最終現金増減が <b style="color:white">${yen(d.netCashChange)}</b> です。</p>
+    </div>
+  </div>`;
+}
+
 function renderPL(){
   const sel=document.getElementById('plMonthSelect');
   if(!sel)return;
+  const current=sel.value;
   sel.innerHTML=plRecords.map(r=>`<option value="${r.month}">${r.month}</option>`).join('');
-  if(!sel.value)sel.value=plRecords[plRecords.length-1].month;
+  if(current && plRecords.some(r=>r.month===current)) sel.value=current;
+  else sel.value=plRecords[plRecords.length-1].month;
+
   const r=currentPL();
   const d=fsPLData(r);
   const idx=plRecords.indexOf(r);
@@ -1309,21 +1516,17 @@ function renderPL(){
           ${fsRow('　給与収入','月例給与・手当・奨励金を含む',d.salary,'sub')}
           ${fsRow('　賞与収入','賞与がある月に入力',d.bonus,'sub')}
           ${fsRow('　その他収入','副業・ポイント等',d.otherRevenue,'sub')}
-
-          ${fsRow('売上原価','収入を得るために直接必要なコスト',d.cogs,'section negative',true)}
+          ${fsRow('売上原価','収入を得るために直接必要なコスト。現時点は未入力',d.cogs,'section negative',true)}
           ${fsRow('売上総利益','売上高 − 売上原価',d.grossProfit,'subtotal')}
-
           ${fsRow('販売費及び一般管理費','生活固定費・仕事維持費',d.sga,'section negative',true)}
-          ${fsRow('　住居・共同口座関連','家賃・水道等',d.housing,'sub negative',true)}
-          ${fsRow('　単身赴任関連','帰省実費等の実質相殺分',d.assignment,'sub negative',true)}
+          ${fsRow('　共同口座関連','家賃・生活費としての共同口座入金',d.housing,'sub negative',true)}
+          ${fsRow('　単身赴任関連','現在は発生なし。過去月は実質相殺分を表示',d.assignment,'sub negative',true)}
           ${fsRow('　サブスクリプション','Amazon・KDDI・ChatGPT・ジム',d.subscription,'sub negative',true)}
-
           ${fsRow('営業利益','本業と生活基盤から生まれる利益',d.operatingProfit,'operating')}
           ${fsRow('営業外収益','配当金・利息・ポイント収入など',d.nonOperatingIncome,'section')}
           ${fsRow('営業外費用','借入利息・手数料など',d.nonOperatingExpense,'negative',true)}
           ${fsRow('経常利益','営業利益 ＋ 営業外損益',d.ordinaryProfit,'subtotal')}
-
-          ${fsRow('税金・社会保険等','所得税・住民税・社会保険・組合費等',d.taxes,'section negative',true)}
+          ${fsRow('税金・社会保険等','所得税・住民税・社会保険など',d.taxes,'section negative',true)}
           ${fsRow('税引後利益','PL上の最終利益。CF計算書へ接続',d.netIncome,'final')}
         </div>
       </div>
@@ -1333,13 +1536,10 @@ function renderPL(){
         <div class="fs-table">
           ${fsRow('営業活動によるCF','PLの税引後利益を起点にしたキャッシュ創出力',d.operatingCF,'operating')}
           ${fsRow('　税引後利益','個人PLから接続',d.netIncome,'sub')}
-
           ${fsRow('投資活動によるCF','NISA・DC・持株会・Bitcoin。費用ではなく資産への振替',d.investmentCF,'section negative',true)}
           ${fsRow('　NISA / DC / 持株 / BTC','毎月の資産形成投資',d.investmentCF,'sub negative',true)}
-
-          ${fsRow('財務活動によるCF','共同口座・夫婦貯金・レッドロケッツなど目的別資金移動',d.financeCF,'section negative',true)}
-          ${fsRow('　共同口座・夫婦貯金等','目的別の貯蓄・共同資金',d.financeCF,'sub negative',true)}
-
+          ${fsRow('財務活動によるCF','任意貯蓄・目的別資金移動。共同口座の生活費は販管費に分類',d.financeCF,'section negative',true)}
+          ${fsRow('　レッドロケッツ・夫婦貯金等','2026/04はレッドロケッツのみ',d.financeCF,'sub negative',true)}
           ${fsRow('現金及び現金同等物の増減額','営業CF ＋ 投資CF ＋ 財務CF',d.netCashChange,'final')}
         </div>
       </div>
@@ -1350,7 +1550,9 @@ function renderPL(){
       ${fsKpi('投資CF率',investRate.toFixed(1)+'%','pos')}
       ${fsKpi('現金増減率',cfMargin.toFixed(1)+'%',cfMargin>=10?'pos':'neg')}
     </div>
-    <div class="fs-comment"><b>見方：</b>PLは「稼ぐ力」、CFは「残す力」、BSは「積み上がった結果」を示します。NISA・DC・持株会はPL上の費用ではなく、CF上の投資活動として扱います。</div>`;
+    <div class="fs-comment"><b>見方：</b>PLは「稼ぐ力」、CFは「残す力」、BSは「積み上がった結果」を示します。共同口座185,600円は生活費なので販管費、NISA・DC・持株会はCF上の投資活動として扱います。</div>`;
+
+  renderTaxAnalysis(r,d);
 
   document.getElementById('plBreakdown').innerHTML=`
     <div class="fs-bridge">
@@ -1365,7 +1567,7 @@ function renderPL(){
   document.getElementById('plAnalysis').innerHTML=`
     <div class="pl-analysis-group"><h3>PL分析</h3><div class="pl-analysis-grid">
       ${pacard('営業利益率',opMargin.toFixed(1)+'%','生活固定費控除後の利益率。',opMargin>=50?'pos':'')}
-      ${pacard('販管費率',sgaRate.toFixed(1)+'%','生活固定費・仕事維持費の重さ。')}
+      ${pacard('販管費率',sgaRate.toFixed(1)+'%','共同口座・サブスク等の生活固定費率。')}
       ${pacard('税引後利益率',netMargin.toFixed(1)+'%','税金・社会保険後に残る利益率。',netMargin>=30?'pos':'')}
       ${pacard('控除率',taxRate.toFixed(1)+'%','税金・社会保険等の負担率。')}
     </div></div>
@@ -1379,7 +1581,7 @@ function renderPL(){
       ${pacard('PL→CF',yen(d.netIncome),'税引後利益が営業CFの起点。')}
       ${pacard('CF→BS',yen(d.netCashChange),'現金増減がBSの預金に接続。')}
       ${pacard('資産形成投資',yen(Math.abs(d.investmentCF)),'BSの投資資産増加に接続。','pos')}
-      ${pacard('目的別貯蓄',yen(Math.abs(d.financeCF)),'共同口座・夫婦貯金等。')}
+      ${pacard('共同口座',yen(d.housing),'生活費のため販管費に分類。')}
     </div></div>`;
 
   svgPLBar(plRecords,'plHeroChart','cashflow');
