@@ -495,6 +495,129 @@
   .pl-waterfall-item{grid-template-columns:80px 1fr auto}
 }
 
+
+/* v3 IB-style PL + CF dashboard */
+#plPage .panel,#plPage .pl-hero{width:100%;max-width:100%;overflow:hidden}
+#plPage .grid{grid-template-columns:1fr!important}
+.ib-split{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  align-items:start;
+}
+.ib-card{
+  padding:16px;
+  border-radius:24px;
+  background:linear-gradient(180deg,#fff,#f8fafc);
+  border:1px solid var(--line);
+}
+.ib-card h3{
+  margin:0 0 12px;
+  font-size:18px;
+}
+.ib-table{
+  display:grid;
+  gap:8px;
+}
+.ib-row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:12px;
+  align-items:center;
+  padding:13px 14px;
+  border-radius:16px;
+  border:1px solid var(--line);
+  background:#fff;
+}
+.ib-row small{
+  display:block;
+  margin-top:3px;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.45;
+  font-weight:750;
+}
+.ib-row b{white-space:nowrap}
+.ib-row.revenue{
+  background:linear-gradient(135deg,#071a33,#102846);
+  color:white;
+}
+.ib-row.revenue small{color:rgba(255,255,255,.66)}
+.ib-row.subtotal{background:#f8fafc;font-weight:950}
+.ib-row.op{background:linear-gradient(135deg,rgba(37,99,235,.13),#fff);border-color:rgba(37,99,235,.18)}
+.ib-row.net{background:linear-gradient(135deg,rgba(16,185,129,.16),#fff);border-color:rgba(16,185,129,.24)}
+.ib-row.cf{background:linear-gradient(135deg,rgba(59,130,246,.14),rgba(16,185,129,.10));border-color:rgba(16,185,129,.22)}
+.ib-row.minus b{color:var(--red)}
+.ib-row.plus b{color:var(--green)}
+.ib-kpi-strip{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-top:12px;
+}
+.ib-mini{
+  padding:13px;
+  border-radius:17px;
+  background:#fff;
+  border:1px solid var(--line);
+}
+.ib-mini small{
+  display:block;
+  color:var(--muted);
+  font-weight:950;
+  font-size:10px;
+  margin-bottom:5px;
+}
+.ib-mini b{font-size:18px}
+.ib-flow{
+  display:grid;
+  gap:10px;
+}
+.ib-flow-row{
+  display:grid;
+  grid-template-columns:120px 1fr auto;
+  gap:10px;
+  align-items:center;
+}
+.ib-flow-row small{
+  color:var(--muted);
+  font-weight:950;
+  font-size:11px;
+}
+.ib-flow-bar{
+  height:12px;
+  border-radius:999px;
+  background:#e2e8f0;
+  overflow:hidden;
+}
+.ib-flow-bar span{
+  display:block;
+  height:100%;
+  border-radius:999px;
+}
+.ib-comment{
+  margin-top:14px;
+  padding:14px 16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,rgba(37,99,235,.10),rgba(16,185,129,.08));
+  border:1px solid rgba(37,99,235,.14);
+  color:#334155;
+  line-height:1.7;
+  font-size:13px;
+}
+.ib-comment b{color:var(--ink)}
+@media(max-width:920px){
+  .ib-split{grid-template-columns:1fr}
+  .ib-kpi-strip{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:560px){
+  .ib-card{padding:13px;border-radius:20px}
+  .ib-row{padding:11px 10px;gap:8px}
+  .ib-row b{font-size:13px}
+  .ib-flow-row{grid-template-columns:88px 1fr auto}
+  .ib-flow-row small,.ib-row small{font-size:10px}
+}
+
 </style>
 </head>
 <body>
@@ -570,14 +693,14 @@
     <div class="pl-hero-grid">
       <div>
         <span class="hero-badge" id="plClosingBadge">2026/04 PL</span>
-        <div class="hero-kicker">PERSONAL MONTHLY PROFIT & LOSS</div>
-        <div class="pl-total-label">MONTHLY FREE CASH FLOW</div>
+        <div class="hero-kicker">IB-STYLE PERSONAL PL + CF</div>
+        <div class="pl-total-label">FREE CASH FLOW TO MYSELF</div>
         <strong class="pl-total" id="plNetCashDisplay">-</strong>
         <div class="pl-hero-lines" id="plHeroLines"></div>
-        <div class="status"><span class="status-dot"></span><span id="plPhaseText">キャッシュ創出フェーズ</span></div>
+        <div class="status"><span class="status-dot"></span><span id="plPhaseText">PL+CF管理フェーズ</span></div>
       </div>
       <div class="pl-dark-card">
-        <div class="hero-chart-head"><div><b>CASH FLOW TREND</b><small>月次キャッシュフロー推移</small></div><div class="hero-pill" id="plBestPill">最高CF</div></div>
+        <div class="hero-chart-head"><div><b>FCF TREND</b><small>月次フリーCF推移</small></div><div class="hero-pill" id="plBestPill">最高CF</div></div>
         <div id="plHeroChart"></div>
       </div>
     </div>
@@ -1038,102 +1161,126 @@ function plWater(label,value,total,color){
   return `<div class="pl-waterfall-item"><small>${label}</small><div class="pl-waterfall-bar"><span style="width:${pct}%;background:${color}"></span></div><b>${yen(value)}</b></div>`;
 }
 
+
+function ibPLData(r){
+  const revenue=r.gross;
+  const cogs=0;
+  const grossProfit=revenue-cogs;
+  const sga=(r.assignment||0)+(r.shared||0)+(r.subscription||0);
+  const operatingProfit=grossProfit-sga;
+  const nonOperating=0;
+  const recurringProfit=operatingProfit+nonOperating;
+  const taxes=r.deductions;
+  const netIncome=recurringProfit-taxes;
+  const investingCF=-(r.investment||0);
+  const financingCF=-((r.redRockets||0)+(r.coupleSaving||0));
+  const fcf=netIncome+investingCF+financingCF;
+  const assetFormation=(r.investment||0)+(r.redRockets||0)+(r.coupleSaving||0);
+  return {revenue,cogs,grossProfit,sga,operatingProfit,nonOperating,recurringProfit,taxes,netIncome,investingCF,financingCF,fcf,assetFormation};
+}
+function ibRow(label,desc,value,cls='',minus=false){
+  const sign=minus?'−':'';
+  return `<div class="ib-row ${cls}"><div><b>${label}</b><small>${desc}</small></div><b>${sign}${yen(Math.abs(value||0))}</b></div>`;
+}
+function ibFlow(label,value,total,color){
+  const pct=total?Math.min(100,Math.abs(value)/total*100):0;
+  return `<div class="ib-flow-row"><small>${label}</small><div class="ib-flow-bar"><span style="width:${pct}%;background:${color}"></span></div><b>${yen(Math.abs(value||0))}</b></div>`;
+}
+function ibMini(label,value){
+  return `<div class="ib-mini"><small>${label}</small><b>${value}</b></div>`;
+}
+
 function renderPL(){
   const sel=document.getElementById('plMonthSelect');
   if(!sel)return;
   sel.innerHTML=plRecords.map(r=>`<option value="${r.month}">${r.month}</option>`).join('');
   if(!sel.value)sel.value=plRecords[plRecords.length-1].month;
   const r=currentPL();
-  const prev=plRecords[plRecords.indexOf(r)-1];
-  const cfChange=prev?r.cashflow-prev.cashflow:null;
+  const d=ibPLData(r);
+  const idx=plRecords.indexOf(r);
+  const prev=plRecords[idx-1];
+  const prevFcf=prev?ibPLData(prev).fcf:null;
+  const fcfChange=prev?d.fcf-prevFcf:null;
+  const best=plRecords.reduce((a,b)=>ibPLData(b).fcf>ibPLData(a).fcf?b:a,plRecords[0]);
+  const opMargin=d.revenue?d.operatingProfit/d.revenue*100:0;
+  const netMargin=d.revenue?d.netIncome/d.revenue*100:0;
+  const fcfMargin=d.revenue?d.fcf/d.revenue*100:0;
+  const formationRate=d.revenue?d.assetFormation/d.revenue*100:0;
 
-  const cogs=plCogs(r);
-  const grossProfit=r.gross-cogs;
-  const sga=plSga(r);
-  const operatingIncome=plOperatingIncome(r);
-  const other=plOther(r);
-  const recurringProfit=plRecurringProfit(r);
-  const tax=r.deductions;
-  const afterTax=plAfterTaxProfit(r);
-  const formation=plAssetFormation(r);
-  const finalProfit=plFinalProfit(r);
-  const shared=(r.shared||0)+(r.coupleSaving||0);
-  const savings=r.investment+(r.redRockets||0)+shared;
-
-  document.getElementById('plClosingBadge').textContent=r.month+' PL';
-  document.getElementById('plNetCashDisplay').textContent=yen(r.cashflow);
-  document.getElementById('plHeroLines').innerHTML=`<div>売上高 ${yen(r.gross)} / 当期純利益 ${yen(finalProfit)}</div><div>${prev?`前月比 ${cfChange>=0?'+':'−'}${yen(Math.abs(cfChange))}`:'前月比 -'} / 最終利益率 ${(finalProfit/r.gross*100).toFixed(1)}%</div>`;
-  document.getElementById('plPhaseText').textContent=finalProfit>=100000?'高収益フェーズ':finalProfit>=50000?'安定利益フェーズ':'低利益・支出集中フェーズ';
-  const best=plRecords.reduce((a,b)=>b.cashflow>a.cashflow?b:a,plRecords[0]);
-  document.getElementById('plBestPill').textContent='最高CF '+yen(best.cashflow);
-  document.getElementById('plGrossKpi').textContent=yen(r.gross);
-  document.getElementById('plDeductionKpi').textContent='−'+yen(r.deductions);
-  document.getElementById('plInvestmentKpi').textContent=yen(formation);
-  document.getElementById('plMarginKpi').textContent=(finalProfit/r.gross*100).toFixed(1)+'%';
+  document.getElementById('plClosingBadge').textContent=r.month+' PL+CF';
+  document.getElementById('plNetCashDisplay').textContent=yen(d.fcf);
+  document.getElementById('plHeroLines').innerHTML=`<div>営業利益 ${yen(d.operatingProfit)} / 税引後利益 ${yen(d.netIncome)}</div><div>${prev?`前月比 ${fcfChange>=0?'+':'−'}${yen(Math.abs(fcfChange))}`:'前月比 -'} / FCFマージン ${fcfMargin.toFixed(1)}%</div>`;
+  document.getElementById('plPhaseText').textContent=d.fcf>=100000?'FCF創出フェーズ':d.fcf>=50000?'安定CFフェーズ':'CF低下・支出集中フェーズ';
+  document.getElementById('plBestPill').textContent='最高FCF '+yen(ibPLData(best).fcf);
+  document.getElementById('plGrossKpi').textContent=yen(d.revenue);
+  document.getElementById('plDeductionKpi').textContent='−'+yen(d.taxes);
+  document.getElementById('plInvestmentKpi').textContent=yen(d.assetFormation);
+  document.getElementById('plMarginKpi').textContent=fcfMargin.toFixed(1)+'%';
 
   document.getElementById('plStatement').innerHTML=`
-    <div class="pl-board">
-      <div class="pl-statement-card">
-        <div class="pl-table">
-          ${plRow('売上高（収入）','給与・賞与・手当・奨励金など',r.gross,'sales')}
-          ${plRow('売上原価','収入を得るために直接必要なコスト。仕事用書籍・副業仕入・スキルアップ費用など',cogs,'negative',true)}
-          ${plRow('売上総利益','売上高 − 売上原価',grossProfit,'calc')}
-          ${plRow('販売費・一般管理費（生活固定費）','家賃・水道・通信費・サブスク・単身赴任関連など',sga,'negative',true)}
-          ${plRow('営業利益','本業・生活基盤から生まれる利益',operatingIncome,'op')}
-          ${plRow('営業外損益','分配金・利息・借入金利息など。現時点は未入力',other,other<0?'negative':'')}
-          ${plRow('経常利益','営業利益 ＋ 営業外損益',recurringProfit,'calc')}
-          ${plRow('税金・社会保険等','所得税・住民税・社会保険・組合費等',tax,'negative',true)}
-          ${plRow('税引後利益','経常利益 − 税金・社会保険等',afterTax,'calc')}
-          ${plRow('資産形成支出','NISA・DC・持株会・Bitcoin・レッドロケッツ・夫婦貯金等',formation,'negative',true)}
-          ${plRow('当期純利益（最終貯蓄額）','最終的に手元に残る現金。BSの増加原資',finalProfit,'net')}
+    <div class="ib-split">
+      <div class="ib-card">
+        <h3>個人PL：稼ぐ力</h3>
+        <div class="ib-table">
+          ${ibRow('売上高（収入）','給与・賞与・手当・奨励金など',d.revenue,'revenue')}
+          ${ibRow('売上原価','収入を得るために直接必要なコスト。仕事用書籍・スキルアップ費用など',d.cogs,'minus',true)}
+          ${ibRow('売上総利益','売上高 − 売上原価',d.grossProfit,'subtotal')}
+          ${ibRow('販売費・一般管理費（生活固定費）','家賃・水道・通信費・サブスク・単身赴任関連など',d.sga,'minus',true)}
+          ${ibRow('営業利益','本業と生活基盤から生まれる利益。ここがPLの主役',d.operatingProfit,'op')}
+          ${ibRow('営業外損益','投資分配金・借入利息など。現時点は未入力',d.nonOperating,d.nonOperating<0?'minus':'plus',d.nonOperating<0)}
+          ${ibRow('経常利益','営業利益 ＋ 営業外損益',d.recurringProfit,'subtotal')}
+          ${ibRow('税金・社会保険等','所得税・住民税・社会保険・組合費等',d.taxes,'minus',true)}
+          ${ibRow('税引後利益','経常利益 − 税金・社会保険等',d.netIncome,'net')}
         </div>
       </div>
-      <div class="pl-waterfall">
-        <h3>PLブリッジ</h3>
-        <div class="pl-waterfall-list">
-          ${plWater('売上高',r.gross,r.gross,'linear-gradient(90deg,#071a33,#2563eb)')}
-          ${plWater('生活固定費',sga,r.gross,'linear-gradient(90deg,#f97316,#f59e0b)')}
-          ${plWater('控除',tax,r.gross,'linear-gradient(90deg,#ef4444,#fb7185)')}
-          ${plWater('資産形成',formation,r.gross,'linear-gradient(90deg,#2563eb,#38bdf8)')}
-          ${plWater('当期純利益',finalProfit,r.gross,'linear-gradient(90deg,#10b981,#34d399)')}
+      <div class="ib-card">
+        <h3>個人CF：残す力</h3>
+        <div class="ib-table">
+          ${ibRow('税引後利益','PLからCFに接続するスタート地点',d.netIncome,'net')}
+          ${ibRow('投資CF','NISA・DC・持株会・Bitcoin。費用ではなく資産への振替',d.investingCF,'minus',true)}
+          ${ibRow('財務・貯蓄CF','レッドロケッツ・夫婦貯金などの目的別資金移動',d.financingCF,'minus',true)}
+          ${ibRow('Free Cash Flow to Myself','生活・税金・投資・貯蓄後に自由に残る現金',d.fcf,'cf')}
         </div>
-        <div class="pl-smart-breakdown" style="margin-top:14px">
-          <div class="pl-smart-card"><small>営業利益率</small><b>${(operatingIncome/r.gross*100).toFixed(1)}%</b></div>
-          <div class="pl-smart-card"><small>税引後利益率</small><b>${(afterTax/r.gross*100).toFixed(1)}%</b></div>
-          <div class="pl-smart-card"><small>資産形成率</small><b>${(formation/r.gross*100).toFixed(1)}%</b></div>
-          <div class="pl-smart-card"><small>最終利益率</small><b>${(finalProfit/r.gross*100).toFixed(1)}%</b></div>
+        <div class="ib-kpi-strip">
+          ${ibMini('営業利益率',opMargin.toFixed(1)+'%')}
+          ${ibMini('税引後利益率',netMargin.toFixed(1)+'%')}
+          ${ibMini('資産形成率',formationRate.toFixed(1)+'%')}
+          ${ibMini('FCF率',fcfMargin.toFixed(1)+'%')}
         </div>
+        <div class="ib-comment"><b>IBメモ：</b>PLで「稼ぐ力」を見て、CFで「BSにどう接続するか」を見ます。投資は費用ではなく、資産への振替としてCF側で管理します。</div>
       </div>
     </div>`;
 
-  document.getElementById('plBreakdown').innerHTML=[
-    plBreak('生活固定費',sga,r.gross,'linear-gradient(90deg,#f97316,#f59e0b)'),
-    plBreak('税金・社会保険等',r.deductions,r.gross,'linear-gradient(90deg,#ef4444,#fb7185)'),
-    plBreak('投資関連',r.investment,r.gross,'linear-gradient(90deg,#2563eb,#38bdf8)'),
-    plBreak('共同支出・貯金',shared+(r.redRockets||0),r.gross,'linear-gradient(90deg,#8b5cf6,#6366f1)'),
-    plBreak('当期純利益',finalProfit,r.gross,'linear-gradient(90deg,#10b981,#34d399)')
-  ].join('');
+  document.getElementById('plBreakdown').innerHTML=`
+    <div class="ib-flow">
+      ${ibFlow('売上高',d.revenue,d.revenue,'linear-gradient(90deg,#071a33,#2563eb)')}
+      ${ibFlow('生活固定費',d.sga,d.revenue,'linear-gradient(90deg,#f97316,#f59e0b)')}
+      ${ibFlow('税金等',d.taxes,d.revenue,'linear-gradient(90deg,#ef4444,#fb7185)')}
+      ${ibFlow('投資CF',Math.abs(d.investingCF),d.revenue,'linear-gradient(90deg,#2563eb,#38bdf8)')}
+      ${ibFlow('財務・貯蓄CF',Math.abs(d.financingCF),d.revenue,'linear-gradient(90deg,#8b5cf6,#6366f1)')}
+      ${ibFlow('FCF',Math.max(d.fcf,0),d.revenue,'linear-gradient(90deg,#10b981,#34d399)')}
+    </div>`;
 
-  const invRate=r.investment/r.gross*100, formationRate=formation/r.gross*100, taxRate=r.deductions/r.gross*100, sgaRate=sga/r.gross*100, finalRate=finalProfit/r.gross*100, opRate=operatingIncome/r.gross*100;
   document.getElementById('plAnalysis').innerHTML=`
-    <div class="pl-analysis-group"><h3>収益性</h3><div class="pl-analysis-grid">
-      ${pacard('営業利益率',opRate.toFixed(1)+'%','生活固定費控除後の利益率。',opRate>=50?'pos':'')}
-      ${pacard('最終利益率',finalRate.toFixed(1)+'%','資産形成後に残る現金の割合。',finalRate>=10?'pos':'neg')}
-      ${pacard('当期純利益',yen(finalProfit),'最終的に手元に残るお金。')}
-      ${pacard('前月比利益',prev?(cfChange>=0?'+':'−')+yen(Math.abs(cfChange)):'-','前月からの最終CF変化。',cfChange>=0?'pos':'neg')}
+    <div class="pl-analysis-group"><h3>PL分析</h3><div class="pl-analysis-grid">
+      ${pacard('営業利益率',opMargin.toFixed(1)+'%','生活固定費控除後の利益率。',opMargin>=50?'pos':'')}
+      ${pacard('税引後利益率',netMargin.toFixed(1)+'%','税金・社会保険後に残る利益率。',netMargin>=30?'pos':'')}
+      ${pacard('営業利益',yen(d.operatingProfit),'本業・生活基盤から生まれる利益。')}
+      ${pacard('税引後利益',yen(d.netIncome),'CFに接続する利益。')}
     </div></div>
-    <div class="pl-analysis-group"><h3>資産形成力</h3><div class="pl-analysis-grid">
-      ${pacard('投資率',invRate.toFixed(1)+'%','NISA・DC・持株会・Bitcoinの比率。','pos')}
-      ${pacard('資産形成率',formationRate.toFixed(1)+'%','投資・共同貯金等を含む広義の貯蓄率。','pos')}
-      ${pacard('投資額',yen(r.investment),'毎月の自動投資額。')}
-      ${pacard('資産形成支出',yen(formation),'投資・貯金・共同資金の合計。')}
+    <div class="pl-analysis-group"><h3>CF分析</h3><div class="pl-analysis-grid">
+      ${pacard('FCF率',fcfMargin.toFixed(1)+'%','最終的に自由に残る現金比率。',fcfMargin>=10?'pos':'neg')}
+      ${pacard('資産形成率',formationRate.toFixed(1)+'%','投資・目的別貯蓄への配分率。','pos')}
+      ${pacard('投資CF',yen(Math.abs(d.investingCF)),'資産への振替額。')}
+      ${pacard('FCF',yen(d.fcf),'完全自由資金。')}
     </div></div>
-    <div class="pl-analysis-group"><h3>コスト管理</h3><div class="pl-analysis-grid">
-      ${pacard('生活固定費率',sgaRate.toFixed(1)+'%','家賃・通信・サブスク等の固定費率。')}
-      ${pacard('控除率',taxRate.toFixed(1)+'%','税金・社会保険等の負担率。')}
-      ${pacard('サブスク額',yen(r.subscription||0),'Amazon・KDDI・ChatGPT・ジム。')}
-      ${pacard('固定流出額',yen(sga+r.deductions+formation),'主要な固定流出の合計。')}
+    <div class="pl-analysis-group"><h3>コスト分析</h3><div class="pl-analysis-grid">
+      ${pacard('生活固定費率',(d.sga/d.revenue*100).toFixed(1)+'%','家賃・通信・サブスク等。')}
+      ${pacard('控除率',(d.taxes/d.revenue*100).toFixed(1)+'%','税金・社会保険等の負担率。')}
+      ${pacard('生活固定費',yen(d.sga),'販管費に相当する生活固定費。')}
+      ${pacard('税金・社会保険',yen(d.taxes),'給与からの控除額。')}
     </div></div>`;
+
   svgPLBar(plRecords,'plHeroChart','cashflow');
   renderPLTrend();
 }
