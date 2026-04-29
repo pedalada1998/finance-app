@@ -299,6 +299,59 @@
   display:none;
 }
 
+
+/* v50 PL page */
+.pl-hero{
+  padding:28px;
+  color:white;
+  background:radial-gradient(circle at 86% 0%,rgba(16,185,129,.18),transparent 28%),linear-gradient(135deg,#0b1220,#172554 58%,#071a33);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:28px;
+  box-shadow:0 28px 74px rgba(7,26,51,.26);
+}
+.pl-hero-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:20px;align-items:stretch}
+.pl-total-label{color:rgba(255,255,255,.62);font-size:12px;font-weight:950;letter-spacing:.18em}
+.pl-total{display:block;font-size:clamp(48px,7vw,82px);letter-spacing:-.07em;line-height:.98;margin:6px 0}
+.pl-hero-lines{display:grid;gap:8px;margin-top:12px;font-size:15px;font-weight:900;color:rgba(255,255,255,.82)}
+.pl-dark-card{padding:18px;border-radius:24px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)}
+.pl-dark-card h3{color:white;margin:0 0 12px}
+.pl-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+.pl-kpi{padding:18px;border-radius:22px;background:white;border:1px solid var(--line);box-shadow:0 14px 38px rgba(15,23,42,.055)}
+.pl-kpi small{display:block;color:var(--muted);font-size:12px;font-weight:950;margin-bottom:8px}
+.pl-kpi b{font-size:clamp(21px,2.6vw,30px);line-height:1.15}
+.pl-layout{display:grid;grid-template-columns:1.05fr .95fr;gap:16px}
+.pl-statement{display:grid;gap:8px}
+.pl-line{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:13px 14px;border-radius:16px;background:#fff;border:1px solid var(--line)}
+.pl-line small{display:block;color:var(--muted);font-size:11px;margin-top:2px;font-weight:800}
+.pl-line.total{background:linear-gradient(135deg,#071a33,#102846);color:#fff}
+.pl-line.profit{background:linear-gradient(135deg,rgba(16,185,129,.14),#fff)}
+.pl-line.loss{background:linear-gradient(135deg,rgba(239,68,68,.12),#fff)}
+.pl-breakdown{display:grid;gap:10px}
+.pl-break-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.pl-break-track{grid-column:1/3;height:9px;border-radius:999px;background:#e2e8f0;overflow:hidden}
+.pl-break-track span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#2563eb,#38bdf8)}
+.pl-select-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.pl-select-row select{width:auto;min-width:150px;font-weight:850}
+.pl-analysis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.pl-analysis-group{padding:16px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(135deg,#fff,#f8fafc)}
+.pl-analysis-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.pl-analysis-card{padding:13px;border-radius:17px;background:#fff;border:1px solid var(--line)}
+.pl-analysis-card small{display:block;color:var(--muted);font-size:11px;font-weight:950;margin-bottom:6px}
+.pl-analysis-card b{font-size:20px}
+.pl-note{color:var(--muted);font-size:12px;line-height:1.7;margin-top:10px}
+@media(max-width:920px){
+  .pl-hero-grid,.pl-layout{grid-template-columns:1fr}
+  .pl-kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .pl-analysis{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .pl-hero{padding:22px 16px;border-radius:24px}
+  .pl-kpi-grid{grid-template-columns:repeat(2,1fr);gap:9px}
+  .pl-kpi{padding:13px}
+  .pl-analysis-grid{grid-template-columns:repeat(2,1fr)}
+  .pl-analysis-card b{font-size:18px}
+}
+
 </style>
 </head>
 <body>
@@ -306,7 +359,7 @@
 <div class="app">
 <header class="header" id="header">
   <div class="brand"><div class="logo">PFS</div><div><h1>Personal Financial Statement</h1><small>あなたという会社の、月次決算。</small></div></div>
-  <div class="top-actions"><button class="btn btn-blue" onclick="showPage('input')">月次決算を入力</button></div>
+  <div class="top-actions" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-light" onclick="showPage('pl')">PL版を見る</button><button class="btn btn-blue" onclick="showPage('input')">月次決算を入力</button></div>
 </header>
 
 <div id="dashboardPage" class="page">
@@ -363,6 +416,93 @@
     <section class="panel"><p class="label">ACCOUNT SETTING</p><h2>勘定科目設定</h2><div class="category-tools"><input class="input" id="newCategoryName" placeholder="例：不動産、住宅ローン"><select id="newCategorySide"><option value="asset">資産</option><option value="liability">負債</option></select><select id="newCategoryType"><option value="cash">現金・預金系</option><option value="invest">投資系</option><option value="retire">退職資産系</option><option value="realestate">不動産系</option><option value="debt">負債系</option><option value="realestate_debt">不動産負債系</option><option value="other">その他</option></select><button class="btn" onclick="addCategory()">追加</button></div><p style="color:var(--muted);font-size:12px;line-height:1.7;margin-top:12px">科目の編集・削除・並び替えは、月次決算入力の各カード内で操作できます。</p></section>
   </div>
 </div>
+
+<div id="plPage" class="page hidden">
+  <div class="back-row" style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn btn-light" onclick="showPage('dashboard')">← BSダッシュボードに戻る</button>
+    <button class="btn btn-blue" onclick="showPage('input')">BS月次決算を入力</button>
+  </div>
+
+  <section class="pl-hero">
+    <div class="pl-hero-grid">
+      <div>
+        <span class="hero-badge" id="plClosingBadge">2026/04 PL</span>
+        <div class="hero-kicker">PERSONAL MONTHLY PROFIT & LOSS</div>
+        <div class="pl-total-label">MONTHLY FREE CASH FLOW</div>
+        <strong class="pl-total" id="plNetCashDisplay">-</strong>
+        <div class="pl-hero-lines" id="plHeroLines"></div>
+        <div class="status"><span class="status-dot"></span><span id="plPhaseText">キャッシュ創出フェーズ</span></div>
+      </div>
+      <div class="pl-dark-card">
+        <div class="hero-chart-head"><div><b>CASH FLOW TREND</b><small>月次キャッシュフロー推移</small></div><div class="hero-pill" id="plBestPill">最高CF</div></div>
+        <div id="plHeroChart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pl-kpi-grid">
+    <div class="pl-kpi"><small>支給額</small><b id="plGrossKpi">-</b></div>
+    <div class="pl-kpi"><small>控除額</small><b id="plDeductionKpi">-</b></div>
+    <div class="pl-kpi"><small>投資・貯蓄</small><b id="plInvestmentKpi">-</b></div>
+    <div class="pl-kpi"><small>残存CF率</small><b id="plMarginKpi">-</b></div>
+  </section>
+
+  <section class="panel">
+    <div class="pl-select-row">
+      <div><p class="label">PL DASHBOARD</p><h2>個人PLダッシュボード</h2></div>
+      <select id="plMonthSelect" onchange="renderPL()"></select>
+    </div>
+    <div class="pl-layout">
+      <div>
+        <h3>個人損益計算書</h3>
+        <div class="pl-statement" id="plStatement"></div>
+        <p class="pl-note">単身赴任関連は、手当と帰省実費が実質相殺される前提でCF上は控除表示しています。</p>
+      </div>
+      <div>
+        <h3>支出・投資配分</h3>
+        <div class="pl-breakdown" id="plBreakdown"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="panel">
+      <div class="pl-select-row">
+        <div><p class="label">CASH FLOW TREND</p><h2>PL推移</h2></div>
+        <select id="plMetricSelect" onchange="renderPLTrend()">
+          <option value="cashflow">残存CF</option>
+          <option value="gross">支給額</option>
+          <option value="deductions">控除額</option>
+          <option value="investment">投資関連</option>
+          <option value="subscription">サブスク</option>
+          <option value="shared">共同口座・夫婦貯金</option>
+        </select>
+      </div>
+      <div id="plTrendSelected" class="trend-value-card"></div>
+      <div id="plTrendChart"></div>
+    </div>
+    <div class="panel">
+      <p class="label">MONTHLY FIXED ITEMS</p>
+      <h2>固定項目</h2>
+      <div class="pl-statement">
+        <div class="pl-line"><div><b>NISA積立</b><small>India / NASDAQ</small></div><b>¥105,000</b></div>
+        <div class="pl-line"><div><b>DC</b><small>確定拠出年金</small></div><b>¥54,200</b></div>
+        <div class="pl-line"><div><b>持株会</b><small>SMFG</small></div><b>¥55,000</b></div>
+        <div class="pl-line"><div><b>Bitcoin</b><small>暗号資産積立</small></div><b>¥10,000</b></div>
+        <div class="pl-line total"><div><b>Monthly Investment</b><small>投資合計</small></div><b>¥224,200</b></div>
+        <div class="pl-line"><div><b>共同口座</b><small>家賃＋水道等</small></div><b>¥190,600</b></div>
+        <div class="pl-line"><div><b>Monthly Subscription</b><small>Amazon / KDDI / ChatGPT / ジム</small></div><b>¥19,877</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <p class="label">PL ANALYSIS</p>
+    <h2>PL分析</h2>
+    <div class="pl-analysis" id="plAnalysis"></div>
+  </section>
+</div>
+
 </div>
 
 <script>
@@ -586,7 +726,7 @@ function svgCustom(data,id,target){
   el.innerHTML=`<div class="plan-legend"><span><i class="legend-dot" style="background:#2563eb"></i>実績</span><span><i class="legend-dot" style="background:#10b981"></i>予想</span><span><i class="legend-dot" style="background:#f59e0b"></i>目標</span></div><svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${grid}<line x1="${ml}" x2="${w-mr}" y1="${targetY}" y2="${targetY}" stroke="#f59e0b" stroke-width="3" stroke-dasharray="8 7"/><path d="${path(actualPts)}" fill="none" stroke="#2563eb" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/><path d="${path(forecastPts)}" fill="none" stroke="#10b981" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${actualPts[actualPts.length-1].x}" cy="${actualPts[actualPts.length-1].y}" r="6" fill="#2563eb" stroke="#fff" stroke-width="3"/><circle cx="${forecastPts[forecastPts.length-1].x}" cy="${forecastPts[forecastPts.length-1].y}" r="6" fill="#10b981" stroke="#fff" stroke-width="3"/>${labels}</svg>`;
 }
 function renderInputs(){const m=document.getElementById('monthInput')?.value||latest().month,cur=byMonth(m),p=byMonth(addMonths(m,-1)),p2=byMonth(addMonths(m,-2));document.getElementById('recordSelector').innerHTML=records.map(r=>`<option value="${r.month}">${r.month}</option>`).join('');document.getElementById('recordSelector').value=m;document.getElementById('categoryInputs').innerHTML=categories.map((c,i)=>`<div class="input-row"><div class="input-top"><div><span class="input-title-main">${c.name}</span><span class="input-title-sub">${sideNames[c.side]} / ${typeNames[c.type]||'その他'}</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="mini" onclick="moveCategory(${i},-1)">上へ</button><button class="mini" onclick="moveCategory(${i},1)">下へ</button><button class="mini" onclick="renameCategory('${c.name}')">編集</button><button class="mini danger" onclick="deleteCategory('${c.name}')">削除</button></div></div><div class="input-values"><div class="readonly"><small>前々月（${addMonths(m,-2)}）</small><b>${p2?yen(p2.values[c.name]||0):'-'}</b></div><div class="readonly"><small>前月（${addMonths(m,-1)}）</small><b>${p?yen(p.values[c.name]||0):'-'}</b></div><input class="input month-input amount-input" data-category="${c.name}" value="${num(cur?.values[c.name]||0)}"></div></div>`).join('')}
-function showPage(p){const input=p==='input';document.getElementById('dashboardPage').classList.toggle('hidden',input);document.getElementById('inputPage').classList.toggle('hidden',!input);window.scrollTo({top:0,behavior:'smooth'})}function loadSelectedRecord(){document.getElementById('monthInput').value=document.getElementById('recordSelector').value;renderInputs()}function prepareNextMonth(){document.getElementById('monthInput').value=addMonths(latest().month,1);renderInputs();document.querySelectorAll('.amount-input').forEach(i=>i.value='')}function copyPreviousToCurrent(){const p=byMonth(addMonths(document.getElementById('monthInput').value,-1));if(!p)return;document.querySelectorAll('.amount-input').forEach(i=>i.value=num(p.values[i.dataset.category]||0))}function saveMonth(){const m=document.getElementById('monthInput').value.trim(),ex=byMonth(m),values={};categories.forEach(c=>values[c.name]=0);document.querySelectorAll('.amount-input').forEach(i=>values[i.dataset.category]=raw(i.value));if(ex)ex.values=values;else records.push({month:m,values});normalize();save();renderAll();showPage('dashboard')}function addCategory(){const name=document.getElementById('newCategoryName').value.trim();if(!name)return alert('科目名を入力してください');if(categories.some(c=>c.name===name))return alert('同じ科目があります');categories.push({name,side:document.getElementById('newCategorySide').value,type:document.getElementById('newCategoryType').value});records.forEach(r=>r.values[name]=0);save();renderAll()}function renameCategory(old){const name=prompt('新しい科目名',old);if(!name||name===old)return;categories.find(c=>c.name===old).name=name;records.forEach(r=>{r.values[name]=r.values[old]||0;delete r.values[old]});save();renderAll()}function deleteCategory(name){if(!confirm(name+'を削除しますか？'))return;categories=categories.filter(c=>c.name!==name);records.forEach(r=>delete r.values[name]);save();renderAll()}function moveCategory(i,d){const n=i+d;if(n<0||n>=categories.length)return;[categories[i],categories[n]]=[categories[n],categories[i]];save();renderAll()}function savePlan(){planSettings={target:raw(document.getElementById('planTarget').value),years:Number(document.getElementById('planYears').value),annualReturn:Number(document.getElementById('planReturn').value),annualBonus:raw(document.getElementById('planBonus').value)};document.querySelectorAll('[data-deposit-category]').forEach(i=>planDeposits[i.dataset.depositCategory]=raw(i.value));save();renderPlan()}
+function showPage(p){const input=p==='input',pl=p==='pl';document.getElementById('dashboardPage').classList.toggle('hidden',input||pl);document.getElementById('inputPage').classList.toggle('hidden',!input);document.getElementById('plPage').classList.toggle('hidden',!pl);if(pl)setTimeout(renderPL,30);window.scrollTo({top:0,behavior:'smooth'})}function loadSelectedRecord(){document.getElementById('monthInput').value=document.getElementById('recordSelector').value;renderInputs()}function prepareNextMonth(){document.getElementById('monthInput').value=addMonths(latest().month,1);renderInputs();document.querySelectorAll('.amount-input').forEach(i=>i.value='')}function copyPreviousToCurrent(){const p=byMonth(addMonths(document.getElementById('monthInput').value,-1));if(!p)return;document.querySelectorAll('.amount-input').forEach(i=>i.value=num(p.values[i.dataset.category]||0))}function saveMonth(){const m=document.getElementById('monthInput').value.trim(),ex=byMonth(m),values={};categories.forEach(c=>values[c.name]=0);document.querySelectorAll('.amount-input').forEach(i=>values[i.dataset.category]=raw(i.value));if(ex)ex.values=values;else records.push({month:m,values});normalize();save();renderAll();showPage('dashboard')}function addCategory(){const name=document.getElementById('newCategoryName').value.trim();if(!name)return alert('科目名を入力してください');if(categories.some(c=>c.name===name))return alert('同じ科目があります');categories.push({name,side:document.getElementById('newCategorySide').value,type:document.getElementById('newCategoryType').value});records.forEach(r=>r.values[name]=0);save();renderAll()}function renameCategory(old){const name=prompt('新しい科目名',old);if(!name||name===old)return;categories.find(c=>c.name===old).name=name;records.forEach(r=>{r.values[name]=r.values[old]||0;delete r.values[old]});save();renderAll()}function deleteCategory(name){if(!confirm(name+'を削除しますか？'))return;categories=categories.filter(c=>c.name!==name);records.forEach(r=>delete r.values[name]);save();renderAll()}function moveCategory(i,d){const n=i+d;if(n<0||n>=categories.length)return;[categories[i],categories[n]]=[categories[n],categories[i]];save();renderAll()}function savePlan(){planSettings={target:raw(document.getElementById('planTarget').value),years:Number(document.getElementById('planYears').value),annualReturn:Number(document.getElementById('planReturn').value),annualBonus:raw(document.getElementById('planBonus').value)};document.querySelectorAll('[data-deposit-category]').forEach(i=>planDeposits[i.dataset.depositCategory]=raw(i.value));save();renderPlan()}
 
 let benchmarkSettings={birthDate:'1998-01-01',household:'couple',target:'assets'};
 const benchmarkTable={
@@ -670,7 +810,135 @@ function renderBenchmark(){
   <p class="sub">注：比較値は年代別金融資産の平均・中央値を用いた簡易推定です。統計上の定義と本アプリの入力定義は完全には一致しません。</p>`;
 }
 
-function renderAll(){normalize();renderDashboard();renderTrend();renderPortfolio();renderStatement();renderAnalysis();renderPlan();renderBenchmark();renderInputs()}load();loadBenchmark();renderAll();
+
+const plRecords=[
+{month:'2025/03',gross:727240,tax:160486,otherDeduction:3680,deductions:164166,assignment:94040,investment:100500,redRockets:20000,coupleSaving:40000,shared:0,subscription:0,cashflow:308534},
+{month:'2025/04',gross:727240,tax:159872,otherDeduction:3680,deductions:163552,assignment:94040,investment:100500,redRockets:20000,coupleSaving:40000,shared:0,subscription:0,cashflow:309148},
+{month:'2025/06',gross:746630,tax:197066,otherDeduction:3680,deductions:197066,assignment:94040,investment:207000,redRockets:20000,coupleSaving:40000,shared:0,subscription:17557,cashflow:170967},
+{month:'2025/07',gross:758466,tax:198691,otherDeduction:3680,deductions:202371,assignment:94040,investment:207000,redRockets:20000,coupleSaving:40000,shared:0,subscription:17557,cashflow:177498},
+{month:'2025/08',gross:718802,tax:189383,otherDeduction:3710,deductions:193093,assignment:0,investment:224200,redRockets:20000,coupleSaving:40000,shared:0,subscription:19177,cashflow:222332},
+{month:'2025/09',gross:692335,tax:184587,otherDeduction:3710,deductions:188297,assignment:0,investment:224200,redRockets:20000,coupleSaving:190600,shared:0,subscription:19177,cashflow:50061},
+{month:'2025/10',gross:726349,tax:193094,otherDeduction:3710,deductions:193094,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19177,cashflow:84278},
+{month:'2025/11',gross:767690,tax:200874,otherDeduction:3710,deductions:200874,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19177,cashflow:117839},
+{month:'2025/12',gross:742883,tax:10689,otherDeduction:3710,deductions:10689,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19177,cashflow:283217},
+{month:'2026/01',gross:678008,tax:181456,otherDeduction:3710,deductions:185166,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19877,cashflow:43165},
+{month:'2026/02',gross:712337,tax:188747,otherDeduction:3710,deductions:188747,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19877,cashflow:73913},
+{month:'2026/03',gross:677307,tax:182155,otherDeduction:3710,deductions:182155,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19877,cashflow:45475},
+{month:'2026/04',gross:678008,tax:182015,otherDeduction:3710,deductions:182015,assignment:0,investment:224200,redRockets:20000,coupleSaving:0,shared:185600,subscription:19877,cashflow:46316}
+];
+function currentPL(){
+  const sel=document.getElementById('plMonthSelect');
+  const month=sel?.value||plRecords[plRecords.length-1].month;
+  return plRecords.find(r=>r.month===month)||plRecords[plRecords.length-1];
+}
+function plValue(r,metric){
+  if(metric==='gross')return r.gross;
+  if(metric==='deductions')return r.deductions;
+  if(metric==='investment')return r.investment;
+  if(metric==='subscription')return r.subscription;
+  if(metric==='shared')return (r.shared||0)+(r.coupleSaving||0);
+  return r.cashflow;
+}
+function plMetricName(metric){
+  return {cashflow:'残存CF',gross:'支給額',deductions:'控除額',investment:'投資関連',subscription:'サブスク',shared:'共同口座・夫婦貯金'}[metric]||'残存CF';
+}
+function setPLTrendSelected(month,value){
+  const el=document.getElementById('plTrendSelected');
+  if(el)el.innerHTML=`<small>${month}</small><b>${yen(value)}</b>`;
+}
+function svgPLBar(data,id,metric='cashflow'){
+  const el=document.getElementById(id);if(!el)return;
+  const vals=data.map(r=>plValue(r,metric));
+  const max=Math.max(...vals,100000);
+  const top=Math.ceil(max/100000)*100000;
+  const w=760,h=330,ml=62,mr=24,mt=28,mb=42,innerW=w-ml-mr,innerH=h-mt-mb;
+  const y=v=>mt+(top-v)*innerH/(top||1),x=i=>ml+i*innerW/data.length;
+  const ticks=[];for(let v=0;v<=top;v+=100000)ticks.push(v);
+  const tickEvery=Math.max(1,Math.ceil(ticks.length/6));
+  const grid=ticks.filter((_,i)=>i%tickEvery===0||i===ticks.length-1).map(v=>`<line x1="${ml}" x2="${w-mr}" y1="${y(v)}" y2="${y(v)}" stroke="#e2e8f0"/><text x="${ml-8}" y="${y(v)+5}" fill="#64748b" font-size="13" font-weight="800" text-anchor="end">${axisTick(v)}</text>`).join('');
+  const bw=Math.max(10,innerW/data.length-8);
+  const bars=data.map((r,i)=>{
+    const v=vals[i],bh=Math.max(2,innerH*v/(top||1)),xx=x(i)+4,yy=h-mb-bh,active=i===data.length-1;
+    return `<rect onclick="setPLTrendSelected('${r.month}',${v})" class="bar-rect" x="${xx}" y="${yy}" width="${bw}" height="${bh}" rx="3" fill="${active?'#10b981':'#93c5fd'}" opacity=".92"/>`;
+  }).join('');
+  const labelEvery=Math.max(1,Math.ceil(data.length/6));
+  const labels=data.map((r,i)=>(i%labelEvery===0||i===data.length-1)?`<text x="${x(i)+bw/2}" y="${h-16}" fill="#64748b" font-size="13" font-weight="800" text-anchor="middle">${axisMonthLabel(r.month)}</text>`:'').join('');
+  setPLTrendSelected(data[data.length-1].month,vals[vals.length-1]);
+  el.innerHTML=`<svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${grid}${bars}<line x1="${ml}" x2="${w-mr}" y1="${h-mb}" y2="${h-mb}" stroke="#e2e8f0"/>${labels}</svg>`;
+}
+function renderPLTrend(){
+  const metric=document.getElementById('plMetricSelect')?.value||'cashflow';
+  svgPLBar(plRecords,'plTrendChart',metric);
+}
+function plBreak(label,value,total,color){
+  const pct=total?value/total*100:0;
+  return `<div class="pl-break-row"><b>${label}</b><b>${yen(value)}</b><div class="pl-break-track"><span style="width:${Math.min(100,pct)}%;background:${color}"></span></div><small>${pct.toFixed(1)}% of 支給額</small><small style="text-align:right">${pct.toFixed(1)}%</small></div>`;
+}
+function pacard(label,val,desc,cls=''){
+  return `<div class="pl-analysis-card"><small>${label}</small><b class="${cls}">${val}</b><span class="desc">${desc}</span></div>`;
+}
+function renderPL(){
+  const sel=document.getElementById('plMonthSelect');
+  if(!sel)return;
+  sel.innerHTML=plRecords.map(r=>`<option value="${r.month}">${r.month}</option>`).join('');
+  if(!sel.value)sel.value=plRecords[plRecords.length-1].month;
+  const r=currentPL();
+  const prev=plRecords[plRecords.indexOf(r)-1];
+  const cfChange=prev?r.cashflow-prev.cashflow:null;
+  const discretionary=r.cashflow;
+  const shared=(r.shared||0)+(r.coupleSaving||0);
+  const savings=r.investment+(r.redRockets||0)+shared;
+  const fixed=r.deductions+r.investment+shared+(r.subscription||0)+(r.redRockets||0)+(r.assignment||0);
+  document.getElementById('plClosingBadge').textContent=r.month+' PL';
+  document.getElementById('plNetCashDisplay').textContent=yen(r.cashflow);
+  document.getElementById('plHeroLines').innerHTML=`<div>支給額 ${yen(r.gross)} / 投資・貯蓄 ${yen(savings)}</div><div>${prev?`前月比 ${cfChange>=0?'+':'−'}${yen(Math.abs(cfChange))}`:'前月比 -'} / 残存CF率 ${(r.cashflow/r.gross*100).toFixed(1)}%</div>`;
+  document.getElementById('plPhaseText').textContent=r.cashflow>=100000?'高CF創出フェーズ':r.cashflow>=50000?'安定CFフェーズ':'低CF・支出集中フェーズ';
+  const best=plRecords.reduce((a,b)=>b.cashflow>a.cashflow?b:a,plRecords[0]);
+  document.getElementById('plBestPill').textContent='最高CF '+yen(best.cashflow);
+  document.getElementById('plGrossKpi').textContent=yen(r.gross);
+  document.getElementById('plDeductionKpi').textContent='−'+yen(r.deductions);
+  document.getElementById('plInvestmentKpi').textContent=yen(savings);
+  document.getElementById('plMarginKpi').textContent=(r.cashflow/r.gross*100).toFixed(1)+'%';
+  document.getElementById('plStatement').innerHTML=`
+    <div class="pl-line total"><div><b>売上高</b><small>給与・手当・奨励金等</small></div><b>${yen(r.gross)}</b></div>
+    <div class="pl-line loss"><div><b>税金・社会保険等</b><small>所得税・住民税・社会保険・組合費等</small></div><b>−${yen(r.deductions)}</b></div>
+    <div class="pl-line loss"><div><b>単身赴任関連</b><small>帰省実費等の実質相殺分</small></div><b>−${yen(r.assignment||0)}</b></div>
+    <div class="pl-line loss"><div><b>投資関連</b><small>NISA・DC・持株会・Bitcoin</small></div><b>−${yen(r.investment)}</b></div>
+    <div class="pl-line loss"><div><b>共同支出・貯金</b><small>共同口座・夫婦貯金・レッドロケッツ</small></div><b>−${yen(shared+(r.redRockets||0))}</b></div>
+    <div class="pl-line loss"><div><b>サブスクリプション</b><small>Amazon・KDDI・ChatGPT・ジム</small></div><b>−${yen(r.subscription||0)}</b></div>
+    <div class="pl-line profit"><div><b>当月残存キャッシュフロー</b><small>自由に使える・残る現金</small></div><b>${yen(r.cashflow)}</b></div>`;
+  document.getElementById('plBreakdown').innerHTML=[
+    plBreak('税金・社会保険等',r.deductions,r.gross,'linear-gradient(90deg,#ef4444,#fb7185)'),
+    plBreak('投資関連',r.investment,r.gross,'linear-gradient(90deg,#2563eb,#38bdf8)'),
+    plBreak('共同支出・貯金',shared+(r.redRockets||0),r.gross,'linear-gradient(90deg,#8b5cf6,#6366f1)'),
+    plBreak('サブスクリプション',r.subscription||0,r.gross,'linear-gradient(90deg,#f59e0b,#f97316)'),
+    plBreak('残存CF',r.cashflow,r.gross,'linear-gradient(90deg,#10b981,#34d399)')
+  ].join('');
+  const invRate=r.investment/r.gross*100, saveRate=savings/r.gross*100, taxRate=r.deductions/r.gross*100, fixedRate=fixed/r.gross*100, subRate=(r.subscription||0)/r.gross*100, cfRate=r.cashflow/r.gross*100;
+  document.getElementById('plAnalysis').innerHTML=`
+    <div class="pl-analysis-group"><h3>稼ぐ力</h3><div class="pl-analysis-grid">
+      ${pacard('支給額',yen(r.gross),'給与・手当・奨励金を含む月次売上。')}
+      ${pacard('残存CF率',cfRate.toFixed(1)+'%','支給額のうち最終的に残る割合。',cfRate>=10?'pos':'neg')}
+      ${pacard('前月比CF',prev?(cfChange>=0?'+':'−')+yen(Math.abs(cfChange)):'-','前月からの残存CF変化。',cfChange>=0?'pos':'neg')}
+      ${pacard('月次CF',yen(r.cashflow),'生活・投資後に残る現金。')}
+    </div></div>
+    <div class="pl-analysis-group"><h3>残す力</h3><div class="pl-analysis-grid">
+      ${pacard('投資率',invRate.toFixed(1)+'%','支給額に対する投資関連比率。','pos')}
+      ${pacard('貯蓄・投資率',saveRate.toFixed(1)+'%','投資＋共同貯金等を含む広義の貯蓄率。','pos')}
+      ${pacard('投資額',yen(r.investment),'NISA・DC・持株会・Bitcoin。')}
+      ${pacard('共同貯蓄等',yen(shared+(r.redRockets||0)),'共同口座・夫婦貯金・レッドロケッツ。')}
+    </div></div>
+    <div class="pl-analysis-group"><h3>使う力</h3><div class="pl-analysis-grid">
+      ${pacard('控除率',taxRate.toFixed(1)+'%','税金・社会保険等の負担率。')}
+      ${pacard('固定流出率',fixedRate.toFixed(1)+'%','控除・投資・共同支出・サブスク等の合計。')}
+      ${pacard('サブスク率',subRate.toFixed(1)+'%','固定サブスクの重さ。')}
+      ${pacard('サブスク額',yen(r.subscription||0),'Amazon・KDDI・ChatGPT・ジム。')}
+    </div></div>`;
+  svgPLBar(plRecords,'plHeroChart','cashflow');
+  renderPLTrend();
+}
+
+function renderAll(){normalize();renderDashboard();renderTrend();renderPortfolio();renderStatement();renderAnalysis();renderPlan();renderBenchmark();renderInputs();renderPL()}load();loadBenchmark();renderAll();
 </script>
 </body>
 </html>
